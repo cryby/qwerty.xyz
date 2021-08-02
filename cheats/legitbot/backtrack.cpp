@@ -79,7 +79,7 @@ void NewBacktrack::LegitBacktrack(CUserCmd* cmd)
 	{
 		float tempFloat = FLT_MAX;
 		Vector ViewDir = angle_vector(cmd->m_viewangles + (local->m_aimPunchAngle() * 2.f));
-		for (int t = 0; t < g_cfg.legitbot.weapon[hooks::legit_weapon].backtrack_ticks; ++t)
+		for (int t = 0; t < config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].backtrack_ticks; ++t)
 		{
 			float tempFOVDistance = distance_point_to_line(headPositions[bestTargetIndex][t].hitboxPos, local->GetEyePos(), ViewDir);
 			if (tempFloat > tempFOVDistance && headPositions[bestTargetIndex][t].simtime > local->m_flSimulationTime() - 1)
@@ -246,7 +246,7 @@ void CBacktrack::Run(CUserCmd* pCmd) {
 
 		for (auto& bd : cur_data) {
 			float deltaTime = correct_time - (m_globals()->m_curtime - bd.simTime);
-			if (std::fabsf(deltaTime) > g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].backtrack_ticks)
+			if (std::fabsf(deltaTime) > config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].backtrack_ticks)
 				continue;
 
 			math::vector_angles(bd.hitboxPos - localEyePos, angles);

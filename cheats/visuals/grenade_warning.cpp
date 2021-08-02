@@ -86,7 +86,7 @@ void shoto(int x, int y, float d, int rad)
         pulse += 1 / 1000.f;
         if (pulse >= 1.f)
             pulse = 0;
-        filled_circle(x, y, (rad + d / 2 * pulse), 18, Color(g_cfg.esp.grenade_warning_color.r(), g_cfg.esp.grenade_warning_color.g(), g_cfg.esp.grenade_warning_color.b(), int(25 * pulse)));
+        filled_circle(x, y, (rad + d / 2 * pulse), 18, Color(config_system.g_cfg.esp.grenade_warning_color.r(), config_system.g_cfg.esp.grenade_warning_color.g(), config_system.g_cfg.esp.grenade_warning_color.b(), int(25 * pulse)));
     }
 }
 
@@ -100,8 +100,8 @@ void DrawBeamPaw(Vector src, Vector end, Color color)
     beamInfo.m_pszModelName = "sprites/bubble.vmt";
     beamInfo.m_pszHaloName = "sprites/bubble.vmt";
     beamInfo.m_flHaloScale = 1.0;
-    beamInfo.m_flWidth = g_cfg.warning.trace.width;
-    beamInfo.m_flEndWidth = g_cfg.warning.trace.width;
+    beamInfo.m_flWidth = config_system.g_cfg.warning.trace.width;
+    beamInfo.m_flEndWidth = config_system.g_cfg.warning.trace.width;
     beamInfo.m_flFadeLength = 0.2f;
     beamInfo.m_flAmplitude = 0;
     beamInfo.m_flBrightness = float(220);
@@ -130,8 +130,8 @@ void DrawBeamPawWall(Vector src, Vector end, Color color)
     beamInfo.m_pszModelName = "sprites/light_glow02_add_noz.vmt";
     beamInfo.m_pszHaloName = "sprites/light_glow02_add_noz.vmt";
     beamInfo.m_flHaloScale = 1.0;
-    beamInfo.m_flWidth = g_cfg.warning.trace.width;
-    beamInfo.m_flEndWidth = g_cfg.warning.trace.width;
+    beamInfo.m_flWidth = config_system.g_cfg.warning.trace.width;
+    beamInfo.m_flEndWidth = config_system.g_cfg.warning.trace.width;
     beamInfo.m_flFadeLength = 0.2f;
     beamInfo.m_flAmplitude = 0;
     beamInfo.m_flBrightness = float(180);
@@ -206,30 +206,30 @@ bool c_grenade_prediction::data_t::draw() const
 
             if (prev_on_screen && cur_on_screen)
             {
-                if (g_cfg.warning.trace.enable) {
-                    if (!g_cfg.warning.trace.type)
+                if (config_system.g_cfg.warning.trace.enable) {
+                    if (!config_system.g_cfg.warning.trace.type)
                     {
                         Vector sstart, eend;
-                        DrawBeamPaw(std::get< Vector >(m_path.at(i - 1)), std::get< Vector >(m_path.at(i)), Color(g_cfg.warning.trace.color));
-                        if (!g_cfg.warning.trace.visible_only)
-                            DrawBeamPawWall(std::get< Vector >(m_path.at(i - 1)), std::get< Vector >(m_path.at(i)), Color(g_cfg.warning.trace.color));
+                        DrawBeamPaw(std::get< Vector >(m_path.at(i - 1)), std::get< Vector >(m_path.at(i)), Color(config_system.g_cfg.warning.trace.color));
+                        if (!config_system.g_cfg.warning.trace.visible_only)
+                            DrawBeamPawWall(std::get< Vector >(m_path.at(i - 1)), std::get< Vector >(m_path.at(i)), Color(config_system.g_cfg.warning.trace.color));
                     }
-                    if (g_cfg.warning.trace.type == 1)
+                    if (config_system.g_cfg.warning.trace.type == 1)
                     {
                         Vector sstart, eend;
 
                         auto rainbow_col = Color::FromHSB((360 / m_path.size() * i) / 360.f, 0.9f, 0.8f);
                         DrawBeamPaw(std::get< Vector >(m_path.at(i - 1)), std::get< Vector >(m_path.at(i)), Color(rainbow_col));
-                        if (!g_cfg.warning.trace.visible_only)
+                        if (!config_system.g_cfg.warning.trace.visible_only)
                             DrawBeamPawWall(std::get< Vector >(m_path.at(i - 1)), std::get< Vector >(m_path.at(i)), Color(rainbow_col));
                     }
-                    else if (g_cfg.warning.trace.type == 2)
+                    else if (config_system.g_cfg.warning.trace.type == 2)
                     {
 
-                        auto color = g_cfg.esp.grenade_warning_color;
+                        auto color = config_system.g_cfg.esp.grenade_warning_color;
                         Vector sstart, eend;
                         if (math::world_to_screen(std::get< Vector >(m_path.at(i - 1)), sstart) && math::world_to_screen(std::get< Vector >(m_path.at(i)), eend))
-                            render::get().line(sstart.x, sstart.y, eend.x, eend.y, Color(g_cfg.warning.trace.color));
+                            render::get().line(sstart.x, sstart.y, eend.x, eend.y, Color(config_system.g_cfg.warning.trace.color));
 
 
                     }
@@ -243,7 +243,7 @@ bool c_grenade_prediction::data_t::draw() const
     if (m_index == 45)
         return true;
 
-    if (!g_cfg.warning.main.enable)
+    if (!config_system.g_cfg.warning.main.enable)
         return true;
 
     float percent = ((m_expire_time - m_globals()->m_curtime) / TICKS_TO_TIME(m_tick));
@@ -332,53 +332,53 @@ bool c_grenade_prediction::data_t::draw() const
         Vector screenPos;
         int red_adjust = 0;
         auto dist = g_ctx.local()->GetAbsOrigin().DistTo(m_origin);
-        if (g_cfg.warning.main.d_warn_type == 1) {
+        if (config_system.g_cfg.warning.main.d_warn_type == 1) {
             if (dist <= (!is_he ? 150 : 350))
                 red_adjust = int(195 * (1.f - (dist / (!is_he ? 150 : 350))));
         }
         /*Visible*/
         if (isOnScreen(m_origin, screenPos))
         {
-            bool O = g_cfg.warning.main.color_by_time;
+            bool O = config_system.g_cfg.warning.main.color_by_time;
             Color g_col = Color(min(510 * int(percent * 100) / 100, 255), min(510 * (102 - int(percent * 100)) / 110, 255), 5);
             Vector vOutStart, vOutEnd;
             if (math::world_to_screen(m_origin, vOutStart))
             {
                 if (end_damage > 0 && is_he) {
-                    if (g_cfg.warning.main.show_bg) {
-                        filled_circle(vOutStart.x, vOutStart.y, 19, 26, Color(g_cfg.warning.main.bg_col));
-                        if (g_cfg.warning.main.d_warn_type == 1)
+                    if (config_system.g_cfg.warning.main.show_bg) {
+                        filled_circle(vOutStart.x, vOutStart.y, 19, 26, Color(config_system.g_cfg.warning.main.bg_col));
+                        if (config_system.g_cfg.warning.main.d_warn_type == 1)
                             filled_circle(vOutStart.x, vOutStart.y, 19, 26, Color(25 + red_adjust, 25, 25, red_adjust));
                     }
-                    if (g_cfg.warning.main.show_icon)
-                        render::get().text(fonts[GRENADES], vOutStart.x, vOutStart.y - 16, O ? g_col : g_cfg.warning.main.icon_col, HFONT_CENTERED_X, !is_he ? "l" : "j");
+                    if (config_system.g_cfg.warning.main.show_icon)
+                        render::get().text(fonts[GRENADES], vOutStart.x, vOutStart.y - 16, O ? g_col : config_system.g_cfg.warning.main.icon_col, HFONT_CENTERED_X, !is_he ? "l" : "j");
                     std::string dmg = "-"; dmg += std::to_string(int(end_damage));
-                    if (g_cfg.warning.main.show_damage_dist)
+                    if (config_system.g_cfg.warning.main.show_damage_dist)
                         render::get().text(fonts[NAME], vOutStart.x, vOutStart.y + 1, Color(255, 255, 255), HFONT_CENTERED_X, dmg.c_str());
-                    if (g_cfg.warning.main.show_timer)
-                        render::get().CircularProgressBar(vOutStart.x, vOutStart.y, 18, 19, 90, 360 * percent, O ? g_col : g_cfg.warning.main.timer_col, false);
+                    if (config_system.g_cfg.warning.main.show_timer)
+                        render::get().CircularProgressBar(vOutStart.x, vOutStart.y, 18, 19, 90, 360 * percent, O ? g_col : config_system.g_cfg.warning.main.timer_col, false);
                 }
                 else {
-                    if (g_cfg.warning.main.show_bg) {
-                        filled_circle(vOutStart.x, vOutStart.y, 19, 26, Color(g_cfg.warning.main.bg_col));
-                        if (g_cfg.warning.main.d_warn_type == 1)
+                    if (config_system.g_cfg.warning.main.show_bg) {
+                        filled_circle(vOutStart.x, vOutStart.y, 19, 26, Color(config_system.g_cfg.warning.main.bg_col));
+                        if (config_system.g_cfg.warning.main.d_warn_type == 1)
                             filled_circle(vOutStart.x, vOutStart.y, 19, 26, Color(25 + red_adjust, 25, 25, red_adjust));
                     }
-                    if (g_cfg.warning.main.show_icon)
-                        render::get().text(fonts[GRENADES], vOutStart.x, vOutStart.y - 16, O ? g_col : g_cfg.warning.main.icon_col, HFONT_CENTERED_X, !is_he ? "l" : "j");
+                    if (config_system.g_cfg.warning.main.show_icon)
+                        render::get().text(fonts[GRENADES], vOutStart.x, vOutStart.y - 16, O ? g_col : config_system.g_cfg.warning.main.icon_col, HFONT_CENTERED_X, !is_he ? "l" : "j");
                     std::string dmg = ""; dmg += std::to_string(int(max(g_ctx.local()->GetAbsOrigin().DistTo(m_origin) / 3.28, 0))); dmg += "m";
-                    if (g_cfg.warning.main.show_damage_dist)
+                    if (config_system.g_cfg.warning.main.show_damage_dist)
                         render::get().text(fonts[NAME], vOutStart.x, vOutStart.y + 1, Color(255, 255, 255), HFONT_CENTERED_X, dmg.c_str());
-                    if (g_cfg.warning.main.show_timer)
-                        render::get().CircularProgressBar(vOutStart.x, vOutStart.y, 18, 19, 90, 360 * percent, O ? g_col : g_cfg.warning.main.timer_col, false);
+                    if (config_system.g_cfg.warning.main.show_timer)
+                        render::get().CircularProgressBar(vOutStart.x, vOutStart.y, 18, 19, 90, 360 * percent, O ? g_col : config_system.g_cfg.warning.main.timer_col, false);
                 }
 
             }
         }
         /*Out of Fov*/
-        if (!g_cfg.warning.main.visible_only && !isOnScreen(m_origin, screenPos))
+        if (!config_system.g_cfg.warning.main.visible_only && !isOnScreen(m_origin, screenPos))
         {
-            bool O = g_cfg.warning.main.color_by_time;
+            bool O = config_system.g_cfg.warning.main.color_by_time;
             Color g_col = Color(min(510 * int(percent * 100) / 100, 255), min(510 * (102 - int(percent * 100)) / 110, 255), 5);
             Vector viewAngles;
             m_engine()->GetViewAngles(viewAngles);
@@ -407,32 +407,32 @@ bool c_grenade_prediction::data_t::draw() const
             auto warn = Vector2D(newPointX2, newPointY2);
             math::rotate_triangle(points, viewAngles.y - math::calculate_angle(g_ctx.globals.eye_pos, m_origin).y - 90.0f);
             if (end_damage > 0 && is_he) {
-                if (g_cfg.warning.main.show_bg) {
-                    filled_circle(warn.x, warn.y, 19, 26, Color(g_cfg.warning.main.bg_col));
-                    if (g_cfg.warning.main.d_warn_type == 1)
+                if (config_system.g_cfg.warning.main.show_bg) {
+                    filled_circle(warn.x, warn.y, 19, 26, Color(config_system.g_cfg.warning.main.bg_col));
+                    if (config_system.g_cfg.warning.main.d_warn_type == 1)
                         filled_circle(warn.x, warn.y, 19, 26, Color(25 + red_adjust, 25, 25, alp));
                 }
-                if (g_cfg.warning.main.show_icon)
-                    render::get().text(fonts[GRENADES], warn.x, warn.y - 16, O ? g_col : g_cfg.warning.main.icon_col, HFONT_CENTERED_X, !is_he ? "l" : "j");
+                if (config_system.g_cfg.warning.main.show_icon)
+                    render::get().text(fonts[GRENADES], warn.x, warn.y - 16, O ? g_col : config_system.g_cfg.warning.main.icon_col, HFONT_CENTERED_X, !is_he ? "l" : "j");
                 std::string dmg = "-"; dmg += std::to_string(int(end_damage));
-                if (g_cfg.warning.main.show_damage_dist)
+                if (config_system.g_cfg.warning.main.show_damage_dist)
                     render::get().text(fonts[NAME], warn.x, warn.y + 1, Color(255, 255, 255), HFONT_CENTERED_X, dmg.c_str());
-                if (g_cfg.warning.main.show_timer)
-                    render::get().CircularProgressBar(warn.x, warn.y, 18, 19, 90, 360 * percent, O ? g_col : g_cfg.warning.main.timer_col, false);
+                if (config_system.g_cfg.warning.main.show_timer)
+                    render::get().CircularProgressBar(warn.x, warn.y, 18, 19, 90, 360 * percent, O ? g_col : config_system.g_cfg.warning.main.timer_col, false);
             }
             else {
-                if (g_cfg.warning.main.show_bg) {
-                    filled_circle(warn.x, warn.y, 19, 26, Color(g_cfg.warning.main.bg_col));
-                    if (g_cfg.warning.main.d_warn_type == 1)
+                if (config_system.g_cfg.warning.main.show_bg) {
+                    filled_circle(warn.x, warn.y, 19, 26, Color(config_system.g_cfg.warning.main.bg_col));
+                    if (config_system.g_cfg.warning.main.d_warn_type == 1)
                         filled_circle(warn.x, warn.y, 19, 26, Color(25 + red_adjust, 25, 25, alp));
                 }
-                if (g_cfg.warning.main.show_icon)
-                    render::get().text(fonts[GRENADES], warn.x, warn.y - 16, O ? g_col : g_cfg.warning.main.icon_col, HFONT_CENTERED_X, !is_he ? "l" : "j");
+                if (config_system.g_cfg.warning.main.show_icon)
+                    render::get().text(fonts[GRENADES], warn.x, warn.y - 16, O ? g_col : config_system.g_cfg.warning.main.icon_col, HFONT_CENTERED_X, !is_he ? "l" : "j");
                 std::string dmg = ""; dmg += std::to_string(int(max((g_ctx.local()->GetAbsOrigin().DistTo(m_origin)) / 3.28, 0))); dmg += "m";
-                if (g_cfg.warning.main.show_damage_dist)
+                if (config_system.g_cfg.warning.main.show_damage_dist)
                     render::get().text(fonts[NAME], warn.x, warn.y + 1, Color(255, 255, 255), HFONT_CENTERED_X, dmg.c_str());
-                if (g_cfg.warning.main.show_timer)
-                    render::get().CircularProgressBar(warn.x, warn.y, 18, 19, 90, 360 * percent, O ? g_col : g_cfg.warning.main.timer_col, false);
+                if (config_system.g_cfg.warning.main.show_timer)
+                    render::get().CircularProgressBar(warn.x, warn.y, 18, 19, 90, 360 * percent, O ? g_col : config_system.g_cfg.warning.main.timer_col, false);
             }
         }
     }
@@ -455,7 +455,7 @@ void c_grenade_prediction::grenade_warning(projectile_t* entity)
         last_server_tick = m_globals()->m_curtime;
     }
 
-    if (entity->IsDormant() || !g_cfg.esp.grenade_warning)
+    if (entity->IsDormant() || !config_system.g_cfg.esp.grenade_warning)
         return;
 
     const auto client_class = entity->GetClientClass();

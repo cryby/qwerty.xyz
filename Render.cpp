@@ -5,9 +5,9 @@
 #include "cheats/visuals/GrenadePrediction.h"
 #include "cheats/visuals/other_esp.h"
 #include "cheats/visuals/world_esp.h"
-#include "cheats/visuals/GHelper.h"
+//#include "cheats/visuals/GHelper.h"
 #include "cheats/misc/logs.h"
-#include "cheats/movement/movements.h"
+//#include "cheats/movement/movements.h"
 #include "cheats/movement/movementrecorder.h"
 #include "cheats/legitbot/legitbot.h"
 #include "cheats/ragebot/aim.h"
@@ -46,7 +46,7 @@ void ImGuiRendering::BeginScene()
 		if (!g_ctx.local()->m_bIsScoped())
 			anim1 = 20;
 
-		if (config_system.g_cfg.esp.REMOVALS_SCOPE && g_ctx.globals.scoped && weapon->is_sniper())
+		if (g_ctx.globals.scoped && weapon->is_sniper())
 		{
 			static int w, h;
 			m_engine()->GetScreenSize(w, h);
@@ -63,24 +63,24 @@ void ImGuiRendering::BeginScene()
 			window->DrawList->AddRectFilledMultiColor(ImVec2(w / 2, h / 2 + 20), ImVec2(w / 2 - 2, h / 2 + anim1), ImColor(255, 255, 255, 170), ImColor(255, 255, 255, 170), ImColor(255, 255, 255, 0), ImColor(255, 255, 255, 0));
 
 		}
-		if (config_system.g_cfg.misc.trail_types > 1)
-			g_Movement.MovementTrails();
-		CGrenadePrediction::get().draw();
-		otheresp::get().zeuseknife();
-		otheresp::get().automatic_peek_indicator();
-		g_Movement.Draw();
-		legit_bot::get().draw_fov();
+		/*if (config_system.config_system.g_cfg.misc.trail_types > 1)
+			g_Movement.MovementTrails();*/
+		//CGrenadePrediction::get().draw();
+		//otheresp::get().zeuseknife();
+		//otheresp::get().automatic_peek_indicator();
+		//g_Movement.Draw();
+		//legit_bot::get().draw_fov();
 		g_MovementRecorder.MovementD();
-		worldesp::get().grenade_tracer();
-		worldesp::get().paint_traverse();
-		playeresp::get().paint_traverse();
-		visuals::DrawRing3D();
-		visuals::RenderCircle();
-		visuals::RenderInfo();
-		otheresp::get().hitmarker_paint();
+		//worldesp::get().grenade_tracer();
+		//worldesp::get().paint_traverse();
+		//playeresp::get().paint_traverse();
+		//visuals::DrawRing3D();
+		//visuals::RenderCircle();
+		//visuals::RenderInfo();
+		//otheresp::get().hitmarker_paint();
 
-		if (config_system.g_cfg.misc.events_to_log)
-			eventlogs::get().paint_traverse();
+		//if (config_system.config_system.g_cfg.misc.events_to_log)
+			//eventlogs::get().paint_traverse();
 	}
 
 

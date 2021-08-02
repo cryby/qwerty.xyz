@@ -31,7 +31,7 @@ void __fastcall hooks::hooked_runcommand(void* ecx, void* edx, player_t* player,
 		return;
 	}
 
-	if (g_cfg.ragebot.enable && player->is_alive())
+	if (config_system.g_cfg.ragebot.enable && player->is_alive())
 	{
 		auto weapon = player->m_hActiveWeapon().Get();
 
@@ -97,7 +97,7 @@ bool __stdcall hooks::hooked_inprediction()
 	static auto original_fn = prediction_hook->get_func_address <InPrediction_t> (14);
 	static auto maintain_sequence_transitions = util::FindSignature(crypt_str("client.dll"), crypt_str("84 C0 74 17 8B 87"));
 
-	if ((g_cfg.ragebot.enable || g_cfg.legitbot.enabled) && g_ctx.globals.setuping_bones && (uintptr_t)_ReturnAddress() == maintain_sequence_transitions)
+	if ((config_system.g_cfg.ragebot.enable || config_system.g_cfg.legitbot.enabled) && g_ctx.globals.setuping_bones && (uintptr_t)_ReturnAddress() == maintain_sequence_transitions)
 		return true;
 
 	return original_fn(m_prediction());

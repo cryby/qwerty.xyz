@@ -12,7 +12,7 @@ void TimeWarp::CreateMove(CUserCmd* cmd)
     if (!g_ctx.local()->is_alive())
         return;
 
-    if (!g_cfg.legitbot.enabled)
+    if (!config_system.g_cfg.legitbot.enabled)
         return;
 
     for (auto i = 1; i < m_globals()->m_maxclients; i++) //-V807
@@ -39,7 +39,7 @@ void TimeWarp::CreateMove(CUserCmd* cmd)
         float simtime = pEntity->m_flSimulationTime();
         Vector hitboxPos = pEntity->hitbox_position(0);
 
-        switch (g_cfg.legitbot.weapon[hooks::legit_weapon].accuracy_boost_type)
+        switch (config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].accuracy_boost_type)
         {
         case 0:
             accuracy_boost = 4;

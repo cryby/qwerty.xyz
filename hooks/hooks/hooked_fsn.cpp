@@ -76,16 +76,16 @@ void weather()
 
 void remove_smoke()
 {
-	if (g_cfg.player.enable && g_cfg.esp.removals[REMOVALS_SMOKE])
+	if (config_system.g_cfg.player.enable && config_system.g_cfg.esp.removals[REMOVALS_SMOKE])
 	{
 		static auto smoke_count = *reinterpret_cast<uint32_t**>(util::FindSignature(crypt_str("client.dll"), crypt_str("A3 ? ? ? ? 57 8B CB")) + 0x1);
 		*(int*)smoke_count = 0;
 	}
 
-	if (g_ctx.globals.should_remove_smoke == g_cfg.player.enable && g_cfg.esp.removals[REMOVALS_SMOKE])
+	if (g_ctx.globals.should_remove_smoke == config_system.g_cfg.player.enable && config_system.g_cfg.esp.removals[REMOVALS_SMOKE])
 		return;
 
-	g_ctx.globals.should_remove_smoke = g_cfg.player.enable && g_cfg.esp.removals[REMOVALS_SMOKE];
+	g_ctx.globals.should_remove_smoke = config_system.g_cfg.player.enable && config_system.g_cfg.esp.removals[REMOVALS_SMOKE];
 
 	static std::vector <const char*> smoke_materials =
 	{
@@ -167,13 +167,13 @@ void __stdcall hooks::hooked_fsn(ClientFrameStage_t stage)
 
 	if (stage == FRAME_RENDER_START)
 	{
-		if (g_cfg.esp.client_bullet_impacts)
+		if (config_system.g_cfg.esp.client_bullet_impacts)
 		{
 			static auto last_count = 0;
 			auto& client_impact_list = *(CUtlVector <client_hit_verify_t>*)((uintptr_t)g_ctx.local() + 0xBC00);
 
 			for (auto i = client_impact_list.Count(); i > last_count; --i)
-				m_debugoverlay()->BoxOverlay(client_impact_list[i - 1].position, Vector(-2.0f, -2.0f, -2.0f), Vector(2.0f, 2.0f, 2.0f), QAngle(0.0f, 0.0f, 0.0f), g_cfg.esp.client_bullet_impacts_color.r(), g_cfg.esp.client_bullet_impacts_color.g(), g_cfg.esp.client_bullet_impacts_color.b(), g_cfg.esp.client_bullet_impacts_color.a(), 4.0f);
+				m_debugoverlay()->BoxOverlay(client_impact_list[i - 1].position, Vector(-2.0f, -2.0f, -2.0f), Vector(2.0f, 2.0f, 2.0f), QAngle(0.0f, 0.0f, 0.0f), config_system.g_cfg.esp.client_bullet_impacts_color.r(), config_system.g_cfg.esp.client_bullet_impacts_color.g(), config_system.g_cfg.esp.client_bullet_impacts_color.b(), config_system.g_cfg.esp.client_bullet_impacts_color.a(), 4.0f);
 
 			if (client_impact_list.Count() != last_count)
 				last_count = client_impact_list.Count();
@@ -182,13 +182,13 @@ void __stdcall hooks::hooked_fsn(ClientFrameStage_t stage)
 		remove_smoke();
 		misc::get().ragdolls();
 
-		if (g_cfg.esp.removals[REMOVALS_FLASH] && g_ctx.local()->m_flFlashDuration() && g_cfg.player.enable) //-V807
+		if (config_system.g_cfg.esp.removals[REMOVALS_FLASH] && g_ctx.local()->m_flFlashDuration() && config_system.g_cfg.player.enable) //-V807
 			g_ctx.local()->m_flFlashDuration() = 0.0f;
 
-		if (*(bool*)m_postprocessing() != (g_cfg.player.enable && g_cfg.esp.removals[REMOVALS_POSTPROCESSING] && (!g_cfg.esp.world_modulation || !g_cfg.esp.exposure)))
-			*(bool*)m_postprocessing() = g_cfg.player.enable && g_cfg.esp.removals[REMOVALS_POSTPROCESSING] && (!g_cfg.esp.world_modulation || !g_cfg.esp.exposure);
+		if (*(bool*)m_postprocessing() != (config_system.g_cfg.player.enable && config_system.g_cfg.esp.removals[REMOVALS_POSTPROCESSING] && (!config_system.g_cfg.esp.world_modulation || !config_system.g_cfg.esp.exposure)))
+			*(bool*)m_postprocessing() = config_system.g_cfg.player.enable && config_system.g_cfg.esp.removals[REMOVALS_POSTPROCESSING] && (!config_system.g_cfg.esp.world_modulation || !config_system.g_cfg.esp.exposure);
 
-		if (g_cfg.esp.removals[REMOVALS_RECOIL] && g_cfg.player.enable)
+		if (config_system.g_cfg.esp.removals[REMOVALS_RECOIL] && config_system.g_cfg.player.enable)
 		{
 			aim_punch = &g_ctx.local()->m_aimPunchAngle();
 			view_punch = &g_ctx.local()->m_viewPunchAngle();
@@ -206,7 +206,7 @@ void __stdcall hooks::hooked_fsn(ClientFrameStage_t stage)
 		{
 			g_ctx.globals.in_thirdperson = key_binds::get().get_key_bind_state(17);
 
-			if (g_cfg.player.enable && g_cfg.esp.removals[REMOVALS_SCOPE])
+			if (config_system.g_cfg.player.enable && config_system.g_cfg.esp.removals[REMOVALS_SCOPE])
 			{
 				auto weapon = g_ctx.local()->m_hActiveWeapon().Get();
 
@@ -228,9 +228,9 @@ void __stdcall hooks::hooked_fsn(ClientFrameStage_t stage)
 	{
 		static auto rain = false;
 
-		if (rain != g_cfg.esp.rain || g_ctx.globals.should_update_weather)
+		if (rain != config_system.g_cfg.esp.rain || g_ctx.globals.should_update_weather)
 		{
-			rain = g_cfg.esp.rain;
+			rain = config_system.g_cfg.esp.rain;
 
 			if (g_ctx.globals.m_networkable)
 			{
@@ -244,8 +244,8 @@ void __stdcall hooks::hooked_fsn(ClientFrameStage_t stage)
 			g_ctx.globals.should_update_weather = false;
 		}
 
-		g_cfg.player_list.refreshing = true;
-		g_cfg.player_list.players.clear();
+		config_system.g_cfg.player_list.refreshing = true;
+		config_system.g_cfg.player_list.players.clear();
 
 		for (auto i = 1; i < m_globals()->m_maxclients; i++)
 		{
@@ -253,18 +253,18 @@ void __stdcall hooks::hooked_fsn(ClientFrameStage_t stage)
 
 			if (!e)
 			{
-				g_cfg.player_list.white_list[i] = false;
-				g_cfg.player_list.high_priority[i] = false;
-				g_cfg.player_list.force_body_aim[i] = false;
+				config_system.g_cfg.player_list.white_list[i] = false;
+				config_system.g_cfg.player_list.high_priority[i] = false;
+				config_system.g_cfg.player_list.force_body_aim[i] = false;
 
 				continue;
 			}
 
 			if (e->m_iTeamNum() == g_ctx.local()->m_iTeamNum())
 			{
-				g_cfg.player_list.white_list[i] = false;
-				g_cfg.player_list.high_priority[i] = false;
-				g_cfg.player_list.force_body_aim[i] = false;
+				config_system.g_cfg.player_list.white_list[i] = false;
+				config_system.g_cfg.player_list.high_priority[i] = false;
+				config_system.g_cfg.player_list.force_body_aim[i] = false;
 
 				continue;
 			}
@@ -272,10 +272,10 @@ void __stdcall hooks::hooked_fsn(ClientFrameStage_t stage)
 			player_info_t player_info;
 			m_engine()->GetPlayerInfo(i, &player_info);
 
-			g_cfg.player_list.players.emplace_back(Player_list_data(i, player_info.szName));
+			config_system.g_cfg.player_list.players.emplace_back(Player_list_data(i, player_info.szName));
 		}
 
-		g_cfg.player_list.refreshing = false;
+		config_system.g_cfg.player_list.refreshing = false;
 	}
 
 	if (stage == FRAME_RENDER_END)
@@ -287,7 +287,7 @@ void __stdcall hooks::hooked_fsn(ClientFrameStage_t stage)
 
 		if (g_ctx.globals.change_materials)
 		{
-			if (g_cfg.esp.nightmode && g_cfg.player.enable)
+			if (config_system.g_cfg.esp.nightmode && config_system.g_cfg.player.enable)
 				nightmode::get().apply();
 			else
 				nightmode::get().remove();
@@ -308,16 +308,16 @@ void __stdcall hooks::hooked_fsn(ClientFrameStage_t stage)
 
 		static auto zoom_sensitivity_ratio_mouse = m_cvar()->FindVar(crypt_str("zoom_sensitivity_ratio_mouse"));
 
-		if (g_cfg.player.enable && g_cfg.esp.removals[REMOVALS_ZOOM] && g_cfg.esp.fix_zoom_sensivity && zoom_sensitivity_ratio_mouse->GetFloat() == 1.0f) //-V550
+		if (config_system.g_cfg.player.enable && config_system.g_cfg.esp.removals[REMOVALS_ZOOM] && config_system.g_cfg.esp.fix_zoom_sensivity && zoom_sensitivity_ratio_mouse->GetFloat() == 1.0f) //-V550
 			zoom_sensitivity_ratio_mouse->SetValue(0.0f);
-		else if ((!g_cfg.player.enable || !g_cfg.esp.removals[REMOVALS_ZOOM] || !g_cfg.esp.fix_zoom_sensivity) && !zoom_sensitivity_ratio_mouse->GetFloat())
+		else if ((!config_system.g_cfg.player.enable || !config_system.g_cfg.esp.removals[REMOVALS_ZOOM] || !config_system.g_cfg.esp.fix_zoom_sensivity) && !zoom_sensitivity_ratio_mouse->GetFloat())
 			zoom_sensitivity_ratio_mouse->SetValue(1.0f);
 
 		static auto r_modelAmbientMin = m_cvar()->FindVar(crypt_str("r_modelAmbientMin"));
 
-		if (g_cfg.esp.world_modulation && g_cfg.esp.ambient && r_modelAmbientMin->GetFloat() != g_cfg.esp.ambient * 0.05f) //-V550
-			r_modelAmbientMin->SetValue(g_cfg.esp.ambient * 0.05f);
-		else if ((!g_cfg.esp.world_modulation || !g_cfg.esp.ambient) && r_modelAmbientMin->GetFloat())
+		if (config_system.g_cfg.esp.world_modulation && config_system.g_cfg.esp.ambient && r_modelAmbientMin->GetFloat() != config_system.g_cfg.esp.ambient * 0.05f) //-V550
+			r_modelAmbientMin->SetValue(config_system.g_cfg.esp.ambient * 0.05f);
+		else if ((!config_system.g_cfg.esp.world_modulation || !config_system.g_cfg.esp.ambient) && r_modelAmbientMin->GetFloat())
 			r_modelAmbientMin->SetValue(0.0f);
 	}
 
@@ -368,11 +368,11 @@ void __stdcall hooks::hooked_fsn(ClientFrameStage_t stage)
 						lagcompensation::get().player_resolver[current_shot->last_target].last_side = (resolver_side)current_shot->side;
 
 //#if BETA
-						if (g_cfg.misc.events_to_log[EVENTLOG_HIT])
+						if (config_system.g_cfg.misc.events_to_log[EVENTLOG_HIT])
 							eventlogs::get().addnew(crypt_str("Missed shot due to resolver"));
 //#endif
 					}
-					else if (g_cfg.misc.events_to_log[EVENTLOG_HIT])
+					else if (config_system.g_cfg.misc.events_to_log[EVENTLOG_HIT])
 					{
 						current_shot->shot_info.result = crypt_str("Spread");
 
@@ -401,7 +401,7 @@ void __stdcall hooks::hooked_fsn(ClientFrameStage_t stage)
 	lagcompensation::get().fsn(stage);
 	original_fn(stage);
 
-	if (g_cfg.player.enable && g_cfg.esp.removals[REMOVALS_RECOIL] && g_ctx.local()->is_alive() && aim_punch && view_punch)
+	if (config_system.g_cfg.player.enable && config_system.g_cfg.esp.removals[REMOVALS_RECOIL] && g_ctx.local()->is_alive() && aim_punch && view_punch)
 	{
 		*aim_punch = flb_aim_punch;
 		*view_punch = flb_view_punch;
@@ -419,7 +419,7 @@ void __stdcall hooks::hooked_fsn(ClientFrameStage_t stage)
 			auto local_death_notice = (float*)((uintptr_t)death_notice + 0x50);
 
 			if (local_death_notice)
-				*local_death_notice = g_cfg.esp.preserve_killfeed ? FLT_MAX : 1.5f;
+				*local_death_notice = config_system.g_cfg.esp.preserve_killfeed ? FLT_MAX : 1.5f;
 
 			if (g_ctx.globals.should_clear_death_notices)
 			{

@@ -39,7 +39,7 @@ void __fastcall hooks::hooked_painttraverse(void* ecx, void* edx, vgui::VPANEL p
 
 	auto weapon_debug_spread_show = m_cvar()->FindVar(crypt_str("weapon_debug_spread_show"));
 	if (g_ctx.local()->is_alive())
-		weapon_debug_spread_show->SetValue(g_cfg.misc.forcecrosshair && !g_ctx.local()->m_bIsScoped() ? 3 : 0);
+		weapon_debug_spread_show->SetValue(config_system.g_cfg.misc.forcecrosshair && !g_ctx.local()->m_bIsScoped() ? 3 : 0);
 
 	static auto original_fn = panel_hook->get_func_address <PaintTraverse_t> (41);
 	g_ctx.local((player_t*)m_entitylist()->GetClientEntity(m_engine()->GetLocalPlayer()), true); //-V807
@@ -58,9 +58,9 @@ void __fastcall hooks::hooked_painttraverse(void* ecx, void* edx, vgui::VPANEL p
 
 	static auto log_value = true;
 
-	if (log_value != g_cfg.misc.show_default_log)
+	if (log_value != config_system.g_cfg.misc.show_default_log)
 	{
-		log_value = g_cfg.misc.show_default_log;
+		log_value = config_system.g_cfg.misc.show_default_log;
 
 		if (log_value)
 			m_cvar()->FindVar(crypt_str("con_filter_text"))->SetValue(crypt_str(""));
@@ -113,7 +113,7 @@ void __fastcall hooks::hooked_painttraverse(void* ecx, void* edx, vgui::VPANEL p
 		g_ctx.globals.should_update_weather = true;
 		g_ctx.globals.m_networkable = nullptr;
 
-		g_cfg.player_list.players.clear();
+		config_system.g_cfg.player_list.players.clear();
 
 		misc::get().double_tap_enabled = false;
 		misc::get().double_tap_key = false;
@@ -122,7 +122,7 @@ void __fastcall hooks::hooked_painttraverse(void* ecx, void* edx, vgui::VPANEL p
 		misc::get().hide_shots_key = false;
 	}
 
-	if (m_engine()->IsTakingScreenshot() && g_cfg.misc.anti_screenshot)
+	if (m_engine()->IsTakingScreenshot() && config_system.g_cfg.misc.anti_screenshot)
 		return;
 
 	static uint32_t HudZoomPanel = 0;
@@ -131,7 +131,7 @@ void __fastcall hooks::hooked_painttraverse(void* ecx, void* edx, vgui::VPANEL p
 		if (!strcmp(crypt_str("HudZoom"), m_panel()->GetName(panel)))
 			HudZoomPanel = panel;
 
-	if (HudZoomPanel == panel && g_cfg.player.enable && g_cfg.esp.removals[REMOVALS_SCOPE])
+	if (HudZoomPanel == panel && config_system.g_cfg.player.enable && config_system.g_cfg.esp.removals[REMOVALS_SCOPE])
 		return;
 
 	original_fn(ecx, panel, force_repaint, allow_force);
@@ -207,7 +207,7 @@ void __fastcall hooks::hooked_painttraverse(void* ecx, void* edx, vgui::VPANEL p
 
 			g_ctx.globals.bomb_carrier = -1;
 
-			if (g_cfg.player.enable)
+			if (config_system.g_cfg.player.enable)
 			{
 				worldesp::get().paint_traverse();
 				playeresp::get().paint_traverse();
@@ -218,10 +218,10 @@ void __fastcall hooks::hooked_painttraverse(void* ecx, void* edx, vgui::VPANEL p
 
 			auto weapon = g_ctx.local()->m_hActiveWeapon().Get();
 
-			if (weapon->is_grenade() && g_cfg.esp.grenade_prediction && g_cfg.player.enable)
+			if (weapon->is_grenade() && config_system.g_cfg.esp.grenade_prediction && config_system.g_cfg.player.enable)
 				GrenadePrediction::get().Paint();
 
-			if (g_cfg.player.enable && g_cfg.esp.removals[REMOVALS_SCOPE] && g_ctx.globals.scoped && weapon->is_sniper())
+			if (config_system.g_cfg.player.enable && config_system.g_cfg.esp.removals[REMOVALS_SCOPE] && g_ctx.globals.scoped && weapon->is_sniper())
 			{
 				static int w, h;
 				m_engine()->GetScreenSize(w, h);
@@ -232,31 +232,31 @@ void __fastcall hooks::hooked_painttraverse(void* ecx, void* edx, vgui::VPANEL p
 
 			if (g_ctx.local()->is_alive())
 			{
-				if (c_menu::get().public_alpha > 0.15f && g_cfg.legitbot.enabled)
+				if (c_menu::get().public_alpha > 0.15f && config_system.g_cfg.legitbot.enabled)
 				{
 					int x, y;
 					m_engine()->GetScreenSize(x, y);
 
-					if (g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].fov)
+					if (config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].fov)
 					{
-						float radius = tanf(DEG2RAD(g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].fov) / 2) / tanf(DEG2RAD(90 + g_cfg.esp.fov) / 2) * x;
+						float radius = tanf(DEG2RAD(config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].fov) / 2) / tanf(DEG2RAD(90 + config_system.g_cfg.esp.fov) / 2) * x;
 						render::get().circle_filled(x / 2, y / 2, 60, radius, Color(235, 235, 235, c_menu::get().public_alpha * 0.68));
 						render::get().circle(x / 2, y / 2, 60, radius, Color(235, 235, 235, c_menu::get().public_alpha * 0.8));
 					}
 
-					if (g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].silent_fov)
+					if (config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].silent_fov)
 					{
-						float silent_radius = tanf(DEG2RAD(g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].silent_fov) / 2) / tanf(DEG2RAD(90 + g_cfg.esp.fov) / 2) * x;
+						float silent_radius = tanf(DEG2RAD(config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].silent_fov) / 2) / tanf(DEG2RAD(90 + config_system.g_cfg.esp.fov) / 2) * x;
 						render::get().circle_filled(x / 2, y / 2, 60, silent_radius, Color(15, 235, 15, c_menu::get().public_alpha * 0.68));
 						render::get().circle(x / 2, y / 2, 60, silent_radius, Color(15, 235, 15, c_menu::get().public_alpha * 0.8));
 					}
 				}
 			}
 
-			if (g_cfg.player.enable)
+			if (config_system.g_cfg.player.enable)
 				otheresp::get().hitmarker_paint();
 
-			if (g_cfg.player.enable && g_cfg.esp.damage_marker)
+			if (config_system.g_cfg.player.enable && config_system.g_cfg.esp.damage_marker)
 				otheresp::get().damage_marker_paint();
 
 			

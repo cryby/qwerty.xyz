@@ -33,7 +33,7 @@ void misc::edgebug(CUserCmd* pCmd) {
 bool jumpbugged = false;
 
 /*void misc::autoaccept(const char* soundEntry) noexcept {
-	if (!g_cfg.legitbot.autoaccept)
+	if (!config_system.g_cfg.legitbot.autoaccept)
 		return;
 
 	if (std::strcmp(soundEntry, "UIPanorama.popup_accept_match_beep"))
@@ -60,8 +60,8 @@ void misc::jumpbug(CUserCmd* pCmd) {
 
 	if ((g_ctx.local()->m_fFlags() & (1 << 0)) && !(engineprediction::get().backup_data.flags & (1 << 0))) {
 
-		if (g_cfg.misc.bunnyhop) {
-			g_cfg.misc.bunnyhop = false;
+		if (config_system.g_cfg.misc.bunnyhop) {
+			config_system.g_cfg.misc.bunnyhop = false;
 			niggacheck = true;
 		}
 
@@ -78,7 +78,7 @@ void misc::jumpbug(CUserCmd* pCmd) {
 		jumpbugged = false;
 	}
 	else if (niggacheck) {
-		g_cfg.misc.bunnyhop = true;
+		config_system.g_cfg.misc.bunnyhop = true;
 		niggacheck = false;
 	}
 
@@ -96,7 +96,7 @@ const std::string currentDateTime() {
 
 void misc::watermark()
 {
-	if (!g_cfg.menu.watermark)
+	if (!config_system.g_cfg.menu.watermark)
 		return;
 
 	auto width = 0, height = 0;
@@ -124,20 +124,20 @@ void misc::watermark()
 
 	auto box_width = render::get().text_width(fonts[NAME], watermark.c_str()) + 10;
 
-	render::get().gradient(width - 10 - box_width, 10, box_width / 2, 1, Color(g_cfg.menu.menu_theme.r(), g_cfg.menu.menu_theme.g(), g_cfg.menu.menu_theme.b(), 170), Color(g_cfg.menu.menu_theme.r(), g_cfg.menu.menu_theme.g(), g_cfg.menu.menu_theme.b(), 240), GRADIENT_HORIZONTAL);
-	render::get().gradient(width - 10 - box_width + (box_width / 2), 10, box_width / 2, 1, Color(g_cfg.menu.menu_theme.r(), g_cfg.menu.menu_theme.g(), g_cfg.menu.menu_theme.b(), 240), Color(g_cfg.menu.menu_theme.r(), g_cfg.menu.menu_theme.g(), g_cfg.menu.menu_theme.b(), 170), GRADIENT_HORIZONTAL);
+	render::get().gradient(width - 10 - box_width, 10, box_width / 2, 1, Color(config_system.g_cfg.menu.menu_theme.r(), config_system.g_cfg.menu.menu_theme.g(), config_system.g_cfg.menu.menu_theme.b(), 170), Color(config_system.g_cfg.menu.menu_theme.r(), config_system.g_cfg.menu.menu_theme.g(), config_system.g_cfg.menu.menu_theme.b(), 240), GRADIENT_HORIZONTAL);
+	render::get().gradient(width - 10 - box_width + (box_width / 2), 10, box_width / 2, 1, Color(config_system.g_cfg.menu.menu_theme.r(), config_system.g_cfg.menu.menu_theme.g(), config_system.g_cfg.menu.menu_theme.b(), 240), Color(config_system.g_cfg.menu.menu_theme.r(), config_system.g_cfg.menu.menu_theme.g(), config_system.g_cfg.menu.menu_theme.b(), 170), GRADIENT_HORIZONTAL);
 
 	render::get().rect_filled(width - 10 - box_width, 11, box_width, 18, Color(10, 10, 10, 150));
 
 	render::get().text(fonts[NAME], width - 10 - box_width + 5, 20, Color(106, 90, 214, 220), HFONT_CENTERED_Y, watermark.c_str());
 
-	render::get().gradient(width - 10 - box_width, 29, box_width / 2, 1, Color(g_cfg.menu.menu_theme.r(), g_cfg.menu.menu_theme.g(), g_cfg.menu.menu_theme.b(), 170), Color(g_cfg.menu.menu_theme.r(), g_cfg.menu.menu_theme.g(), g_cfg.menu.menu_theme.b(), 240), GRADIENT_HORIZONTAL);
-	render::get().gradient(width - 10 - box_width + (box_width / 2), 29, box_width / 2, 1, Color(g_cfg.menu.menu_theme.r(), g_cfg.menu.menu_theme.g(), g_cfg.menu.menu_theme.b(), 240), Color(g_cfg.menu.menu_theme.r(), g_cfg.menu.menu_theme.g(), g_cfg.menu.menu_theme.b(), 170), GRADIENT_HORIZONTAL);
+	render::get().gradient(width - 10 - box_width, 29, box_width / 2, 1, Color(config_system.g_cfg.menu.menu_theme.r(), config_system.g_cfg.menu.menu_theme.g(), config_system.g_cfg.menu.menu_theme.b(), 170), Color(config_system.g_cfg.menu.menu_theme.r(), config_system.g_cfg.menu.menu_theme.g(), config_system.g_cfg.menu.menu_theme.b(), 240), GRADIENT_HORIZONTAL);
+	render::get().gradient(width - 10 - box_width + (box_width / 2), 29, box_width / 2, 1, Color(config_system.g_cfg.menu.menu_theme.r(), config_system.g_cfg.menu.menu_theme.g(), config_system.g_cfg.menu.menu_theme.b(), 240), Color(config_system.g_cfg.menu.menu_theme.r(), config_system.g_cfg.menu.menu_theme.g(), config_system.g_cfg.menu.menu_theme.b(), 170), GRADIENT_HORIZONTAL);
 }
 
 void misc::NoDuck(CUserCmd* cmd)
 {
-	if (!g_cfg.misc.noduck)
+	if (!config_system.g_cfg.misc.noduck)
 		return;
 
 	if (m_gamerules()->m_bIsValveDS())
@@ -150,7 +150,7 @@ void misc::NoDuck(CUserCmd* cmd)
 
 void misc::ChangeRegion()
 {
-	switch (g_cfg.misc.region_changer) {
+	switch (config_system.g_cfg.misc.region_changer) {
 	case 0:
 		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster waw");
 		break;
@@ -300,7 +300,7 @@ void misc::ChangeRegion()
 
 void misc::ChatSpamer()
 {
-	if (!g_cfg.misc.chat)
+	if (!config_system.g_cfg.misc.chat)
 		return;
 
 	static std::string chatspam[] = 
@@ -372,7 +372,7 @@ void misc::SlideWalk(CUserCmd* cmd)
 	if (!(g_ctx.local()->m_fFlags() & FL_ONGROUND && engineprediction::get().backup_data.flags & FL_ONGROUND))
 		return;
 
-	if (antiaim::get().condition(cmd, true) && g_cfg.misc.slidewalk)
+	if (antiaim::get().condition(cmd, true) && config_system.g_cfg.misc.slidewalk)
 	{
 		if (cmd->m_forwardmove > 0.0f)
 		{
@@ -400,7 +400,7 @@ void misc::SlideWalk(CUserCmd* cmd)
 	{
 		auto buttons = cmd->m_buttons & ~(IN_MOVERIGHT | IN_MOVELEFT | IN_BACK | IN_FORWARD);
 
-		if (g_cfg.misc.slidewalk)
+		if (config_system.g_cfg.misc.slidewalk)
 		{
 			if (cmd->m_forwardmove <= 0.0f)
 				buttons |= IN_BACK;
@@ -496,9 +496,9 @@ void misc::automatic_peek(CUserCmd* cmd, float wish_yaw)
 
 void misc::ViewModel()
 {
-	if (g_cfg.esp.viewmodel_fov)
+	if (config_system.g_cfg.esp.viewmodel_fov)
 	{
-		auto viewFOV = (float)g_cfg.esp.viewmodel_fov + 68.0f;
+		auto viewFOV = (float)config_system.g_cfg.esp.viewmodel_fov + 68.0f;
 		static auto viewFOVcvar = m_cvar()->FindVar(crypt_str("viewmodel_fov"));
 
 		if (viewFOVcvar->GetFloat() != viewFOV) //-V550
@@ -508,9 +508,9 @@ void misc::ViewModel()
 		}
 	}
 	
-	if (g_cfg.esp.viewmodel_x)
+	if (config_system.g_cfg.esp.viewmodel_x)
 	{
-		auto viewX = (float)g_cfg.esp.viewmodel_x / 2.0f;
+		auto viewX = (float)config_system.g_cfg.esp.viewmodel_x / 2.0f;
 		static auto viewXcvar = m_cvar()->FindVar(crypt_str("viewmodel_offset_x")); //-V807
 
 		if (viewXcvar->GetFloat() != viewX) //-V550
@@ -520,9 +520,9 @@ void misc::ViewModel()
 		}
 	}
 
-	if (g_cfg.esp.viewmodel_y)
+	if (config_system.g_cfg.esp.viewmodel_y)
 	{
-		auto viewY = (float)g_cfg.esp.viewmodel_y / 2.0f;
+		auto viewY = (float)config_system.g_cfg.esp.viewmodel_y / 2.0f;
 		static auto viewYcvar = m_cvar()->FindVar(crypt_str("viewmodel_offset_y"));
 
 		if (viewYcvar->GetFloat() != viewY) //-V550
@@ -532,9 +532,9 @@ void misc::ViewModel()
 		}
 	}
 
-	if (g_cfg.esp.viewmodel_z)
+	if (config_system.g_cfg.esp.viewmodel_z)
 	{
-		auto viewZ = (float)g_cfg.esp.viewmodel_z / 2.0f;
+		auto viewZ = (float)config_system.g_cfg.esp.viewmodel_z / 2.0f;
 		static auto viewZcvar = m_cvar()->FindVar(crypt_str("viewmodel_offset_z"));
 
 		if (viewZcvar->GetFloat() != viewZ) //-V550
@@ -547,13 +547,13 @@ void misc::ViewModel()
 
 void misc::FullBright()
 {		
-	if (!g_cfg.player.enable)
+	if (!config_system.g_cfg.player.enable)
 		return;
 
 	static auto mat_fullbright = m_cvar()->FindVar(crypt_str("mat_fullbright"));
 
-	if (mat_fullbright->GetBool() != g_cfg.esp.bright)
-		mat_fullbright->SetValue(g_cfg.esp.bright);
+	if (mat_fullbright->GetBool() != config_system.g_cfg.esp.bright)
+		mat_fullbright->SetValue(config_system.g_cfg.esp.bright);
 }
 
 void misc::PovArrows(player_t* e, Color color)
@@ -586,8 +586,8 @@ void misc::PovArrows(player_t* e, Color color)
 	auto screenCenter = Vector2D(width * 0.5f, height * 0.5f);
 	auto angleYawRad = DEG2RAD(viewAngles.y - math::calculate_angle(g_ctx.globals.eye_pos, e->GetAbsOrigin()).y - 90.0f);
 
-	auto radius = g_cfg.player.distance;
-	auto size = g_cfg.player.size;
+	auto radius = config_system.g_cfg.player.distance;
+	auto size = config_system.g_cfg.player.size;
 
 	auto newPointX = screenCenter.x + ((((width - (size * 3)) * 0.5f) * (radius / 100.0f)) * cos(angleYawRad)) + (int)(6.0f * (((float)size - 4.0f) / 16.0f));
 	auto newPointY = screenCenter.y + ((((height - (size * 3)) * 0.5f) * (radius / 100.0f)) * sin(angleYawRad));
@@ -605,10 +605,10 @@ void misc::PovArrows(player_t* e, Color color)
 
 void misc::zeus_range()
 {
-	if (!g_cfg.player.enable)
+	if (!config_system.g_cfg.player.enable)
 		return;
 
-	if (!g_cfg.esp.taser_range)
+	if (!config_system.g_cfg.esp.taser_range)
 		return;
 
 	if (!m_input()->m_fCameraInThirdPerson)
@@ -651,38 +651,38 @@ void misc::NightmodeFix()
 	else if (!m_engine()->IsInGame() && in_game)
 		in_game = false;
 
-	static auto player_enable = g_cfg.player.enable;
+	static auto player_enable = config_system.g_cfg.player.enable;
 
-	if (player_enable != g_cfg.player.enable)
+	if (player_enable != config_system.g_cfg.player.enable)
 	{
-		player_enable = g_cfg.player.enable;
+		player_enable = config_system.g_cfg.player.enable;
 		g_ctx.globals.change_materials = true;
 		return;
 	}
 
-	static auto setting = g_cfg.esp.nightmode;
+	static auto setting = config_system.g_cfg.esp.nightmode;
 
-	if (setting != g_cfg.esp.nightmode)
+	if (setting != config_system.g_cfg.esp.nightmode)
 	{
-		setting = g_cfg.esp.nightmode;
+		setting = config_system.g_cfg.esp.nightmode;
 		g_ctx.globals.change_materials = true;
 		return;
 	}
 
-	static auto setting_world = g_cfg.esp.world_color;
+	static auto setting_world = config_system.g_cfg.esp.world_color;
 
-	if (setting_world != g_cfg.esp.world_color)
+	if (setting_world != config_system.g_cfg.esp.world_color)
 	{
-		setting_world = g_cfg.esp.world_color;
+		setting_world = config_system.g_cfg.esp.world_color;
 		g_ctx.globals.change_materials = true;
 		return;
 	}
 
-	static auto setting_props = g_cfg.esp.props_color;
+	static auto setting_props = config_system.g_cfg.esp.props_color;
 
-	if (setting_props != g_cfg.esp.props_color)
+	if (setting_props != config_system.g_cfg.esp.props_color)
 	{
-		setting_props = g_cfg.esp.props_color;
+		setting_props = config_system.g_cfg.esp.props_color;
 		g_ctx.globals.change_materials = true;
 	}
 }
@@ -692,16 +692,16 @@ void misc::desync_arrows()
 	if (!g_ctx.local()->is_alive())
 		return;
 
-	if (!g_cfg.ragebot.enable)
+	if (!config_system.g_cfg.ragebot.enable)
 		return;
 
-	if (!g_cfg.antiaim.enable)
+	if (!config_system.g_cfg.antiaim.enable)
 		return;
 
-	if ((g_cfg.antiaim.manual_back.key <= KEY_NONE || g_cfg.antiaim.manual_back.key >= KEY_MAX) && (g_cfg.antiaim.manual_left.key <= KEY_NONE || g_cfg.antiaim.manual_left.key >= KEY_MAX) && (g_cfg.antiaim.manual_right.key <= KEY_NONE || g_cfg.antiaim.manual_right.key >= KEY_MAX))
+	if ((config_system.g_cfg.antiaim.manual_back.key <= KEY_NONE || config_system.g_cfg.antiaim.manual_back.key >= KEY_MAX) && (config_system.g_cfg.antiaim.manual_left.key <= KEY_NONE || config_system.g_cfg.antiaim.manual_left.key >= KEY_MAX) && (config_system.g_cfg.antiaim.manual_right.key <= KEY_NONE || config_system.g_cfg.antiaim.manual_right.key >= KEY_MAX))
 		antiaim::get().manual_side = SIDE_NONE;
 
-	if (!g_cfg.antiaim.flip_indicator)
+	if (!config_system.g_cfg.antiaim.flip_indicator)
 		return;
 
 	static int width, height;
@@ -716,7 +716,7 @@ void misc::desync_arrows()
 	alpha += switch_alpha ? 2.0f * m_globals()->m_frametime : -2.0f * m_globals()->m_frametime;
 	alpha = math::clamp(alpha, 0.0f, 1.0f);
 
-	auto color = g_cfg.antiaim.flip_indicator_color;
+	auto color = config_system.g_cfg.antiaim.flip_indicator_color;
 	color.SetAlpha((int)(min(255.0f * alpha, color.a())));
 
 	if (antiaim::get().manual_side == SIDE_BACK)
@@ -729,10 +729,10 @@ void misc::desync_arrows()
 
 void misc::aimbot_hitboxes()
 {
-	if (!g_cfg.player.enable)
+	if (!config_system.g_cfg.player.enable)
 		return;
 
-	if (!g_cfg.player.lag_hitbox)
+	if (!config_system.g_cfg.player.lag_hitbox)
 		return;
 
 	auto player = (player_t*)m_entitylist()->GetClientEntity(aim::get().last_target_index);
@@ -771,13 +771,13 @@ void misc::aimbot_hitboxes()
 		math::vector_transform(hitbox->bbmin, aim::get().last_target[aim::get().last_target_index].record.matrixes_data.main[hitbox->bone], min);
 		math::vector_transform(hitbox->bbmax, aim::get().last_target[aim::get().last_target_index].record.matrixes_data.main[hitbox->bone], max);
 
-		m_debugoverlay()->AddCapsuleOverlay(min, max, hitbox->radius, g_cfg.player.lag_hitbox_color.r(), g_cfg.player.lag_hitbox_color.g(), g_cfg.player.lag_hitbox_color.b(), g_cfg.player.lag_hitbox_color.a(), 4.0f, 0, 1);
+		m_debugoverlay()->AddCapsuleOverlay(min, max, hitbox->radius, config_system.g_cfg.player.lag_hitbox_color.r(), config_system.g_cfg.player.lag_hitbox_color.g(), config_system.g_cfg.player.lag_hitbox_color.b(), config_system.g_cfg.player.lag_hitbox_color.a(), 4.0f, 0, 1);
 	}
 }
 
 void misc::ragdolls()
 {
-	if (!g_cfg.misc.ragdolls)
+	if (!config_system.g_cfg.misc.ragdolls)
 		return;
 
 	for (auto i = 1; i <= m_entitylist()->GetHighestEntityIndex(); ++i)
@@ -805,7 +805,7 @@ void misc::ragdolls()
 
 void misc::rank_reveal()
 {
-	if (!g_cfg.misc.rank_reveal)
+	if (!config_system.g_cfg.misc.rank_reveal)
 		return;
 
 	using RankReveal_t = bool(__cdecl*)(int*);
@@ -823,7 +823,7 @@ void misc::rank_reveal()
 
 void misc::fast_stop(CUserCmd* m_pcmd)
 {
-	if (!g_cfg.misc.fast_stop)
+	if (!config_system.g_cfg.misc.fast_stop)
 		return;
 
 	if (!(g_ctx.local()->m_fFlags() & FL_ONGROUND && engineprediction::get().backup_data.flags & FL_ONGROUND))
@@ -834,7 +834,7 @@ void misc::fast_stop(CUserCmd* m_pcmd)
 	if (pressed_move_key)
 		return;
 
-	if (!((antiaim::get().type == ANTIAIM_LEGIT ? g_cfg.antiaim.desync : g_cfg.antiaim.type[antiaim::get().type].desync) && (antiaim::get().type == ANTIAIM_LEGIT ? !g_cfg.antiaim.legit_lby_type : !g_cfg.antiaim.lby_type) && (!g_ctx.globals.weapon->is_grenade() || g_cfg.esp.on_click & !(m_pcmd->m_buttons & IN_ATTACK) && !(m_pcmd->m_buttons & IN_ATTACK2))) || antiaim::get().condition(m_pcmd)) //-V648
+	if (!((antiaim::get().type == ANTIAIM_LEGIT ? config_system.g_cfg.antiaim.desync : config_system.g_cfg.antiaim.type[antiaim::get().type].desync) && (antiaim::get().type == ANTIAIM_LEGIT ? !config_system.g_cfg.antiaim.legit_lby_type : !config_system.g_cfg.antiaim.lby_type) && (!g_ctx.globals.weapon->is_grenade() || config_system.g_cfg.esp.on_click & !(m_pcmd->m_buttons & IN_ATTACK) && !(m_pcmd->m_buttons & IN_ATTACK2))) || antiaim::get().condition(m_pcmd)) //-V648
 	{
 		auto velocity = g_ctx.local()->m_vecVelocity();
 
@@ -914,7 +914,7 @@ void misc::fast_stop(CUserCmd* m_pcmd)
 
 void misc::spectators_list()
 {
-	if (!g_cfg.misc.spectators_list)
+	if (!config_system.g_cfg.misc.spectators_list)
 		return;
 
 	if (!g_ctx.local()->is_alive())
@@ -952,7 +952,7 @@ void misc::spectators_list()
 		auto x = render::get().text_width(fonts[LOGS], spectators.at(i).c_str()) + 6; //-V106
 		auto y = i * 16;
 
-		render::get().text(fonts[LOGS], width - x, g_cfg.menu.watermark ? y + 30 : y + 6, Color::White, HFONT_CENTERED_NONE, spectators.at(i).c_str()); //-V106
+		render::get().text(fonts[LOGS], width - x, config_system.g_cfg.menu.watermark ? y + 30 : y + 6, Color::White, HFONT_CENTERED_NONE, spectators.at(i).c_str()); //-V106
 	}
 }
 
@@ -962,32 +962,32 @@ void misc::prime()
 	static char patch[2]{ 0x74, 0xEB };
 	static uint8_t* prime = (uint8_t*)(util::FindSignature("client.dll", "17 F6 40 14 10") - 0x1);
 
-	if (bLastState != g_cfg.misc.prime)
+	if (bLastState != config_system.g_cfg.misc.prime)
 	{
 		DWORD old_protect;
 		VirtualProtect(prime, 1, PAGE_EXECUTE_READWRITE, &old_protect);
 
-		//memcpy(prime, patch[g_cfg.misc.prime], 1);
+		//memcpy(prime, patch[config_system.g_cfg.misc.prime], 1);
 
-		*prime = patch[g_cfg.misc.prime];
+		*prime = patch[config_system.g_cfg.misc.prime];
 		VirtualProtect(prime, 1, old_protect, nullptr);
 	}
 
-	bLastState = g_cfg.misc.prime;
+	bLastState = config_system.g_cfg.misc.prime;
 }
 
 /*void misc::forceangle()
 {
-	if (g_cfg.misc.forceangle)
+	if (config_system.g_cfg.misc.forceangle)
 	{
-		animstate->m_flGoalFeetYaw = math::normalize_yaw(animstate->m_flGoalFeetYaw + g_cfg.misc.forceanglevalue);
+		animstate->m_flGoalFeetYaw = math::normalize_yaw(animstate->m_flGoalFeetYaw + config_system.g_cfg.misc.forceanglevalue);
 	}
 }*/
 
 
 void misc::blockbot(CUserCmd* cmd)
 {
-	if (!g_cfg.misc.blockbot_enabled || !key_binds::get().get_key_bind_state(25))
+	if (!config_system.g_cfg.misc.blockbot_enabled || !key_binds::get().get_key_bind_state(25))
 		return;
 
 	float flBestDistance = 250.0f;
@@ -1013,7 +1013,7 @@ void misc::blockbot(CUserCmd* cmd)
 	if (!entity)
 		return;
 
-	float flBestSpeed = g_cfg.misc.blockbot_type == 0 ? entity->m_vecVelocity().Length() : 450.0f;
+	float flBestSpeed = config_system.g_cfg.misc.blockbot_type == 0 ? entity->m_vecVelocity().Length() : 450.0f;
 
 	Vector angLocal;
 	m_engine()->GetViewAngles(angLocal);
@@ -1065,7 +1065,7 @@ bool misc::double_tap(CUserCmd* m_pcmd)
 			last_double_tap = g_ctx.globals.fixed_tickbase;
 	}
 
-	if (!g_cfg.ragebot.enable)
+	if (!config_system.g_cfg.ragebot.enable)
 	{
 		double_tap_enabled = false;
 		double_tap_key = false;
@@ -1074,7 +1074,7 @@ bool misc::double_tap(CUserCmd* m_pcmd)
 		return false;
 	}
 
-	if (!g_cfg.ragebot.double_tap)
+	if (!config_system.g_cfg.ragebot.double_tap)
 	{
 		double_tap_enabled = false;
 		double_tap_key = false;
@@ -1083,7 +1083,7 @@ bool misc::double_tap(CUserCmd* m_pcmd)
 		return false;
 	}
 
-	if (g_cfg.ragebot.double_tap_key.key <= KEY_NONE || g_cfg.ragebot.double_tap_key.key >= KEY_MAX)
+	if (config_system.g_cfg.ragebot.double_tap_key.key <= KEY_NONE || config_system.g_cfg.ragebot.double_tap_key.key >= KEY_MAX)
 	{
 		double_tap_enabled = false;
 		double_tap_key = false;
@@ -1092,7 +1092,7 @@ bool misc::double_tap(CUserCmd* m_pcmd)
 		return false;
 	}
 
-	if (double_tap_key && g_cfg.ragebot.double_tap_key.key != g_cfg.antiaim.hide_shots_key.key)
+	if (double_tap_key && config_system.g_cfg.ragebot.double_tap_key.key != config_system.g_cfg.antiaim.hide_shots_key.key)
 		hide_shots_key = false;
 
 	if (!double_tap_key)
@@ -1172,7 +1172,7 @@ void misc::EnableHiddenCVars()
 
 void misc::auto_accept() //change
 {
-	if (!g_cfg.misc.auto_accept)
+	if (!config_system.g_cfg.misc.auto_accept)
 		return;
 
 	static auto SetLocalPlayerReadyFn = reinterpret_cast<bool(__stdcall*)(const char*)>(util::find_pattern("client.dll", "55 8B EC 83 E4 F8 8B 4D 08 BA ? ? ? ? E8 ? ? ? ? 85 C0 75 12", 0));
@@ -1192,7 +1192,7 @@ void misc::hide_shots(CUserCmd* m_pcmd, bool should_work)
 {
 	hide_shots_enabled = true;
 
-	if (!g_cfg.ragebot.enable)
+	if (!config_system.g_cfg.ragebot.enable)
 	{
 		hide_shots_enabled = false;
 		hide_shots_key = false;
@@ -1206,7 +1206,7 @@ void misc::hide_shots(CUserCmd* m_pcmd, bool should_work)
 		return;
 	}
 
-	if (!g_cfg.antiaim.hide_shots)
+	if (!config_system.g_cfg.antiaim.hide_shots)
 	{
 		hide_shots_enabled = false;
 		hide_shots_key = false;
@@ -1220,7 +1220,7 @@ void misc::hide_shots(CUserCmd* m_pcmd, bool should_work)
 		return;
 	}
 
-	if (g_cfg.antiaim.hide_shots_key.key <= KEY_NONE || g_cfg.antiaim.hide_shots_key.key >= KEY_MAX)
+	if (config_system.g_cfg.antiaim.hide_shots_key.key <= KEY_NONE || config_system.g_cfg.antiaim.hide_shots_key.key >= KEY_MAX)
 	{
 		hide_shots_enabled = false;
 		hide_shots_key = false;

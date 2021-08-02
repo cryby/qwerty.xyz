@@ -41,6 +41,7 @@ C_CSGO g_csgo;
 #undef m_viewrenderbeams
 #undef m_soundservices
 #undef m_basefilesys
+#undef m_weaponsystem
 
 template<typename T>
 static T *get_interface(const char *mod_name, const char *interface_name, bool exact = false) {
@@ -304,6 +305,14 @@ IBaseFileSystem* C_CSGO::m_basefilesys() {
 		p_basefilesys = get_interface<IBaseFileSystem>("filesystem_stdio.dll", "VBaseFileSystem");
 
 	return p_basefilesys;
+}
+
+IWeaponSystem* C_CSGO::m_WeaponSystem()
+{
+	if (p_WeaponSystem == nullptr)
+		p_WeaponSystem = *reinterpret_cast<IWeaponSystem**>(util::FindSignature("client.dll", "8B 35 ? ? ? ? FF 10 0F B7 C0") + 0x2);
+
+	return p_WeaponSystem;
 }
 
 ILocalize * C_CSGO::m_localize() 

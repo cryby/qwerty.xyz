@@ -53,9 +53,11 @@ namespace hooks
 
 	extern ButtonCode_t* input_receivedKeyval;
 
+	extern LPDIRECT3DTEXTURE9 WaterMarker;
 	extern vmthook* directx_hook;
 	extern vmthook* client_hook;
 	extern vmthook* clientstate_hook;
+	inline IDirect3DDevice9* device;
 	extern vmthook* engine_hook;
 	extern vmthook* clientmode_hook;
 	extern vmthook* inputinternal_hook;

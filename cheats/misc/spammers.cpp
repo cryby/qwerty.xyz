@@ -15,14 +15,14 @@ void spammers::clan_tag()
 
 	static auto removed = false;
 
-	if (!g_cfg.misc.clantag_spammer && !removed)
+	if (!config_system.g_cfg.misc.clantag_spammer && !removed)
 	{
 		removed = true;
 		apply(crypt_str(""));
 		return;
 	}
 
-	if (g_cfg.misc.clantag_spammer)
+	if (config_system.g_cfg.misc.clantag_spammer)
 	{
 		auto nci = m_engine()->GetNetChannelInfo();
 

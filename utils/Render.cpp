@@ -1,13 +1,13 @@
-#include "Render.h"
+/*#include "Render.h"
 #define PI			3.14159265358979323846
 
 #include "cheats/visuals/player_esp.h"
 #include "cheats/visuals/GrenadePrediction.h"
 #include "cheats/visuals/other_esp.h"
 #include "cheats/visuals/world_esp.h"
-#include "cheats/visuals/GHelper.h"
+//#include "cheats/visuals/GHelper.h"
 #include "cheats/misc/logs.h"
-#include "cheats/movement/movements.h"
+//#include "cheats/movement/movements.h"
 #include "cheats/movement/movementrecorder.h"
 #include "cheats/legitbot/legitbot.h"
 #include "cheats/ragebot/aim.h"
@@ -407,4 +407,4 @@ void ImGuiRendering::DrawWave(Vector loc, float radius, Color color, float thick
 		}
 		prev = Out;
 	}
-}
+}*/

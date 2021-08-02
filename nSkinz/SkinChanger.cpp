@@ -276,7 +276,7 @@ void SkinChanger::run(ClientFrameStage_t stage) noexcept
 
 	static auto backup_model_index = -1;
 
-	if (g_cfg.player.enable)
+	if (config_system.g_cfg.player.enable)
 	{
 		const char** player_model_index = nullptr;
 		auto player_model = 0;
@@ -285,11 +285,11 @@ void SkinChanger::run(ClientFrameStage_t stage) noexcept
 		{
 		case 2:
 			player_model_index = player_model_index_t;
-			player_model = g_cfg.player.player_model_t;
+			player_model = config_system.g_cfg.player.player_model_t;
 			break;
 		case 3:
 			player_model_index = player_model_index_ct;
-			player_model = g_cfg.player.player_model_ct;
+			player_model = config_system.g_cfg.player.player_model_ct;
 			break;
 		}
 

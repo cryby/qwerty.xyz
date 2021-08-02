@@ -9,6 +9,17 @@
 #include "../cheats/misc/logs.h"
 #include "..\cheats\misc\misc.h"
 #include "..\steam_sdk\steam_api.h"
+#include "../configs/configs.h"
+
+CHAR my_documents[MAX_PATH];
+HRESULT result = SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, my_documents);
+
+constexpr auto& config_items = config_system.get_configs();
+static int current_config = -1;
+
+constexpr auto& config_items2 = config_system.get_configs2();
+static int current_config2 = -1;
+bool OpenConfig = false;
 
 #define IMAGE_X 110
 #define IMAGE_Y 245
@@ -965,9 +976,9 @@ void c_menu::menu_setup(ImGuiStyle& style) //-V688
 
 
 	// setup skins preview
-	for (auto i = 0; i < g_cfg.skins.skinChanger.size(); i++)
+	for (auto i = 0; i < config_system.g_cfg.skins.skinChanger.size(); i++)
 		if (!all_skins[i])
-			all_skins[i] = get_skin_preview(get_wep(i, (i == 0 || i == 1) ? g_cfg.skins.skinChanger.at(i).definition_override_vector_index : -1, i == 0).c_str(), g_cfg.skins.skinChanger.at(i).skin_name, device); //-V810
+			all_skins[i] = get_skin_preview(get_wep(i, (i == 0 || i == 1) ? config_system.g_cfg.skins.skinChanger.at(i).definition_override_vector_index : -1, i == 0).c_str(), config_system.g_cfg.skins.skinChanger.at(i).skin_name, device); //-V810
 
 	menu_setupped = true; // we dont want to setup menu again
 }
@@ -1017,10 +1028,10 @@ void load_config()
 	if (cfg_manager->files.empty())
 		return;
 
-	cfg_manager->load(cfg_manager->files.at(g_cfg.selected_config), false);
+	cfg_manager->load(cfg_manager->files.at(config_system.g_cfg.selected_config), false);
 	c_lua::get().unload_all_scripts();
 
-	for (auto& script : g_cfg.scripts.scripts)
+	for (auto& script : config_system.g_cfg.scripts.scripts)
 		c_lua::get().load_script(c_lua::get().get_script_id(script));
 
 	scripts = c_lua::get().scripts;
@@ -1036,15 +1047,15 @@ void load_config()
 			current.erase(current.size() - 4, 4);
 	}
 
-	for (auto i = 0; i < g_cfg.skins.skinChanger.size(); ++i)
+	for (auto i = 0; i < config_system.g_cfg.skins.skinChanger.size(); ++i)
 		all_skins[i] = nullptr;
 
-	g_cfg.scripts.scripts.clear();
+	config_system.g_cfg.scripts.scripts.clear();
 
-	cfg_manager->load(cfg_manager->files.at(g_cfg.selected_config), true);
+	cfg_manager->load(cfg_manager->files.at(config_system.g_cfg.selected_config), true);
 	cfg_manager->config_files();
 
-	eventlogs::get().addnew(crypt_str("Loaded ") + files.at(g_cfg.selected_config) + crypt_str(" config"), Color::Yellow, false);
+	eventlogs::get().addnew(crypt_str("Loaded ") + files.at(config_system.g_cfg.selected_config) + crypt_str(" config"), Color::Yellow, false);
 }
 
 void save_config()
@@ -1052,20 +1063,20 @@ void save_config()
 	if (cfg_manager->files.empty())
 		return;
 
-	g_cfg.scripts.scripts.clear();
+	config_system.g_cfg.scripts.scripts.clear();
 
 	for (auto i = 0; i < c_lua::get().scripts.size(); ++i)
 	{
 		auto script = c_lua::get().scripts.at(i);
 
 		if (c_lua::get().loaded.at(i))
-			g_cfg.scripts.scripts.emplace_back(script);
+			config_system.g_cfg.scripts.scripts.emplace_back(script);
 	}
 
-	cfg_manager->save(cfg_manager->files.at(g_cfg.selected_config));
+	cfg_manager->save(cfg_manager->files.at(config_system.g_cfg.selected_config));
 	cfg_manager->config_files();
 
-	eventlogs::get().addnew(crypt_str("Saved ") + files.at(g_cfg.selected_config) + crypt_str(" config"), Color::Yellow, false);
+	eventlogs::get().addnew(crypt_str("Saved ") + files.at(config_system.g_cfg.selected_config) + crypt_str(" config"), Color::Yellow, false);
 }
 
 void remove_config()
@@ -1073,15 +1084,15 @@ void remove_config()
 	if (cfg_manager->files.empty())
 		return;
 
-	eventlogs::get().addnew(crypt_str("Removed ") + files.at(g_cfg.selected_config) + crypt_str(" config"), Color::Yellow, false);
+	eventlogs::get().addnew(crypt_str("Removed ") + files.at(config_system.g_cfg.selected_config) + crypt_str(" config"), Color::Yellow, false);
 
-	cfg_manager->remove(cfg_manager->files.at(g_cfg.selected_config));
+	cfg_manager->remove(cfg_manager->files.at(config_system.g_cfg.selected_config));
 	cfg_manager->config_files();
 
 	files = cfg_manager->files;
 
-	if (g_cfg.selected_config >= files.size())
-		g_cfg.selected_config = files.size() - 1; //-V103
+	if (config_system.g_cfg.selected_config >= files.size())
+		config_system.g_cfg.selected_config = files.size() - 1; //-V103
 
 	for (auto& current : files)
 		if (current.size() > 2)
@@ -1092,7 +1103,7 @@ void add_config()
 {
 	auto empty = true;
 
-	for (auto current : g_cfg.new_config_name)
+	for (auto current : config_system.g_cfg.new_config_name)
 	{
 		if (current != ' ')
 		{
@@ -1102,17 +1113,17 @@ void add_config()
 	}
 
 	if (empty)
-		g_cfg.new_config_name = crypt_str("config");
+		config_system.g_cfg.new_config_name = crypt_str("config");
 
-	eventlogs::get().addnew(crypt_str("Added ") + g_cfg.new_config_name + crypt_str(" config"), Color::Yellow, false);
+	eventlogs::get().addnew(crypt_str("Added ") + config_system.g_cfg.new_config_name + crypt_str(" config"), Color::Yellow, false);
 
-	if (g_cfg.new_config_name.find(crypt_str(".qwerty")) == std::string::npos)
-		g_cfg.new_config_name += crypt_str(".qwerty");
+	if (config_system.g_cfg.new_config_name.find(crypt_str(".qwerty")) == std::string::npos)
+		config_system.g_cfg.new_config_name += crypt_str(".qwerty");
 
-	cfg_manager->save(g_cfg.new_config_name);
+	cfg_manager->save(config_system.g_cfg.new_config_name);
 	cfg_manager->config_files();
 
-	g_cfg.selected_config = cfg_manager->files.size() - 1; //-V103
+	config_system.g_cfg.selected_config = cfg_manager->files.size() - 1; //-V103
 	files = cfg_manager->files;
 
 	for (auto& current : files)
@@ -1537,14 +1548,14 @@ void c_menu::CustomVisuals(ImVec2 Start)
 	//	else if (WeaponStyle == 1)
 		//	MV_Weapon->Size = GP_Render->CalcTextSize(MV_WEAPON_TEXT_ICO, GP_Render->SzFontsIcon[TextWeaponSize]);
 
-	MV_Hp->IsEnabled = g_cfg.player.type[player].health;
+	MV_Hp->IsEnabled = config_system.g_cfg.player.type[player].health;
 	//	MV_Armor->IsEnabled = Armor && ArmorStyle == 0;
 
 		////MV_Hp_Text->IsEnabled = Health && HealthStyle == 1;
 		//MV_Armor_Text->IsEnabled = Armor && ArmorStyle == 1;
 
-	MV_Name->IsEnabled = g_cfg.player.type[player].name;
-	MV_Weapon->IsEnabled = &g_cfg.player.type[player].weapon;
+	MV_Name->IsEnabled = config_system.g_cfg.player.type[player].name;
+	MV_Weapon->IsEnabled = &config_system.g_cfg.player.type[player].weapon;
 	//MV_Ammo->IsEnabled = Ammo;
 //	MV_Distance->IsEnabled = Distance;
 //	MV_Money->IsEnabled = Money;
@@ -1815,10 +1826,10 @@ void c_menu::CustomVisuals(ImVec2 Start)
 
 	Draw->AddLine(ImVec2(StartPosScreen.x + (VIS_PREW_ZONE_X / 2), StartPosScreen.y), ImVec2(StartPosScreen.x + (VIS_PREW_ZONE_X / 2), StartPosScreen.y + VIS_PREW_ZONE_Y), OutLineColor);
 	Draw->AddLine(ImVec2(StartPosScreen.x, StartPosScreen.y + (VIS_PREW_ZONE_Y / 2)), ImVec2(StartPosScreen.x + VIS_PREW_ZONE_X, StartPosScreen.y + (VIS_PREW_ZONE_Y / 2)), OutLineColor);
-	ImU32 skeleton = ImGui::GetColorU32(ImVec4(g_cfg.player.type[player].skeleton_color.r(), g_cfg.player.type[player].skeleton_color.g(), g_cfg.player.type[player].skeleton_color.b(), g_cfg.player.type[player].skeleton_color.a()));
+	ImU32 skeleton = ImGui::GetColorU32(ImVec4(config_system.g_cfg.player.type[player].skeleton_color.r(), config_system.g_cfg.player.type[player].skeleton_color.g(), config_system.g_cfg.player.type[player].skeleton_color.b(), config_system.g_cfg.player.type[player].skeleton_color.a()));
 	auto SkeletonColor = skeleton;
 
-	if (g_cfg.player.type[player].skeleton)
+	if (config_system.g_cfg.player.type[player].skeleton)
 	{
 		Draw->AddLine(ImVec2(StartPosScreen.x + 152 + 20, StartPosScreen.y + 122), ImVec2(StartPosScreen.x + 150 + 20, StartPosScreen.y + 103), SkeletonColor);
 		Draw->AddLine(ImVec2(StartPosScreen.x + 152 + 20, StartPosScreen.y + 122), ImVec2(StartPosScreen.x + 157 + 20, StartPosScreen.y + 129), SkeletonColor);
@@ -2010,9 +2021,9 @@ void c_menu::CustomVisuals(ImVec2 Start)
 	//if (FillBox)
 	//	Draw->DrawFilledBox(StartBoxPos, ImVec2(BoxSize_X, BoxSize_Y), FillBoxColor, BoxStyle == 3 ? BoxSize_X / 5.f : 0.0f);
 
-	if (g_cfg.player.type[player].box)
+	if (config_system.g_cfg.player.type[player].box)
 	{
-		ImU32 box = ImGui::GetColorU32(ImVec4(g_cfg.player.type[player].box_color.r(), g_cfg.player.type[player].box_color.g(), g_cfg.player.type[player].box_color.b(), g_cfg.player.type[player].box_color.a()));
+		ImU32 box = ImGui::GetColorU32(ImVec4(config_system.g_cfg.player.type[player].box_color.r(), config_system.g_cfg.player.type[player].box_color.g(), config_system.g_cfg.player.type[player].box_color.b(), config_system.g_cfg.player.type[player].box_color.a()));
 		auto BoxOutLineColor = box;
 
 		//color_t BoxOutLineColor = color_t(0.f, 0.f, 0.f, 255.f);
@@ -2229,9 +2240,9 @@ void c_menu::CustomVisuals(ImVec2 Start)
 		}
 	};
 
-	if (g_cfg.player.type[player].health)
+	if (config_system.g_cfg.player.type[player].health)
 	{
-		ImU32 color1 = ImGui::GetColorU32(ImVec4(g_cfg.player.type[player].health_color.r() / 255.f, g_cfg.player.type[player].health_color.g() / 255.f, g_cfg.player.type[player].health_color.b() / 255.f, g_cfg.player.type[player].health_color.a() / 255.f));
+		ImU32 color1 = ImGui::GetColorU32(ImVec4(config_system.g_cfg.player.type[player].health_color.r() / 255.f, config_system.g_cfg.player.type[player].health_color.g() / 255.f, config_system.g_cfg.player.type[player].health_color.b() / 255.f, config_system.g_cfg.player.type[player].health_color.a() / 255.f));
 		ImU32 color2 = ImGui::GetColorU32(ImVec4(0.0f, 0.0f, 0.0f, 0.3f));
 		ImU32 color3 = ImGui::GetColorU32(ImVec4(0.0f, 0.0f, 0.0f, 0.5f));
 
@@ -2276,7 +2287,7 @@ void c_menu::CustomVisuals(ImVec2 Start)
 			}
 		}
 	*/
-	if (g_cfg.player.type[player].name)
+	if (config_system.g_cfg.player.type[player].name)
 	{
 		Move(*MV_Name, IsMousPress, MousePos, NameStartPos, CLines, true);
 
@@ -2310,7 +2321,7 @@ void c_menu::CustomVisuals(ImVec2 Start)
 		_DrawText(MV_NAME_TEXT, MV_Name);
 	}
 
-	if (g_cfg.player.type[player].snap_lines)
+	if (config_system.g_cfg.player.type[player].snap_lines)
 	{
 		//	CFont* wep_fnt = nullptr;
 
@@ -2535,6 +2546,29 @@ void c_menu::CustomVisuals(ImVec2 Start)
 namespace ImGui
 {
 
+	bool ColorEdit4(const char* label, Color* v, bool show_alpha = true, bool is_solo = false)
+	{
+		auto clr = ImVec4{
+			v->r() / 255.f,
+			v->g() / 255.f,
+			v->b() / 255.f,
+			v->a() / 255.f
+
+		};
+
+		if (ImGui::ColorEdit4(label, &clr.x, show_alpha, is_solo)) {
+			v->SetColor(clr.x, clr.y, clr.z, clr.w);
+			return true;
+		}
+		return false;
+	}
+
+	bool ColorEdit3(const char* label, Color* v)
+	{
+		return ColorEdit4(label, v, true);
+	}
+
+
 	bool Tab(const char* icon, const char* label, const char* desc, const ImVec2& size_arg, const bool selected)
 	{
 		ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -2718,7 +2752,7 @@ void c_menu::render2(bool is_open) {
 	
 
 		int child;
-		auto player = g_cfg.player.teams;
+		auto player = config_system.g_cfg.player.teams;
 
 		if(last_tab != active_tab || preview_reverse)
 		{
@@ -2795,7 +2829,7 @@ void c_menu::render2(bool is_open) {
 
 			if (Active_Tab == 1) // Rage | Đĺéäć
 			{
-				if (g_cfg.ragebot.enable)
+				if (config_system.g_cfg.ragebot.enable)
 				{
 
 
@@ -2833,42 +2867,42 @@ void c_menu::render2(bool is_open) {
 						//head
 						{
 							ImGui::SetCursorPos({ 164, 50 });
-							if (g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(0))
+							if (config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(0))
 							{
 								if (ImGui::ImageButton((void*)head, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
-									g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(0) = !g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(0);
+									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(0) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(0);
 							}
 							else
 							{
 								if (ImGui::ImageButton((void*)head1, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
-									g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(0) = !g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(0);
+									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(0) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(0);
 							}
 						}
 						//body
 						{
 							ImGui::SetCursorPos({ 164, 110 });
-							if (g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(1))
+							if (config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(1))
 							{
 								if (ImGui::ImageButton((void*)upchest, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
 								{
-									g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(1) = !g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(1);
+									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(1) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(1);
 								}
 							}
 							else
 							{
 								if (ImGui::ImageButton((void*)upchest1, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
 								{
-									g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(1) = !g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(1);
+									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(1) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(1);
 
 								}
 							}
 
 							ImGui::SetCursorPos({ 164, 140 });
-							if (g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(2))
+							if (config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(2))
 							{
 								if (ImGui::ImageButton((void*)chest, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
 								{
-									g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(2) = !g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(2);
+									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(2) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(2);
 
 								}
 							}
@@ -2876,17 +2910,17 @@ void c_menu::render2(bool is_open) {
 							{
 								if (ImGui::ImageButton((void*)chest1, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
 								{
-									g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(2) = !g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(2);
+									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(2) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(2);
 
 								}
 							}
 							ImGui::SetCursorPos({ 164, 180 });
-							if (g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(3))
+							if (config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(3))
 							{
 								if (ImGui::ImageButton((void*)lowchest, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
 								{
 
-									g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(3) = !g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(3);
+									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(3) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(3);
 
 								}
 							}
@@ -2895,17 +2929,17 @@ void c_menu::render2(bool is_open) {
 								if (ImGui::ImageButton((void*)lowchest1, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
 								{
 
-									g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(3) = !g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(3);
+									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(3) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(3);
 
 								}
 							}
 							ImGui::SetCursorPos({ 164, 215 });
-							if (g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(4))
+							if (config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(4))
 							{
 								if (ImGui::ImageButton((void*)neck, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
 								{
 
-									g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(4) = !g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(4);
+									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(4) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(4);
 
 								}
 							}
@@ -2914,17 +2948,17 @@ void c_menu::render2(bool is_open) {
 								if (ImGui::ImageButton((void*)neck1, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
 								{
 
-									g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(4) = !g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(4);
+									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(4) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(4);
 
 								}
 							}
 							ImGui::SetCursorPos({ 164, 280 });
-							if (g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(5))
+							if (config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(5))
 							{
 								if (ImGui::ImageButton((void*)pel, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
 								{
 
-									g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(5) = !g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(5);
+									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(5) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(5);
 								}
 							}
 							else
@@ -2932,7 +2966,7 @@ void c_menu::render2(bool is_open) {
 								if (ImGui::ImageButton((void*)pel1, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
 								{
 
-									g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(5) = !g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(5);
+									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(5) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(5);
 								}
 							}
 						}
@@ -2940,40 +2974,40 @@ void c_menu::render2(bool is_open) {
 						//arms
 						{
 							ImGui::SetCursorPos({ 65, 200 });
-							if (g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(6))
+							if (config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(6))
 							{
 								//left
 								if (ImGui::ImageButton((void*)arms, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
-									g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(6) = !g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(6);
+									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(6) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(6);
 
 								ImGui::SetCursorPos({ 265, 200 });
 								if (ImGui::ImageButton((void*)arms2, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
-									g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(6) = !g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(6);
+									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(6) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(6);
 							}
 							else
 							{
 								//right
 								if (ImGui::ImageButton((void*)arms1, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
-									g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(6) = !g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(6);
+									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(6) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(6);
 								ImGui::SetCursorPos({ 265, 200 });
 								if (ImGui::ImageButton((void*)arms3, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
-									g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(6) = !g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(6);
+									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(6) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(6);
 							}
 						}
 						//legs
 						{
 							ImGui::SetCursorPos({ 135, 330 });
-							if (g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(7))
+							if (config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(7))
 							{
 								if (ImGui::ImageButton((void*)legs, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
 								{
-									g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(7) = !g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(7);
+									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(7) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(7);
 
 								}
 								ImGui::SetCursorPos({ 195, 330 });
 								if (ImGui::ImageButton((void*)legs2, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
 								{
-									g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(7) = !g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(7);
+									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(7) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(7);
 
 								}
 							}
@@ -2981,31 +3015,31 @@ void c_menu::render2(bool is_open) {
 							{
 								if (ImGui::ImageButton((void*)legs1, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
 								{
-									g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(7) = !g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(7);
+									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(7) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(7);
 
 								}
 								ImGui::SetCursorPos({ 195, 330 });
 								if (ImGui::ImageButton((void*)legs3, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
 								{
-									g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(7) = !g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(7);
+									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(7) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(7);
 
 								}
 							}
 
 							//feet
 							ImGui::SetCursorPos({ 135, 480 });
-							if (g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(8))
+							if (config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(8))
 							{
 								if (ImGui::ImageButton((void*)feet, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
 								{
 
-									g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(8) = !g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(8);
+									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(8) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(8);
 								}
 								ImGui::SetCursorPos({ 195, 480 });
 								if (ImGui::ImageButton((void*)feet2, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
 								{
 
-									g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(8) = !g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(8);
+									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(8) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(8);
 								}
 							}
 							else
@@ -3014,13 +3048,13 @@ void c_menu::render2(bool is_open) {
 								{
 
 
-									g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(8) = !g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(8);
+									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(8) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(8);
 								}
 								ImGui::SetCursorPos({ 195, 480 });
 								if (ImGui::ImageButton((void*)feet3, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
 								{
 
-									g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(8) = !g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(8);
+									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(8) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(8);
 								}
 							}
 						}
@@ -3178,16 +3212,16 @@ void c_menu::render2(bool is_open) {
 
 					auto cur_window = ImGui::GetCurrentWindow();
 					ImVec2 w_pos = cur_window->Pos;
-					if (g_cfg.player.type->box)
+					if (config_system.g_cfg.player.type->box)
 					{
 						//clear shit box
-						cur_window->DrawList->AddRect(ImVec2(w_pos.x + 40, w_pos.y + 60), ImVec2(w_pos.x + 200, w_pos.y + 360), ImColor(g_cfg.player.type->box_color[0] * 255, g_cfg.player.type->box_color[1] * 255, g_cfg.player.type->box_color[2] * 255));//getrawcolor???
+						cur_window->DrawList->AddRect(ImVec2(w_pos.x + 40, w_pos.y + 60), ImVec2(w_pos.x + 200, w_pos.y + 360), ImColor(config_system.g_cfg.player.type->box_color[0] * 255, config_system.g_cfg.player.type->box_color[1] * 255, config_system.g_cfg.player.type->box_color[2] * 255));//getrawcolor???
 					}
-					if (g_cfg.player.type->health)
+					if (config_system.g_cfg.player.type->health)
 					{
 						cur_window->DrawList->AddRectFilled(ImVec2(w_pos.x + 34, w_pos.y + 60), ImVec2(w_pos.x + 37, w_pos.y + 360), ImColor(255, 255, 255, 255));//change this to green value im lazy to look hex color
 					}
-					if (g_cfg.player.type->name)
+					if (config_system.g_cfg.player.type->name)
 						info.emplace_back(esp_info_s("name", ImColor(255, 255, 255, 255), CENTER_UP));
 
 					for (auto render : info)
@@ -3324,36 +3358,36 @@ void c_menu::render2(bool is_open) {
 							{
 								child_title(crypt_str("Ragebot"));
 
-								ImGui::Checkbox(crypt_str("Enabled"), &g_cfg.ragebot.enable);
+								ImGui::Checkbox(crypt_str("Enabled"), &config_system.g_cfg.ragebot.enable);
 
-								if (g_cfg.ragebot.enable)
-									g_cfg.legitbot.enabled = false;
+								if (config_system.g_cfg.ragebot.enable)
+									config_system.g_cfg.legitbot.enabled = false;
 
-								ImGui::SliderInt(crypt_str("Maximum FOV"), &g_cfg.ragebot.field_of_view, 1, 180, false, crypt_str("%d°"));
-								ImGui::Checkbox(crypt_str("Silent aim"), &g_cfg.ragebot.silent_aim);
-								ImGui::Checkbox(crypt_str("Automatic penetration"), &g_cfg.ragebot.autowall);
-								ImGui::Checkbox(crypt_str("Automatic zeus"), &g_cfg.ragebot.zeus_bot);
-								ImGui::Checkbox(crypt_str("Automatic knife"), &g_cfg.ragebot.knife_bot);
-								ImGui::Checkbox(crypt_str("Automatic fire"), &g_cfg.ragebot.autoshoot);
-								ImGui::Checkbox(crypt_str("Automatic scope"), &g_cfg.ragebot.autoscope);
-								ImGui::Checkbox(crypt_str("Pitch desync correction"), &g_cfg.ragebot.pitch_antiaim_correction);
+								ImGui::SliderInt(crypt_str("Maximum FOV"), &config_system.g_cfg.ragebot.field_of_view, 1, 180, false, crypt_str("%d°"));
+								ImGui::Checkbox(crypt_str("Silent aim"), &config_system.g_cfg.ragebot.silent_aim);
+								ImGui::Checkbox(crypt_str("Automatic penetration"), &config_system.g_cfg.ragebot.autowall);
+								ImGui::Checkbox(crypt_str("Automatic zeus"), &config_system.g_cfg.ragebot.zeus_bot);
+								ImGui::Checkbox(crypt_str("Automatic knife"), &config_system.g_cfg.ragebot.knife_bot);
+								ImGui::Checkbox(crypt_str("Automatic fire"), &config_system.g_cfg.ragebot.autoshoot);
+								ImGui::Checkbox(crypt_str("Automatic scope"), &config_system.g_cfg.ragebot.autoscope);
+								ImGui::Checkbox(crypt_str("Pitch desync correction"), &config_system.g_cfg.ragebot.pitch_antiaim_correction);
 
 								ImGui::Spacing();
-								ImGui::Checkbox(crypt_str("Double tap"), &g_cfg.ragebot.double_tap);
+								ImGui::Checkbox(crypt_str("Double tap"), &config_system.g_cfg.ragebot.double_tap);
 
-								if (g_cfg.ragebot.double_tap)
+								if (config_system.g_cfg.ragebot.double_tap)
 								{
 									ImGui::SameLine();
-									draw_keybind(crypt_str(""), &g_cfg.ragebot.double_tap_key, crypt_str("##HOTKEY_DT"));
-									ImGui::Checkbox(crypt_str("Slow teleport"), &g_cfg.ragebot.slow_teleport);
+									draw_keybind(crypt_str(""), &config_system.g_cfg.ragebot.double_tap_key, crypt_str("##HOTKEY_DT"));
+									ImGui::Checkbox(crypt_str("Slow teleport"), &config_system.g_cfg.ragebot.slow_teleport);
 								}
 
-								ImGui::Checkbox(crypt_str("Hide shots"), &g_cfg.antiaim.hide_shots);
+								ImGui::Checkbox(crypt_str("Hide shots"), &config_system.g_cfg.antiaim.hide_shots);
 
-								if (g_cfg.antiaim.hide_shots)
+								if (config_system.g_cfg.antiaim.hide_shots)
 								{
 									ImGui::SameLine();
-									draw_keybind(crypt_str(""), &g_cfg.antiaim.hide_shots_key, crypt_str("##HOTKEY_HIDESHOTS"));
+									draw_keybind(crypt_str(""), &config_system.g_cfg.antiaim.hide_shots_key, crypt_str("##HOTKEY_HIDESHOTS"));
 								}
 							}
 							ImGui::EndGroup();
@@ -3370,25 +3404,25 @@ void c_menu::render2(bool is_open) {
 
 								static auto type = 0;
 
-								ImGui::Checkbox(crypt_str("Enabled"), &g_cfg.antiaim.enable);
-								draw_combo(crypt_str("Anti-aim type"), g_cfg.antiaim.antiaim_type, antiaim_type, ARRAYSIZE(antiaim_type));
+								ImGui::Checkbox(crypt_str("Enabled"), &config_system.g_cfg.antiaim.enable);
+								draw_combo(crypt_str("Anti-aim type"), config_system.g_cfg.antiaim.antiaim_type, antiaim_type, ARRAYSIZE(antiaim_type));
 
-								if (g_cfg.antiaim.antiaim_type)
+								if (config_system.g_cfg.antiaim.antiaim_type)
 								{
 									padding(0, 3);
-									draw_combo(crypt_str("Desync"), g_cfg.antiaim.desync, desync, ARRAYSIZE(desync));
+									draw_combo(crypt_str("Desync"), config_system.g_cfg.antiaim.desync, desync, ARRAYSIZE(desync));
 
-									if (g_cfg.antiaim.desync)
+									if (config_system.g_cfg.antiaim.desync)
 									{
 										padding(0, 3);
-										draw_combo(crypt_str("LBY type"), g_cfg.antiaim.legit_lby_type, lby_type, ARRAYSIZE(lby_type));
+										draw_combo(crypt_str("LBY type"), config_system.g_cfg.antiaim.legit_lby_type, lby_type, ARRAYSIZE(lby_type));
 
-										if (g_cfg.antiaim.desync == 1)
+										if (config_system.g_cfg.antiaim.desync == 1)
 										{
-											draw_keybind(crypt_str("Invert desync"), &g_cfg.antiaim.flip_desync, crypt_str("##HOTKEY_INVERT_DESYNC"));
-											ImGui::Checkbox(crypt_str("Side Arrow"), &g_cfg.antiaim.sidearrow);
+											draw_keybind(crypt_str("Invert desync"), &config_system.g_cfg.antiaim.flip_desync, crypt_str("##HOTKEY_INVERT_DESYNC"));
+											ImGui::Checkbox(crypt_str("Side Arrow"), &config_system.g_cfg.antiaim.sidearrow);
 											ImGui::SameLine();
-											ImGui::ColorEdit(crypt_str("##invd"), &g_cfg.antiaim.invert_indicator_color, ALPHA);
+											ImGui::ColorEdit(crypt_str("##invd"), &config_system.g_cfg.antiaim.invert_indicator_color, ALPHA);
 										}
 									}
 								}
@@ -3396,57 +3430,57 @@ void c_menu::render2(bool is_open) {
 								{
 									draw_combo(crypt_str("Movement type"), type, movement_type, ARRAYSIZE(movement_type));
 									padding(0, 3);
-									draw_combo(crypt_str("Pitch"), g_cfg.antiaim.type[type].pitch, pitch, ARRAYSIZE(pitch));
+									draw_combo(crypt_str("Pitch"), config_system.g_cfg.antiaim.type[type].pitch, pitch, ARRAYSIZE(pitch));
 									padding(0, 3);
-									draw_combo(crypt_str("Yaw"), g_cfg.antiaim.type[type].yaw, yaw, ARRAYSIZE(yaw));
+									draw_combo(crypt_str("Yaw"), config_system.g_cfg.antiaim.type[type].yaw, yaw, ARRAYSIZE(yaw));
 									padding(0, 3);
-									draw_combo(crypt_str("Base angle"), g_cfg.antiaim.type[type].base_angle, baseangle, ARRAYSIZE(baseangle));
+									draw_combo(crypt_str("Base angle"), config_system.g_cfg.antiaim.type[type].base_angle, baseangle, ARRAYSIZE(baseangle));
 
-									if (g_cfg.antiaim.type[type].yaw)
+									if (config_system.g_cfg.antiaim.type[type].yaw)
 									{
-										ImGui::SliderInt(g_cfg.antiaim.type[type].yaw == 1 ? crypt_str("Jitter range") : crypt_str("Spin range"), &g_cfg.antiaim.type[type].range, 1, 180);
+										ImGui::SliderInt(config_system.g_cfg.antiaim.type[type].yaw == 1 ? crypt_str("Jitter range") : crypt_str("Spin range"), &config_system.g_cfg.antiaim.type[type].range, 1, 180);
 
-										if (g_cfg.antiaim.type[type].yaw == 2)
-											ImGui::SliderInt(crypt_str("Spin speed"), &g_cfg.antiaim.type[type].speed, 1, 15);
+										if (config_system.g_cfg.antiaim.type[type].yaw == 2)
+											ImGui::SliderInt(crypt_str("Spin speed"), &config_system.g_cfg.antiaim.type[type].speed, 1, 15);
 
 										padding(0, 3);
 									}
 
-									draw_combo(crypt_str("Desync"), g_cfg.antiaim.type[type].desync, desync, ARRAYSIZE(desync));
+									draw_combo(crypt_str("Desync"), config_system.g_cfg.antiaim.type[type].desync, desync, ARRAYSIZE(desync));
 
-									if (g_cfg.antiaim.type[type].desync)
+									if (config_system.g_cfg.antiaim.type[type].desync)
 									{
 										if (type == ANTIAIM_STAND)
 										{
 											padding(0, 3);
-											draw_combo(crypt_str("LBY type"), g_cfg.antiaim.lby_type, lby_type, ARRAYSIZE(lby_type));
+											draw_combo(crypt_str("LBY type"), config_system.g_cfg.antiaim.lby_type, lby_type, ARRAYSIZE(lby_type));
 										}
 
-										if (type != ANTIAIM_STAND || !g_cfg.antiaim.lby_type)
+										if (type != ANTIAIM_STAND || !config_system.g_cfg.antiaim.lby_type)
 										{
-											ImGui::SliderInt(crypt_str("Fake amount"), &g_cfg.antiaim.type[type].desync_range, 1, 60);
-											ImGui::SliderInt(crypt_str("Inverted fake amount"), &g_cfg.antiaim.type[type].inverted_desync_range, 1, 60);
-											ImGui::SliderInt(crypt_str("Body lean"), &g_cfg.antiaim.type[type].body_lean, 0, 100);
-											ImGui::SliderInt(crypt_str("Inverted body lean"), &g_cfg.antiaim.type[type].inverted_body_lean, 0, 100);
+											ImGui::SliderInt(crypt_str("Fake amount"), &config_system.g_cfg.antiaim.type[type].desync_range, 1, 60);
+											ImGui::SliderInt(crypt_str("Inverted fake amount"), &config_system.g_cfg.antiaim.type[type].inverted_desync_range, 1, 60);
+											ImGui::SliderInt(crypt_str("Body lean"), &config_system.g_cfg.antiaim.type[type].body_lean, 0, 100);
+											ImGui::SliderInt(crypt_str("Inverted body lean"), &config_system.g_cfg.antiaim.type[type].inverted_body_lean, 0, 100);
 										}
 
-										if (g_cfg.antiaim.type[type].desync == 1)
+										if (config_system.g_cfg.antiaim.type[type].desync == 1)
 										{
-											draw_keybind(crypt_str("Invert desync"), &g_cfg.antiaim.flip_desync, crypt_str("##HOTKEY_INVERT_DESYNC"));
+											draw_keybind(crypt_str("Invert desync"), &config_system.g_cfg.antiaim.flip_desync, crypt_str("##HOTKEY_INVERT_DESYNC"));
 										}
 									}
 
-									draw_keybind(crypt_str("Manual back"), &g_cfg.antiaim.manual_back, crypt_str("##HOTKEY_INVERT_BACK"));
+									draw_keybind(crypt_str("Manual back"), &config_system.g_cfg.antiaim.manual_back, crypt_str("##HOTKEY_INVERT_BACK"));
 
-									draw_keybind(crypt_str("Manual left"), &g_cfg.antiaim.manual_left, crypt_str("##HOTKEY_INVERT_LEFT"));
+									draw_keybind(crypt_str("Manual left"), &config_system.g_cfg.antiaim.manual_left, crypt_str("##HOTKEY_INVERT_LEFT"));
 
-									draw_keybind(crypt_str("Manual right"), &g_cfg.antiaim.manual_right, crypt_str("##HOTKEY_INVERT_RIGHT"));
+									draw_keybind(crypt_str("Manual right"), &config_system.g_cfg.antiaim.manual_right, crypt_str("##HOTKEY_INVERT_RIGHT"));
 
-									if (g_cfg.antiaim.manual_back.key > KEY_NONE && g_cfg.antiaim.manual_back.key < KEY_MAX || g_cfg.antiaim.manual_left.key > KEY_NONE && g_cfg.antiaim.manual_left.key < KEY_MAX || g_cfg.antiaim.manual_right.key > KEY_NONE && g_cfg.antiaim.manual_right.key < KEY_MAX)
+									if (config_system.g_cfg.antiaim.manual_back.key > KEY_NONE && config_system.g_cfg.antiaim.manual_back.key < KEY_MAX || config_system.g_cfg.antiaim.manual_left.key > KEY_NONE && config_system.g_cfg.antiaim.manual_left.key < KEY_MAX || config_system.g_cfg.antiaim.manual_right.key > KEY_NONE && config_system.g_cfg.antiaim.manual_right.key < KEY_MAX)
 									{
-										ImGui::Checkbox(crypt_str("Manual indicator"), &g_cfg.antiaim.flip_indicator);
+										ImGui::Checkbox(crypt_str("Manual indicator"), &config_system.g_cfg.antiaim.flip_indicator);
 										ImGui::SameLine();
-										ImGui::ColorEdit(crypt_str("##invc"), &g_cfg.antiaim.flip_indicator_color, ALPHA);
+										ImGui::ColorEdit(crypt_str("##invc"), &config_system.g_cfg.antiaim.flip_indicator_color, ALPHA);
 									}
 								}
 
@@ -3478,39 +3512,39 @@ void c_menu::render2(bool is_open) {
 								draw_combo(crypt_str("Current weapon"), hooks::rage_weapon, rage_weapons, ARRAYSIZE(rage_weapons));
 								ImGui::Spacing();
 
-								draw_combo(crypt_str("Target selection"), g_cfg.ragebot.weapon[hooks::rage_weapon].selection_type, selection, ARRAYSIZE(selection));
+								draw_combo(crypt_str("Target selection"), config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].selection_type, selection, ARRAYSIZE(selection));
 								padding(0, 3);
-								draw_multicombo(crypt_str("Hitboxes"), g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes, hitboxes, ARRAYSIZE(hitboxes), preview);
+								draw_multicombo(crypt_str("Hitboxes"), config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes, hitboxes, ARRAYSIZE(hitboxes), preview);
 
-								ImGui::Checkbox(crypt_str("Static point scale"), &g_cfg.ragebot.weapon[hooks::rage_weapon].static_point_scale);
+								ImGui::Checkbox(crypt_str("Static point scale"), &config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].static_point_scale);
 
-								if (g_cfg.ragebot.weapon[hooks::rage_weapon].static_point_scale)
+								if (config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].static_point_scale)
 								{
-									ImGui::SliderFloat(crypt_str("Head scale"), &g_cfg.ragebot.weapon[hooks::rage_weapon].head_scale, 0.0f, 1.0f, g_cfg.ragebot.weapon[hooks::rage_weapon].head_scale ? crypt_str("%.2f") : crypt_str("None"));
-									ImGui::SliderFloat(crypt_str("Body scale"), &g_cfg.ragebot.weapon[hooks::rage_weapon].body_scale, 0.0f, 1.0f, g_cfg.ragebot.weapon[hooks::rage_weapon].body_scale ? crypt_str("%.2f") : crypt_str("None"));
+									ImGui::SliderFloat(crypt_str("Head scale"), &config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].head_scale, 0.0f, 1.0f, config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].head_scale ? crypt_str("%.2f") : crypt_str("None"));
+									ImGui::SliderFloat(crypt_str("Body scale"), &config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].body_scale, 0.0f, 1.0f, config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].body_scale ? crypt_str("%.2f") : crypt_str("None"));
 								}
 
 
-								ImGui::Checkbox(crypt_str("Enable max misses"), &g_cfg.ragebot.weapon[hooks::rage_weapon].max_misses);
+								ImGui::Checkbox(crypt_str("Enable max misses"), &config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].max_misses);
 
-								if (g_cfg.ragebot.weapon[hooks::rage_weapon].max_misses)
-									ImGui::SliderInt(crypt_str("Max misses"), &g_cfg.ragebot.weapon[hooks::rage_weapon].max_misses_amount, 0, 6);
+								if (config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].max_misses)
+									ImGui::SliderInt(crypt_str("Max misses"), &config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].max_misses_amount, 0, 6);
 
-								ImGui::Checkbox(crypt_str("Prefer safe points"), &g_cfg.ragebot.weapon[hooks::rage_weapon].prefer_safe_points);
-								ImGui::Checkbox(crypt_str("Prefer body aim"), &g_cfg.ragebot.weapon[hooks::rage_weapon].prefer_body_aim);
+								ImGui::Checkbox(crypt_str("Prefer safe points"), &config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].prefer_safe_points);
+								ImGui::Checkbox(crypt_str("Prefer body aim"), &config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].prefer_body_aim);
 
-								draw_keybind(crypt_str("Force safe points"), &g_cfg.ragebot.safe_point_key, crypt_str("##HOKEY_FORCE_SAFE_POINTS"));
-								draw_keybind(crypt_str("Force body aim"), &g_cfg.ragebot.body_aim_key, crypt_str("##HOKEY_FORCE_BODY_AIM"));
+								draw_keybind(crypt_str("Force safe points"), &config_system.g_cfg.ragebot.safe_point_key, crypt_str("##HOKEY_FORCE_SAFE_POINTS"));
+								draw_keybind(crypt_str("Force body aim"), &config_system.g_cfg.ragebot.body_aim_key, crypt_str("##HOKEY_FORCE_BODY_AIM"));
 
-								ImGui::SliderInt(crypt_str("Minimum visible damage"), &g_cfg.ragebot.weapon[hooks::rage_weapon].minimum_visible_damage, 1, 120, true);
+								ImGui::SliderInt(crypt_str("Minimum visible damage"), &config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].minimum_visible_damage, 1, 120, true);
 
-								if (g_cfg.ragebot.autowall)
-									ImGui::SliderInt(crypt_str("Minimum penetration damage"), &g_cfg.ragebot.weapon[hooks::rage_weapon].minimum_damage, 1, 120, true);
+								if (config_system.g_cfg.ragebot.autowall)
+									ImGui::SliderInt(crypt_str("Minimum penetration damage"), &config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].minimum_damage, 1, 120, true);
 
-								draw_keybind(crypt_str("Damage override"), &g_cfg.ragebot.weapon[hooks::rage_weapon].damage_override_key, crypt_str("##HOTKEY__DAMAGE_OVERRIDE"));
+								draw_keybind(crypt_str("Damage override"), &config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].damage_override_key, crypt_str("##HOTKEY__DAMAGE_OVERRIDE"));
 
-								if (g_cfg.ragebot.weapon[hooks::rage_weapon].damage_override_key.key > KEY_NONE && g_cfg.ragebot.weapon[hooks::rage_weapon].damage_override_key.key < KEY_MAX)
-									ImGui::SliderInt(crypt_str("Minimum override damage"), &g_cfg.ragebot.weapon[hooks::rage_weapon].minimum_override_damage, 1, 120, true);
+								if (config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].damage_override_key.key > KEY_NONE && config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].damage_override_key.key < KEY_MAX)
+									ImGui::SliderInt(crypt_str("Minimum override damage"), &config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].minimum_override_damage, 1, 120, true);
 							}
 							ImGui::EndGroup();
 						}
@@ -3525,22 +3559,22 @@ void c_menu::render2(bool is_open) {
 								child_title(crypt_str("Accuracy"));
 
 
-								ImGui::Checkbox(crypt_str("Automatic stop"), &g_cfg.ragebot.weapon[hooks::rage_weapon].autostop);
+								ImGui::Checkbox(crypt_str("Automatic stop"), &config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].autostop);
 
-								if (g_cfg.ragebot.weapon[hooks::rage_weapon].autostop)
-									draw_multicombo(crypt_str("Modifiers"), g_cfg.ragebot.weapon[hooks::rage_weapon].autostop_modifiers, autostop_modifiers, ARRAYSIZE(autostop_modifiers), preview);
+								if (config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].autostop)
+									draw_multicombo(crypt_str("Modifiers"), config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].autostop_modifiers, autostop_modifiers, ARRAYSIZE(autostop_modifiers), preview);
 
-								ImGui::Checkbox(crypt_str("Hit chance"), &g_cfg.ragebot.weapon[hooks::rage_weapon].hitchance);
+								ImGui::Checkbox(crypt_str("Hit chance"), &config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitchance);
 
-								if (g_cfg.ragebot.weapon[hooks::rage_weapon].hitchance)
-									ImGui::SliderInt(crypt_str("Minimum hit chance"), &g_cfg.ragebot.weapon[hooks::rage_weapon].hitchance_amount, 1, 100);
+								if (config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitchance)
+									ImGui::SliderInt(crypt_str("Minimum hit chance"), &config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitchance_amount, 1, 100);
 
-								if (g_cfg.ragebot.double_tap && hooks::rage_weapon <= 4)
+								if (config_system.g_cfg.ragebot.double_tap && hooks::rage_weapon <= 4)
 								{
-									ImGui::Checkbox(crypt_str("Double tap hit chance"), &g_cfg.ragebot.weapon[hooks::rage_weapon].double_tap_hitchance);
+									ImGui::Checkbox(crypt_str("Double tap hit chance"), &config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].double_tap_hitchance);
 
-									if (g_cfg.ragebot.weapon[hooks::rage_weapon].double_tap_hitchance)
-										ImGui::SliderInt(crypt_str("Double tap hit chance"), &g_cfg.ragebot.weapon[hooks::rage_weapon].double_tap_hitchance_amount, 1, 100);
+									if (config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].double_tap_hitchance)
+										ImGui::SliderInt(crypt_str("Double tap hit chance"), &config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].double_tap_hitchance_amount, 1, 100);
 								}
 							}
 							ImGui::EndGroup();
@@ -3554,11 +3588,11 @@ void c_menu::render2(bool is_open) {
 
 						static std::vector <Player_list_data> players;
 
-						if (!g_cfg.player_list.refreshing)
+						if (!config_system.g_cfg.player_list.refreshing)
 						{
 							players.clear();
 
-							for (auto player : g_cfg.player_list.players)
+							for (auto player : config_system.g_cfg.player_list.players)
 								players.emplace_back(player);
 						}
 
@@ -3602,14 +3636,14 @@ void c_menu::render2(bool is_open) {
 									if (current_player >= players.size())
 										current_player = players.size() - 1; //-V103
 
-									ImGui::Checkbox(crypt_str("White list"), &g_cfg.player_list.white_list[players.at(current_player).i]); //-V106 //-V807
+									ImGui::Checkbox(crypt_str("White list"), &config_system.g_cfg.player_list.white_list[players.at(current_player).i]); //-V106 //-V807
 
-									if (!g_cfg.player_list.white_list[players.at(current_player).i]) //-V106
+									if (!config_system.g_cfg.player_list.white_list[players.at(current_player).i]) //-V106
 									{
-										ImGui::Checkbox(crypt_str("High priority"), &g_cfg.player_list.high_priority[players.at(current_player).i]); //-V106
-										ImGui::Checkbox(crypt_str("Force safe points"), &g_cfg.player_list.force_safe_points[players.at(current_player).i]); //-V106
-										ImGui::Checkbox(crypt_str("Force body aim"), &g_cfg.player_list.force_body_aim[players.at(current_player).i]); //-V106
-										ImGui::Checkbox(crypt_str("Low delta"), &g_cfg.player_list.low_delta[players.at(current_player).i]); //-V106
+										ImGui::Checkbox(crypt_str("High priority"), &config_system.g_cfg.player_list.high_priority[players.at(current_player).i]); //-V106
+										ImGui::Checkbox(crypt_str("Force safe points"), &config_system.g_cfg.player_list.force_safe_points[players.at(current_player).i]); //-V106
+										ImGui::Checkbox(crypt_str("Force body aim"), &config_system.g_cfg.player_list.force_body_aim[players.at(current_player).i]); //-V106
+										ImGui::Checkbox(crypt_str("Low delta"), &config_system.g_cfg.player_list.low_delta[players.at(current_player).i]); //-V106
 									}
 								}
 
@@ -3635,30 +3669,30 @@ void c_menu::render2(bool is_open) {
 							ImGui::BeginGroup();
 							{
 								padding(0, 6);
-								ImGui::Checkbox(crypt_str("Enabled"), &g_cfg.legitbot.enabled);
+								ImGui::Checkbox(crypt_str("Enabled"), &config_system.g_cfg.legitbot.enabled);
 								ImGui::SameLine();
-								draw_keybind(crypt_str(""), &g_cfg.legitbot.key, crypt_str("##HOTKEY_LGBT_KEY"));
+								draw_keybind(crypt_str(""), &config_system.g_cfg.legitbot.key, crypt_str("##HOTKEY_LGBT_KEY"));
 
-								if (g_cfg.legitbot.enabled)
-									g_cfg.ragebot.enable = false;
+								if (config_system.g_cfg.legitbot.enabled)
+									config_system.g_cfg.ragebot.enable = false;
 
-								ImGui::Checkbox(crypt_str("Friendly fire"), &g_cfg.legitbot.friendly_fire);
-								ImGui::Checkbox(crypt_str("Automatic pistols"), &g_cfg.legitbot.autopistol);
+								ImGui::Checkbox(crypt_str("Friendly fire"), &config_system.g_cfg.legitbot.friendly_fire);
+								ImGui::Checkbox(crypt_str("Automatic pistols"), &config_system.g_cfg.legitbot.autopistol);
 
-								ImGui::Checkbox(crypt_str("Automatic scope"), &g_cfg.legitbot.autoscope);
+								ImGui::Checkbox(crypt_str("Automatic scope"), &config_system.g_cfg.legitbot.autoscope);
 
-								if (g_cfg.legitbot.autoscope)
-									ImGui::Checkbox(crypt_str("Unscope after shot"), &g_cfg.legitbot.unscope);
+								if (config_system.g_cfg.legitbot.autoscope)
+									ImGui::Checkbox(crypt_str("Unscope after shot"), &config_system.g_cfg.legitbot.unscope);
 
-								ImGui::Checkbox(crypt_str("Snipers in zoom only"), &g_cfg.legitbot.sniper_in_zoom_only);
+								ImGui::Checkbox(crypt_str("Snipers in zoom only"), &config_system.g_cfg.legitbot.sniper_in_zoom_only);
 
-								ImGui::Checkbox(crypt_str("Aim if in air"), &g_cfg.legitbot.do_if_local_in_air);
-								ImGui::Checkbox(crypt_str("Aim if flashed"), &g_cfg.legitbot.do_if_local_flashed);
-								ImGui::Checkbox(crypt_str("Aim thru smoke"), &g_cfg.legitbot.do_if_enemy_in_smoke);
-								ImGui::Checkbox(crypt_str("Backtracking"), &g_cfg.legitbot.backtrackl);
-								ImGui::Checkbox(crypt_str("Legit Resolver"), &g_cfg.legitbot.legit_resolver);
-								draw_keybind(crypt_str("Automatic fire key"), &g_cfg.legitbot.autofire_key, crypt_str("##HOTKEY_AUTOFIRE_LGBT_KEY"));
-								ImGui::SliderInt(crypt_str("Automatic fire delay"), &g_cfg.legitbot.autofire_delay, 0, 12, false, (!g_cfg.legitbot.autofire_delay ? crypt_str("None") : (g_cfg.legitbot.autofire_delay == 1 ? crypt_str("%d tick") : crypt_str("%d ticks"))));
+								ImGui::Checkbox(crypt_str("Aim if in air"), &config_system.g_cfg.legitbot.do_if_local_in_air);
+								ImGui::Checkbox(crypt_str("Aim if flashed"), &config_system.g_cfg.legitbot.do_if_local_flashed);
+								ImGui::Checkbox(crypt_str("Aim thru smoke"), &config_system.g_cfg.legitbot.do_if_enemy_in_smoke);
+								ImGui::Checkbox(crypt_str("Backtracking"), &config_system.g_cfg.legitbot.backtrackl);
+								ImGui::Checkbox(crypt_str("Legit Resolver"), &config_system.g_cfg.legitbot.legit_resolver);
+								draw_keybind(crypt_str("Automatic fire key"), &config_system.g_cfg.legitbot.autofire_key, crypt_str("##HOTKEY_AUTOFIRE_LGBT_KEY"));
+								ImGui::SliderInt(crypt_str("Automatic fire delay"), &config_system.g_cfg.legitbot.autofire_delay, 0, 12, false, (!config_system.g_cfg.legitbot.autofire_delay ? crypt_str("None") : (config_system.g_cfg.legitbot.autofire_delay == 1 ? crypt_str("%d tick") : crypt_str("%d ticks"))));
 							}
 							ImGui::EndGroup();
 						}
@@ -3674,28 +3708,28 @@ void c_menu::render2(bool is_open) {
 								//	ImGui::Spacing();
 								draw_combo(crypt_str("Current weapon"), hooks::legit_weapon, legit_weapons, ARRAYSIZE(legit_weapons));
 								ImGui::Spacing();
-								draw_combo(crypt_str("Hitbox"), g_cfg.legitbot.weapon[hooks::legit_weapon].priority, hitbox_legit, ARRAYSIZE(hitbox_legit));
+								draw_combo(crypt_str("Hitbox"), config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].priority, hitbox_legit, ARRAYSIZE(hitbox_legit));
 
-								ImGui::Checkbox(crypt_str("Automatic stop"), &g_cfg.legitbot.weapon[hooks::legit_weapon].auto_stop);
+								ImGui::Checkbox(crypt_str("Automatic stop"), &config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].auto_stop);
 
-								draw_combo(crypt_str("Maximum FOV type"), g_cfg.legitbot.weapon[hooks::legit_weapon].fov_type, LegitFov, ARRAYSIZE(LegitFov));
-								ImGui::SliderFloat(crypt_str("Maximum FOV amount"), &g_cfg.legitbot.weapon[hooks::legit_weapon].fov, 0.f, 30.f, crypt_str("%.2f"));
-
-								ImGui::Spacing();
-
-								ImGui::SliderFloat(crypt_str("Silent FOV"), &g_cfg.legitbot.weapon[hooks::legit_weapon].silent_fov, 0.f, 30.f, (!g_cfg.legitbot.weapon[hooks::legit_weapon].silent_fov ? crypt_str("None") : crypt_str("%.2f"))); //-V550
+								draw_combo(crypt_str("Maximum FOV type"), config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].fov_type, LegitFov, ARRAYSIZE(LegitFov));
+								ImGui::SliderFloat(crypt_str("Maximum FOV amount"), &config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].fov, 0.f, 30.f, crypt_str("%.2f"));
 
 								ImGui::Spacing();
 
-								draw_combo(crypt_str("Smooth type"), g_cfg.legitbot.weapon[hooks::legit_weapon].smooth_type, LegitSmooth, ARRAYSIZE(LegitSmooth));
-								ImGui::SliderFloat(crypt_str("Smooth amount"), &g_cfg.legitbot.weapon[hooks::legit_weapon].smooth, 1.f, 12.f, crypt_str("%.1f"));
+								ImGui::SliderFloat(crypt_str("Silent FOV"), &config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].silent_fov, 0.f, 30.f, (!config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].silent_fov ? crypt_str("None") : crypt_str("%.2f"))); //-V550
 
 								ImGui::Spacing();
 
-								ImGui::SliderInt(crypt_str("Automatic wall damage"), &g_cfg.legitbot.weapon[hooks::legit_weapon].awall_dmg, 0, 100, false, (!g_cfg.legitbot.weapon[hooks::legit_weapon].awall_dmg ? crypt_str("None") : crypt_str("%d")));
-								ImGui::SliderInt(crypt_str("Automatic fire hitchance"), &g_cfg.legitbot.weapon[hooks::legit_weapon].autofire_hitchance, 0, 100, false, (!g_cfg.legitbot.weapon[hooks::legit_weapon].autofire_hitchance ? crypt_str("None") : crypt_str("%d")));
-								ImGui::SliderFloat(crypt_str("Target switch delay"), &g_cfg.legitbot.weapon[hooks::legit_weapon].target_switch_delay, 0.f, 1.f);
-								ImGui::SliderFloat(crypt_str("Backtrack ticks"), &g_cfg.legitbot.weapon[hooks::legit_weapon].backtrack_ticks, 0, 12);
+								draw_combo(crypt_str("Smooth type"), config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].smooth_type, LegitSmooth, ARRAYSIZE(LegitSmooth));
+								ImGui::SliderFloat(crypt_str("Smooth amount"), &config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].smooth, 1.f, 12.f, crypt_str("%.1f"));
+
+								ImGui::Spacing();
+
+								ImGui::SliderInt(crypt_str("Automatic wall damage"), &config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].awall_dmg, 0, 100, false, (!config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].awall_dmg ? crypt_str("None") : crypt_str("%d")));
+								ImGui::SliderInt(crypt_str("Automatic fire hitchance"), &config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].autofire_hitchance, 0, 100, false, (!config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].autofire_hitchance ? crypt_str("None") : crypt_str("%d")));
+								ImGui::SliderFloat(crypt_str("Target switch delay"), &config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].target_switch_delay, 0.f, 1.f);
+								ImGui::SliderFloat(crypt_str("Backtrack ticks"), &config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].backtrack_ticks, 0, 12);
 
 
 
@@ -3720,13 +3754,13 @@ void c_menu::render2(bool is_open) {
 
 								draw_combo(crypt_str("Current weapon"), hooks::legit_weapon, legit_weapons, ARRAYSIZE(legit_weapons));
 
-								draw_combo(crypt_str("RCS type"), g_cfg.legitbot.weapon[hooks::legit_weapon].rcs_type, RCSType, ARRAYSIZE(RCSType));
-								ImGui::SliderFloat(crypt_str("RCS amount"), &g_cfg.legitbot.weapon[hooks::legit_weapon].rcs, 0.f, 100.f, crypt_str("%.0f%%"), 1.f);
+								draw_combo(crypt_str("RCS type"), config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].rcs_type, RCSType, ARRAYSIZE(RCSType));
+								ImGui::SliderFloat(crypt_str("RCS amount"), &config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].rcs, 0.f, 100.f, crypt_str("%.0f%%"), 1.f);
 
-								if (g_cfg.legitbot.weapon[hooks::legit_weapon].rcs > 0)
+								if (config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].rcs > 0)
 								{
-									ImGui::SliderFloat(crypt_str("RCS custom FOV"), &g_cfg.legitbot.weapon[hooks::legit_weapon].custom_rcs_fov, 0.f, 30.f, (!g_cfg.legitbot.weapon[hooks::legit_weapon].custom_rcs_fov ? crypt_str("None") : crypt_str("%.2f"))); //-V550
-									ImGui::SliderFloat(crypt_str("RCS Custom smooth"), &g_cfg.legitbot.weapon[hooks::legit_weapon].custom_rcs_smooth, 0.f, 12.f, (!g_cfg.legitbot.weapon[hooks::legit_weapon].custom_rcs_smooth ? crypt_str("None") : crypt_str("%.1f"))); //-V550
+									ImGui::SliderFloat(crypt_str("RCS custom FOV"), &config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].custom_rcs_fov, 0.f, 30.f, (!config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].custom_rcs_fov ? crypt_str("None") : crypt_str("%.2f"))); //-V550
+									ImGui::SliderFloat(crypt_str("RCS Custom smooth"), &config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].custom_rcs_smooth, 0.f, 12.f, (!config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].custom_rcs_smooth ? crypt_str("None") : crypt_str("%.1f"))); //-V550
 								}
 
 							}
@@ -3756,16 +3790,16 @@ void c_menu::render2(bool is_open) {
 					}
 					else if (Active_Tab == 2 && Active_Legit_Tab == 4) //Legit | Others
 					{
-					ImGui::Checkbox(crypt_str("Blockbot"), &g_cfg.misc.blockbot_enabled);
+					ImGui::Checkbox(crypt_str("Blockbot"), &config_system.g_cfg.misc.blockbot_enabled);
 
-					if (g_cfg.misc.blockbot_enabled == 1)
+					if (config_system.g_cfg.misc.blockbot_enabled == 1)
 					{
-						draw_keybind(crypt_str("Blockbot key"), &g_cfg.misc.block_bot, crypt_str("##BLOCKBOT__HOTKEY"));
+						draw_keybind(crypt_str("Blockbot key"), &config_system.g_cfg.misc.block_bot, crypt_str("##BLOCKBOT__HOTKEY"));
 						padding(10, 0);
-						draw_combo(crypt_str("Blockbot type"), g_cfg.misc.blockbot_type, blockbot_type_cb, ARRAYSIZE(blockbot_type_cb));
+						draw_combo(crypt_str("Blockbot type"), config_system.g_cfg.misc.blockbot_type, blockbot_type_cb, ARRAYSIZE(blockbot_type_cb));
 					}
 
-					ImGui::Checkbox(crypt_str("Force Crosshair"), &g_cfg.misc.forcecrosshair);
+					ImGui::Checkbox(crypt_str("Force Crosshair"), &config_system.g_cfg.misc.forcecrosshair);
 					
 					}
 					if (Active_Tab == 3 && Active_Visuals_Tab == 1) //Visuals | ESP
@@ -3782,38 +3816,38 @@ void c_menu::render2(bool is_open) {
 
 								//tab_start();
 
-								ImGui::Checkbox(crypt_str("Enabled"), &g_cfg.player.enable);
-								draw_combo(crypt_str("Set team"), g_cfg.player.teams, player_teams, ARRAYSIZE(player_teams));
+								ImGui::Checkbox(crypt_str("Enabled"), &config_system.g_cfg.player.enable);
+								draw_combo(crypt_str("Set team"), config_system.g_cfg.player.teams, player_teams, ARRAYSIZE(player_teams));
 
 								if (player == 0 || ENEMY)
 								{
-									ImGui::Checkbox(crypt_str("OOF arrows"), &g_cfg.player.arrows);
+									ImGui::Checkbox(crypt_str("OOF arrows"), &config_system.g_cfg.player.arrows);
 									ImGui::SameLine();
-									ImGui::ColorEdit(crypt_str("##arrowscolor"), &g_cfg.player.arrows_color, ALPHA);
+									ImGui::ColorEdit(crypt_str("##arrowscolor"), &config_system.g_cfg.player.arrows_color, ALPHA);
 
-									if (g_cfg.player.arrows)
+									if (config_system.g_cfg.player.arrows)
 									{
-										ImGui::SliderInt(crypt_str("Arrows distance"), &g_cfg.player.distance, 1, 100);
-										ImGui::SliderInt(crypt_str("Arrows size"), &g_cfg.player.size, 1, 100);
+										ImGui::SliderInt(crypt_str("Arrows distance"), &config_system.g_cfg.player.distance, 1, 100);
+										ImGui::SliderInt(crypt_str("Arrows size"), &config_system.g_cfg.player.size, 1, 100);
 									}
 								}
 
-								ImGui::Checkbox(crypt_str("Bounding box"), &g_cfg.player.type[player].box);
+								ImGui::Checkbox(crypt_str("Bounding box"), &config_system.g_cfg.player.type[player].box);
 								ImGui::SameLine();
-								ImGui::ColorEdit(crypt_str("##boxcolor"), &g_cfg.player.type[player].box_color, ALPHA);
+								ImGui::ColorEdit(crypt_str("##boxcolor"), &config_system.g_cfg.player.type[player].box_color, ALPHA);
 
-								ImGui::Checkbox(crypt_str("Name"), &g_cfg.player.type[player].name);
+								ImGui::Checkbox(crypt_str("Name"), &config_system.g_cfg.player.type[player].name);
 								ImGui::SameLine();
-								ImGui::ColorEdit(crypt_str("##namecolor"), &g_cfg.player.type[player].name_color, ALPHA);
+								ImGui::ColorEdit(crypt_str("##namecolor"), &config_system.g_cfg.player.type[player].name_color, ALPHA);
 
-								ImGui::Checkbox(crypt_str("Health bar"), &g_cfg.player.type[player].health);
-								ImGui::Checkbox(crypt_str("Override health color"), &g_cfg.player.type[player].custom_health_color);
+								ImGui::Checkbox(crypt_str("Health bar"), &config_system.g_cfg.player.type[player].health);
+								ImGui::Checkbox(crypt_str("Override health color"), &config_system.g_cfg.player.type[player].custom_health_color);
 								ImGui::SameLine();
-								ImGui::ColorEdit(crypt_str("##healthcolor"), &g_cfg.player.type[player].health_color, ALPHA);
+								ImGui::ColorEdit(crypt_str("##healthcolor"), &config_system.g_cfg.player.type[player].health_color, ALPHA);
 
 								for (auto i = 0, j = 0; i < ARRAYSIZE(flags); i++)
 								{
-									if (g_cfg.player.type[player].flags[i])
+									if (config_system.g_cfg.player.type[player].flags[i])
 									{
 										if (j)
 											preview += crypt_str(", ") + (std::string)flags[i];
@@ -3824,60 +3858,60 @@ void c_menu::render2(bool is_open) {
 									}
 								}
 
-								draw_multicombo(crypt_str("Flags"), g_cfg.player.type[player].flags, flags, ARRAYSIZE(flags), preview);
-								draw_multicombo(crypt_str("Weapon"), g_cfg.player.type[player].weapon, weaponplayer, ARRAYSIZE(weaponplayer), preview);
+								draw_multicombo(crypt_str("Flags"), config_system.g_cfg.player.type[player].flags, flags, ARRAYSIZE(flags), preview);
+								draw_multicombo(crypt_str("Weapon"), config_system.g_cfg.player.type[player].weapon, weaponplayer, ARRAYSIZE(weaponplayer), preview);
 
 
-								if (g_cfg.player.type[player].weapon[WEAPON_ICON] || g_cfg.player.type[player].weapon[WEAPON_TEXT])
+								if (config_system.g_cfg.player.type[player].weapon[WEAPON_ICON] || config_system.g_cfg.player.type[player].weapon[WEAPON_TEXT])
 								{
 									ImGui::Text(crypt_str("Color "));
 									ImGui::SameLine();
-									ImGui::ColorEdit(crypt_str("##weapcolor"), &g_cfg.player.type[player].weapon_color, ALPHA);
+									ImGui::ColorEdit(crypt_str("##weapcolor"), &config_system.g_cfg.player.type[player].weapon_color, ALPHA);
 								}
 
-								ImGui::Checkbox(crypt_str("Skeleton"), &g_cfg.player.type[player].skeleton);
+								ImGui::Checkbox(crypt_str("Skeleton"), &config_system.g_cfg.player.type[player].skeleton);
 								ImGui::SameLine();
-								ImGui::ColorEdit(crypt_str("##skeletoncolor"), &g_cfg.player.type[player].skeleton_color, ALPHA);
+								ImGui::ColorEdit(crypt_str("##skeletoncolor"), &config_system.g_cfg.player.type[player].skeleton_color, ALPHA);
 
-								ImGui::Checkbox(crypt_str("Ammo bar"), &g_cfg.player.type[player].ammo);
+								ImGui::Checkbox(crypt_str("Ammo bar"), &config_system.g_cfg.player.type[player].ammo);
 								ImGui::SameLine();
-								ImGui::ColorEdit(crypt_str("##ammocolor"), &g_cfg.player.type[player].ammobar_color, ALPHA);
+								ImGui::ColorEdit(crypt_str("##ammocolor"), &config_system.g_cfg.player.type[player].ammobar_color, ALPHA);
 
-								ImGui::Checkbox(crypt_str("Foot steps"), &g_cfg.player.type[player].footsteps);
+								ImGui::Checkbox(crypt_str("Foot steps"), &config_system.g_cfg.player.type[player].footsteps);
 								ImGui::SameLine();
-								ImGui::ColorEdit(crypt_str("##footstepscolor"), &g_cfg.player.type[player].footsteps_color, ALPHA);
+								ImGui::ColorEdit(crypt_str("##footstepscolor"), &config_system.g_cfg.player.type[player].footsteps_color, ALPHA);
 
-								if (g_cfg.player.type[player].footsteps)
+								if (config_system.g_cfg.player.type[player].footsteps)
 								{
-									ImGui::SliderInt(crypt_str("Thickness"), &g_cfg.player.type[player].thickness, 1, 10);
-									ImGui::SliderInt(crypt_str("Radius"), &g_cfg.player.type[player].radius, 50, 500);
+									ImGui::SliderInt(crypt_str("Thickness"), &config_system.g_cfg.player.type[player].thickness, 1, 10);
+									ImGui::SliderInt(crypt_str("Radius"), &config_system.g_cfg.player.type[player].radius, 50, 500);
 								}
 
 								if (player == 0 || ENEMY || player == 1 || TEAM)
 								{
-									ImGui::Checkbox(crypt_str("Snap lines"), &g_cfg.player.type[player].snap_lines);
+									ImGui::Checkbox(crypt_str("Snap lines"), &config_system.g_cfg.player.type[player].snap_lines);
 									ImGui::SameLine();
-									ImGui::ColorEdit(crypt_str("##snapcolor"), &g_cfg.player.type[player].snap_lines_color, ALPHA);
+									ImGui::ColorEdit(crypt_str("##snapcolor"), &config_system.g_cfg.player.type[player].snap_lines_color, ALPHA);
 
 									if (player == 0)
 									{
-										if (g_cfg.ragebot.enable)
+										if (config_system.g_cfg.ragebot.enable)
 										{
-											ImGui::Checkbox(crypt_str("Aimbot points"), &g_cfg.player.show_multi_points);
+											ImGui::Checkbox(crypt_str("Aimbot points"), &config_system.g_cfg.player.show_multi_points);
 											ImGui::SameLine();
-											ImGui::ColorEdit(crypt_str("##showmultipointscolor"), &g_cfg.player.show_multi_points_color, ALPHA);
+											ImGui::ColorEdit(crypt_str("##showmultipointscolor"), &config_system.g_cfg.player.show_multi_points_color, ALPHA);
 										}
 
-										ImGui::Checkbox(crypt_str("Aimbot hitboxes"), &g_cfg.player.lag_hitbox);
+										ImGui::Checkbox(crypt_str("Aimbot hitboxes"), &config_system.g_cfg.player.lag_hitbox);
 										ImGui::SameLine();
-										ImGui::ColorEdit(crypt_str("##lagcompcolor"), &g_cfg.player.lag_hitbox_color, ALPHA);
+										ImGui::ColorEdit(crypt_str("##lagcompcolor"), &config_system.g_cfg.player.lag_hitbox_color, ALPHA);
 									}
 								}
 								else
 								{
-									draw_combo(crypt_str("Player model T"), g_cfg.player.player_model_t, player_model_t, ARRAYSIZE(player_model_t));
+									draw_combo(crypt_str("Player model T"), config_system.g_cfg.player.player_model_t, player_model_t, ARRAYSIZE(player_model_t));
 									padding(0, 3);
-									draw_combo(crypt_str("Player model CT"), g_cfg.player.player_model_ct, player_model_ct, ARRAYSIZE(player_model_ct));
+									draw_combo(crypt_str("Player model CT"), config_system.g_cfg.player.player_model_ct, player_model_ct, ARRAYSIZE(player_model_ct));
 								}
 							}
 							ImGui::EndGroup();
@@ -3892,142 +3926,142 @@ void c_menu::render2(bool is_open) {
 							{
 								child_title(crypt_str("Other"));
 
-								ImGui::Checkbox(crypt_str("Grenade prediction"), &g_cfg.esp.grenade_prediction);
+								ImGui::Checkbox(crypt_str("Grenade prediction"), &config_system.g_cfg.esp.grenade_prediction);
 								ImGui::SameLine();
-								ImGui::ColorEdit(crypt_str("##grenpredcolor"), &g_cfg.esp.grenade_prediction_color, ALPHA);
+								ImGui::ColorEdit(crypt_str("##grenpredcolor"), &config_system.g_cfg.esp.grenade_prediction_color, ALPHA);
 
-								if (g_cfg.esp.grenade_prediction)
+								if (config_system.g_cfg.esp.grenade_prediction)
 								{
-									ImGui::Checkbox(crypt_str("On click"), &g_cfg.esp.on_click);
+									ImGui::Checkbox(crypt_str("On click"), &config_system.g_cfg.esp.on_click);
 									ImGui::Text(crypt_str("Tracer color "));
 									ImGui::SameLine();
-									ImGui::ColorEdit(crypt_str("##tracergrenpredcolor"), &g_cfg.esp.grenade_prediction_tracer_color, ALPHA);
+									ImGui::ColorEdit(crypt_str("##tracergrenpredcolor"), &config_system.g_cfg.esp.grenade_prediction_tracer_color, ALPHA);
 								}
 
-								ImGui::Checkbox(crypt_str("Grenade warning "), &g_cfg.esp.grenade_warning);
-								if (g_cfg.esp.grenade_warning) {
+								ImGui::Checkbox(crypt_str("Grenade warning "), &config_system.g_cfg.esp.grenade_warning);
+								if (config_system.g_cfg.esp.grenade_warning) {
 									ImGui::BeginGroup(); {//line
-										ImGui::Checkbox("Enable tracer", &g_cfg.warning.trace.enable);
-										draw_combo(crypt_str("Tracer type"), g_cfg.warning.trace.type, warning_mode, ARRAYSIZE(warning_mode));
-										if (g_cfg.warning.trace.type != 1) {
+										ImGui::Checkbox("Enable tracer", &config_system.g_cfg.warning.trace.enable);
+										draw_combo(crypt_str("Tracer type"), config_system.g_cfg.warning.trace.type, warning_mode, ARRAYSIZE(warning_mode));
+										if (config_system.g_cfg.warning.trace.type != 1) {
 											ImGui::Text(crypt_str("Tracer color "));
 											ImGui::SameLine();
-											ImGui::ColorEdit(crypt_str("##grenade_tr_color"), &g_cfg.warning.trace.color, ALPHA);
+											ImGui::ColorEdit(crypt_str("##grenade_tr_color"), &config_system.g_cfg.warning.trace.color, ALPHA);
 										}
-										ImGui::Checkbox("Visible only##trace", &g_cfg.warning.trace.visible_only);
-										ImGui::SliderFloat(crypt_str("Width"), &g_cfg.warning.trace.width, 1, 5);
+										ImGui::Checkbox("Visible only##trace", &config_system.g_cfg.warning.trace.visible_only);
+										ImGui::SliderFloat(crypt_str("Width"), &config_system.g_cfg.warning.trace.width, 1, 5);
 									}
 									ImGui::EndGroup();
 
 									ImGui::Spacing();
 
 									ImGui::BeginGroup(); {//icon и другая хуйня
-										ImGui::Checkbox("Enable warning", &g_cfg.warning.main.enable);
+										ImGui::Checkbox("Enable warning", &config_system.g_cfg.warning.main.enable);
 										if (ImGui::BeginCombo("Designers", "Select any element"))
 										{
 
-											ImGui::Checkbox("Show grenade icon", &g_cfg.warning.main.show_icon); if (!g_cfg.warning.main.color_by_time) {
+											ImGui::Checkbox("Show grenade icon", &config_system.g_cfg.warning.main.show_icon); if (!config_system.g_cfg.warning.main.color_by_time) {
 												ImGui::SameLine();
-												ImGui::ColorEdit(crypt_str("##grenade_ic_color"), &g_cfg.warning.main.icon_col, ALPHA);
+												ImGui::ColorEdit(crypt_str("##grenade_ic_color"), &config_system.g_cfg.warning.main.icon_col, ALPHA);
 											}
 
-											ImGui::Checkbox("Show background", &g_cfg.warning.main.show_bg); ImGui::SameLine();
-											ImGui::ColorEdit(crypt_str("##grenade_bg_color"), &g_cfg.warning.main.bg_col, ALPHA);
+											ImGui::Checkbox("Show background", &config_system.g_cfg.warning.main.show_bg); ImGui::SameLine();
+											ImGui::ColorEdit(crypt_str("##grenade_bg_color"), &config_system.g_cfg.warning.main.bg_col, ALPHA);
 
 
-											ImGui::Checkbox("Show timer", &g_cfg.warning.main.show_timer); if (!g_cfg.warning.main.color_by_time) {
+											ImGui::Checkbox("Show timer", &config_system.g_cfg.warning.main.show_timer); if (!config_system.g_cfg.warning.main.color_by_time) {
 												ImGui::SameLine();
-												ImGui::ColorEdit(crypt_str("##grenade_tim_color"), &g_cfg.warning.main.timer_col, ALPHA);
+												ImGui::ColorEdit(crypt_str("##grenade_tim_color"), &config_system.g_cfg.warning.main.timer_col, ALPHA);
 											}
 
-											ImGui::Checkbox("Show damage/distance", &g_cfg.warning.main.show_damage_dist);
+											ImGui::Checkbox("Show damage/distance", &config_system.g_cfg.warning.main.show_damage_dist);
 
-											ImGui::Checkbox("Set color based on remaining time", &g_cfg.warning.main.color_by_time);
+											ImGui::Checkbox("Set color based on remaining time", &config_system.g_cfg.warning.main.color_by_time);
 
 											ImGui::EndCombo();
 										}
 
-										draw_combo(crypt_str("Damage warning type"), g_cfg.warning.main.d_warn_type, d_warning_mode, ARRAYSIZE(d_warning_mode));
-										if (g_cfg.warning.main.d_warn_type) {
+										draw_combo(crypt_str("Damage warning type"), config_system.g_cfg.warning.main.d_warn_type, d_warning_mode, ARRAYSIZE(d_warning_mode));
+										if (config_system.g_cfg.warning.main.d_warn_type) {
 											ImGui::Text(crypt_str("Damage warning color "));
 											ImGui::SameLine();
-											ImGui::ColorEdit(crypt_str("##grenadewa_tr_color"), &g_cfg.warning.main.warn_col, ALPHA);
+											ImGui::ColorEdit(crypt_str("##grenadewa_tr_color"), &config_system.g_cfg.warning.main.warn_col, ALPHA);
 										}
-										ImGui::Checkbox("Visible only##main", &g_cfg.warning.main.visible_only);
+										ImGui::Checkbox("Visible only##main", &config_system.g_cfg.warning.main.visible_only);
 									}
 									ImGui::EndGroup();
 								}
 
-								ImGui::Checkbox(crypt_str("Grenade projectiles"), &g_cfg.esp.projectiles);
+								ImGui::Checkbox(crypt_str("Grenade projectiles"), &config_system.g_cfg.esp.projectiles);
 
-								if (g_cfg.esp.projectiles)
-									draw_multicombo(crypt_str("Grenade ESP"), g_cfg.esp.grenade_esp, proj_combo, ARRAYSIZE(proj_combo), preview);
+								if (config_system.g_cfg.esp.projectiles)
+									draw_multicombo(crypt_str("Grenade ESP"), config_system.g_cfg.esp.grenade_esp, proj_combo, ARRAYSIZE(proj_combo), preview);
 
-								if (g_cfg.esp.grenade_esp[GRENADE_ICON] || g_cfg.esp.grenade_esp[GRENADE_TEXT])
+								if (config_system.g_cfg.esp.grenade_esp[GRENADE_ICON] || config_system.g_cfg.esp.grenade_esp[GRENADE_TEXT])
 								{
 									ImGui::Text(crypt_str("Color "));
 									ImGui::SameLine();
-									ImGui::ColorEdit(crypt_str("##projectcolor"), &g_cfg.esp.projectiles_color, ALPHA);
+									ImGui::ColorEdit(crypt_str("##projectcolor"), &config_system.g_cfg.esp.projectiles_color, ALPHA);
 								}
 
-								if (g_cfg.esp.grenade_esp[GRENADE_BOX])
+								if (config_system.g_cfg.esp.grenade_esp[GRENADE_BOX])
 								{
 									ImGui::Text(crypt_str("Box color "));
 									ImGui::SameLine();
-									ImGui::ColorEdit(crypt_str("##grenade_box_color"), &g_cfg.esp.grenade_box_color, ALPHA);
+									ImGui::ColorEdit(crypt_str("##grenade_box_color"), &config_system.g_cfg.esp.grenade_box_color, ALPHA);
 								}
 
-								if (g_cfg.esp.grenade_esp[GRENADE_GLOW])
+								if (config_system.g_cfg.esp.grenade_esp[GRENADE_GLOW])
 								{
 									ImGui::Text(crypt_str("Glow color "));
 									ImGui::SameLine();
-									ImGui::ColorEdit(crypt_str("##grenade_glow_color"), &g_cfg.esp.grenade_glow_color, ALPHA);
+									ImGui::ColorEdit(crypt_str("##grenade_glow_color"), &config_system.g_cfg.esp.grenade_glow_color, ALPHA);
 								}
 
-								/*if (g_cfg.esp.grenade_esp[GRENADE_WARNING])
+								/*if (config_system.g_cfg.esp.grenade_esp[GRENADE_WARNING])
 								{
 									ImGui::Text(crypt_str("Warning color "));
 									ImGui::SameLine();
-									ImGui::ColorEdit(crypt_str("##grenade_warning_color"), &g_cfg.esp.grenade_warning_color, ALPHA);
+									ImGui::ColorEdit(crypt_str("##grenade_warning_color"), &config_system.g_cfg.esp.grenade_warning_color, ALPHA);
 								}*/
 
-								ImGui::Checkbox(crypt_str("Fire timer"), &g_cfg.esp.molotov_timer);
+								ImGui::Checkbox(crypt_str("Fire timer"), &config_system.g_cfg.esp.molotov_timer);
 								ImGui::SameLine();
-								ImGui::ColorEdit(crypt_str("##molotovcolor"), &g_cfg.esp.molotov_timer_color, ALPHA);
+								ImGui::ColorEdit(crypt_str("##molotovcolor"), &config_system.g_cfg.esp.molotov_timer_color, ALPHA);
 
-								ImGui::Checkbox(crypt_str("Smoke timer"), &g_cfg.esp.smoke_timer);
+								ImGui::Checkbox(crypt_str("Smoke timer"), &config_system.g_cfg.esp.smoke_timer);
 								ImGui::SameLine();
-								ImGui::ColorEdit(crypt_str("##smokecolor"), &g_cfg.esp.smoke_timer_color, ALPHA);
+								ImGui::ColorEdit(crypt_str("##smokecolor"), &config_system.g_cfg.esp.smoke_timer_color, ALPHA);
 
-								ImGui::Checkbox(crypt_str("Bomb indicator"), &g_cfg.esp.bomb_timer);
-								draw_multicombo(crypt_str("Weapon ESP"), g_cfg.esp.weapon, weaponesp, ARRAYSIZE(weaponesp), preview);
+								ImGui::Checkbox(crypt_str("Bomb indicator"), &config_system.g_cfg.esp.bomb_timer);
+								draw_multicombo(crypt_str("Weapon ESP"), config_system.g_cfg.esp.weapon, weaponesp, ARRAYSIZE(weaponesp), preview);
 
-								if (g_cfg.esp.weapon[WEAPON_ICON] || g_cfg.esp.weapon[WEAPON_TEXT] || g_cfg.esp.weapon[WEAPON_DISTANCE])
+								if (config_system.g_cfg.esp.weapon[WEAPON_ICON] || config_system.g_cfg.esp.weapon[WEAPON_TEXT] || config_system.g_cfg.esp.weapon[WEAPON_DISTANCE])
 								{
 									ImGui::Text(crypt_str("Color "));
 									ImGui::SameLine();
-									ImGui::ColorEdit(crypt_str("##weaponcolor"), &g_cfg.esp.weapon_color, ALPHA);
+									ImGui::ColorEdit(crypt_str("##weaponcolor"), &config_system.g_cfg.esp.weapon_color, ALPHA);
 								}
 
-								if (g_cfg.esp.weapon[WEAPON_BOX])
+								if (config_system.g_cfg.esp.weapon[WEAPON_BOX])
 								{
 									ImGui::Text(crypt_str("Box color "));
 									ImGui::SameLine();
-									ImGui::ColorEdit(crypt_str("##weaponboxcolor"), &g_cfg.esp.box_color, ALPHA);
+									ImGui::ColorEdit(crypt_str("##weaponboxcolor"), &config_system.g_cfg.esp.box_color, ALPHA);
 								}
 
-								if (g_cfg.esp.weapon[WEAPON_GLOW])
+								if (config_system.g_cfg.esp.weapon[WEAPON_GLOW])
 								{
 									ImGui::Text(crypt_str("Glow color "));
 									ImGui::SameLine();
-									ImGui::ColorEdit(crypt_str("##weaponglowcolor"), &g_cfg.esp.weapon_glow_color, ALPHA);
+									ImGui::ColorEdit(crypt_str("##weaponglowcolor"), &config_system.g_cfg.esp.weapon_glow_color, ALPHA);
 								}
 
-								if (g_cfg.esp.weapon[WEAPON_AMMO])
+								if (config_system.g_cfg.esp.weapon[WEAPON_AMMO])
 								{
 									ImGui::Text(crypt_str("Ammo bar color "));
 									ImGui::SameLine();
-									ImGui::ColorEdit(crypt_str("##weaponammocolor"), &g_cfg.esp.weapon_ammo_color, ALPHA);
+									ImGui::ColorEdit(crypt_str("##weaponammocolor"), &config_system.g_cfg.esp.weapon_ammo_color, ALPHA);
 								}
 							}
 							ImGui::EndGroup();
@@ -4039,16 +4073,16 @@ void c_menu::render2(bool is_open) {
 					{
 						child_title(crypt_str("Glow"));
 
-						draw_combo(crypt_str("Set team"), g_cfg.player.teams, player_teams, ARRAYSIZE(player_teams));
+						draw_combo(crypt_str("Set team"), config_system.g_cfg.player.teams, player_teams, ARRAYSIZE(player_teams));
 
-						ImGui::Checkbox(crypt_str("Glow"), &g_cfg.player.type[player].glow);
+						ImGui::Checkbox(crypt_str("Glow"), &config_system.g_cfg.player.type[player].glow);
 
-						if (g_cfg.player.type[player].glow)
+						if (config_system.g_cfg.player.type[player].glow)
 						{
-							draw_combo(crypt_str("Glow type"), g_cfg.player.type[player].glow_type, glowtype, ARRAYSIZE(glowtype));
+							draw_combo(crypt_str("Glow type"), config_system.g_cfg.player.type[player].glow_type, glowtype, ARRAYSIZE(glowtype));
 							ImGui::Text(crypt_str("Color "));
 							ImGui::SameLine();
-							ImGui::ColorEdit(crypt_str("##glowcolor"), &g_cfg.player.type[player].glow_color, ALPHA);
+							ImGui::ColorEdit(crypt_str("##glowcolor"), &config_system.g_cfg.player.type[player].glow_color, ALPHA);
 						}
 					}
 					else if (Active_Tab == 3 && Active_Visuals_Tab == 3)  //Visuals | Chams
@@ -4067,101 +4101,101 @@ void c_menu::render2(bool is_open) {
 							ImGui::BeginGroup();
 							{
 								child_title(crypt_str("Player models"));
-								draw_combo(crypt_str("Set team"), g_cfg.player.teams, player_teams, ARRAYSIZE(player_teams));
+								draw_combo(crypt_str("Set team"), config_system.g_cfg.player.teams, player_teams, ARRAYSIZE(player_teams));
 								//tab_start();
 									//ImGui::Spacing();
 								if (player == 2 || LOCAL)
-									draw_combo(crypt_str("Type"), g_cfg.player.local_chams_type, local_chams_type, ARRAYSIZE(local_chams_type));
+									draw_combo(crypt_str("Type"), config_system.g_cfg.player.local_chams_type, local_chams_type, ARRAYSIZE(local_chams_type));
 
-								if (player != 2 || LOCAL || !g_cfg.player.local_chams_type)
-									draw_multicombo(crypt_str("Chams"), g_cfg.player.type[player].chams, g_cfg.player.type[player].chams[PLAYER_CHAMS_VISIBLE] ? chamsvisact : chamsvis, g_cfg.player.type[player].chams[PLAYER_CHAMS_VISIBLE] ? ARRAYSIZE(chamsvisact) : ARRAYSIZE(chamsvis), preview);
+								if (player != 2 || LOCAL || !config_system.g_cfg.player.local_chams_type)
+									draw_multicombo(crypt_str("Chams"), config_system.g_cfg.player.type[player].chams, config_system.g_cfg.player.type[player].chams[PLAYER_CHAMS_VISIBLE] ? chamsvisact : chamsvis, config_system.g_cfg.player.type[player].chams[PLAYER_CHAMS_VISIBLE] ? ARRAYSIZE(chamsvisact) : ARRAYSIZE(chamsvis), preview);
 
-								if (g_cfg.player.type[player].chams[PLAYER_CHAMS_VISIBLE] || player == 2 || LOCAL && g_cfg.player.local_chams_type) //-V648
+								if (config_system.g_cfg.player.type[player].chams[PLAYER_CHAMS_VISIBLE] || player == 2 || LOCAL && config_system.g_cfg.player.local_chams_type) //-V648
 								{
-									if (player == LOCAL && g_cfg.player.local_chams_type)
+									if (player == LOCAL && config_system.g_cfg.player.local_chams_type)
 									{
-										ImGui::Checkbox(crypt_str("Enable desync chams"), &g_cfg.player.fake_chams_enable);
-										ImGui::Checkbox(crypt_str("Visualize fake-lag"), &g_cfg.player.visualize_lag);
-										ImGui::Checkbox(crypt_str("Layered"), &g_cfg.player.layered);
+										ImGui::Checkbox(crypt_str("Enable desync chams"), &config_system.g_cfg.player.fake_chams_enable);
+										ImGui::Checkbox(crypt_str("Visualize fake-lag"), &config_system.g_cfg.player.visualize_lag);
+										ImGui::Checkbox(crypt_str("Layered"), &config_system.g_cfg.player.layered);
 
-										draw_combo(crypt_str("Player chams material"), g_cfg.player.fake_chams_type, chamstype, ARRAYSIZE(chamstype));
+										draw_combo(crypt_str("Player chams material"), config_system.g_cfg.player.fake_chams_type, chamstype, ARRAYSIZE(chamstype));
 
 										ImGui::Text(crypt_str("Color "));
 										ImGui::SameLine();
-										ImGui::ColorEdit(crypt_str("##fakechamscolor"), &g_cfg.player.fake_chams_color, ALPHA);
+										ImGui::ColorEdit(crypt_str("##fakechamscolor"), &config_system.g_cfg.player.fake_chams_color, ALPHA);
 
-										if (g_cfg.player.fake_chams_type != 6)
+										if (config_system.g_cfg.player.fake_chams_type != 6)
 										{
-											ImGui::Checkbox(crypt_str("Fake Double material "), &g_cfg.player.fake_double_material);
+											ImGui::Checkbox(crypt_str("Fake Double material "), &config_system.g_cfg.player.fake_double_material);
 											ImGui::SameLine();
-											ImGui::ColorEdit(crypt_str("##doublematerialcolor"), &g_cfg.player.fake_double_material_color, ALPHA);
+											ImGui::ColorEdit(crypt_str("##doublematerialcolor"), &config_system.g_cfg.player.fake_double_material_color, ALPHA);
 										}
 
-										ImGui::Checkbox(crypt_str("Animated material"), &g_cfg.player.fake_animated_material);
+										ImGui::Checkbox(crypt_str("Animated material"), &config_system.g_cfg.player.fake_animated_material);
 										ImGui::SameLine();
-										ImGui::ColorEdit(crypt_str("##animcolormat"), &g_cfg.player.fake_animated_material_color, ALPHA);
+										ImGui::ColorEdit(crypt_str("##animcolormat"), &config_system.g_cfg.player.fake_animated_material_color, ALPHA);
 									}
 									else
 									{
-										draw_combo(crypt_str("Player chams material"), g_cfg.player.type[player].chams_type, chamstype, ARRAYSIZE(chamstype));
+										draw_combo(crypt_str("Player chams material"), config_system.g_cfg.player.type[player].chams_type, chamstype, ARRAYSIZE(chamstype));
 
-										if (g_cfg.player.type[player].chams[PLAYER_CHAMS_VISIBLE])
+										if (config_system.g_cfg.player.type[player].chams[PLAYER_CHAMS_VISIBLE])
 										{
 											ImGui::Text(crypt_str("Visible "));
 											ImGui::SameLine();
-											ImGui::ColorEdit(crypt_str("##chamsvisible"), &g_cfg.player.type[player].chams_color, ALPHA);
+											ImGui::ColorEdit(crypt_str("##chamsvisible"), &config_system.g_cfg.player.type[player].chams_color, ALPHA);
 										}
 
-										if (g_cfg.player.type[player].chams[PLAYER_CHAMS_VISIBLE] && g_cfg.player.type[player].chams[PLAYER_CHAMS_INVISIBLE])
+										if (config_system.g_cfg.player.type[player].chams[PLAYER_CHAMS_VISIBLE] && config_system.g_cfg.player.type[player].chams[PLAYER_CHAMS_INVISIBLE])
 										{
 											ImGui::Text(crypt_str("Invisible "));
 											ImGui::SameLine();
-											ImGui::ColorEdit(crypt_str("##chamsinvisible"), &g_cfg.player.type[player].xqz_color, ALPHA);
+											ImGui::ColorEdit(crypt_str("##chamsinvisible"), &config_system.g_cfg.player.type[player].xqz_color, ALPHA);
 										}
 
-										if (g_cfg.player.type[player].chams_type != 6)
+										if (config_system.g_cfg.player.type[player].chams_type != 6)
 										{
-											ImGui::Checkbox(crypt_str("Player Double material "), &g_cfg.player.type[player].double_material);
+											ImGui::Checkbox(crypt_str("Player Double material "), &config_system.g_cfg.player.type[player].double_material);
 											ImGui::SameLine();
-											ImGui::ColorEdit(crypt_str("##doublematerialcolor"), &g_cfg.player.type[player].double_material_color, ALPHA);
+											ImGui::ColorEdit(crypt_str("##doublematerialcolor"), &config_system.g_cfg.player.type[player].double_material_color, ALPHA);
 										}
 
-										ImGui::Checkbox(crypt_str("Animated material"), &g_cfg.player.type[player].animated_material);
+										ImGui::Checkbox(crypt_str("Animated material"), &config_system.g_cfg.player.type[player].animated_material);
 										ImGui::SameLine();
-										ImGui::ColorEdit(crypt_str("##animcolormat"), &g_cfg.player.type[player].animated_material_color, ALPHA);
+										ImGui::ColorEdit(crypt_str("##animcolormat"), &config_system.g_cfg.player.type[player].animated_material_color, ALPHA);
 
 										if (player == 0 || ENEMY)
 										{
-											ImGui::Checkbox(crypt_str("Backtrack chams"), &g_cfg.player.backtrack_chams);
+											ImGui::Checkbox(crypt_str("Backtrack chams"), &config_system.g_cfg.player.backtrack_chams);
 
-											if (g_cfg.player.backtrack_chams)
+											if (config_system.g_cfg.player.backtrack_chams)
 											{
-												draw_combo(crypt_str("Backtrack chams material"), g_cfg.player.backtrack_chams_material, chamstype, ARRAYSIZE(chamstype));
+												draw_combo(crypt_str("Backtrack chams material"), config_system.g_cfg.player.backtrack_chams_material, chamstype, ARRAYSIZE(chamstype));
 
 												ImGui::Text(crypt_str("Color "));
 												ImGui::SameLine();
-												ImGui::ColorEdit(crypt_str("##backtrackcolor"), &g_cfg.player.backtrack_chams_color, ALPHA);
+												ImGui::ColorEdit(crypt_str("##backtrackcolor"), &config_system.g_cfg.player.backtrack_chams_color, ALPHA);
 											}
 										}
 										if (player == 0 || ENEMY || player == 1 || TEAM)
 										{
-											ImGui::Checkbox(crypt_str("Ragdoll chams"), &g_cfg.player.type[player].ragdoll_chams);
+											ImGui::Checkbox(crypt_str("Ragdoll chams"), &config_system.g_cfg.player.type[player].ragdoll_chams);
 
-											if (g_cfg.player.type[player].ragdoll_chams)
+											if (config_system.g_cfg.player.type[player].ragdoll_chams)
 											{
-												draw_combo(crypt_str("Ragdoll chams material"), g_cfg.player.type[player].ragdoll_chams_material, chamstype, ARRAYSIZE(chamstype));
+												draw_combo(crypt_str("Ragdoll chams material"), config_system.g_cfg.player.type[player].ragdoll_chams_material, chamstype, ARRAYSIZE(chamstype));
 
 												ImGui::Text(crypt_str("Color "));
 												ImGui::SameLine();
-												ImGui::ColorEdit(crypt_str("##ragdollcolor"), &g_cfg.player.type[player].ragdoll_chams_color, ALPHA);
+												ImGui::ColorEdit(crypt_str("##ragdollcolor"), &config_system.g_cfg.player.type[player].ragdoll_chams_color, ALPHA);
 											}
 										}
-										else if (!g_cfg.player.local_chams_type)
+										else if (!config_system.g_cfg.player.local_chams_type)
 										{
-											ImGui::Checkbox(crypt_str("Transparency in scope"), &g_cfg.player.transparency_in_scope);
+											ImGui::Checkbox(crypt_str("Transparency in scope"), &config_system.g_cfg.player.transparency_in_scope);
 
-											if (g_cfg.player.transparency_in_scope)
-												ImGui::SliderFloat(crypt_str("Alpha"), &g_cfg.player.transparency_in_scope_amount, 0.0f, 1.0f);
+											if (config_system.g_cfg.player.transparency_in_scope)
+												ImGui::SliderFloat(crypt_str("Alpha"), &config_system.g_cfg.player.transparency_in_scope_amount, 0.0f, 1.0f);
 										}
 									}
 								}
@@ -4179,45 +4213,45 @@ void c_menu::render2(bool is_open) {
 							{
 								child_title(crypt_str("Other models"));
 
-								ImGui::Checkbox(crypt_str("Arms chams"), &g_cfg.esp.arms_chams);
+								ImGui::Checkbox(crypt_str("Arms chams"), &config_system.g_cfg.esp.arms_chams);
 								ImGui::SameLine();
-								ImGui::ColorEdit(crypt_str("##armscolor"), &g_cfg.esp.arms_chams_color, ALPHA);
+								ImGui::ColorEdit(crypt_str("##armscolor"), &config_system.g_cfg.esp.arms_chams_color, ALPHA);
 								
-								if (g_cfg.esp.arms_chams)
+								if (config_system.g_cfg.esp.arms_chams)
 								{
 
-									draw_combo(crypt_str("Arms chams material"), g_cfg.esp.arms_chams_type, chamstype, ARRAYSIZE(chamstype));
+									draw_combo(crypt_str("Arms chams material"), config_system.g_cfg.esp.arms_chams_type, chamstype, ARRAYSIZE(chamstype));
 
-									if (g_cfg.esp.arms_chams_type != 6)
+									if (config_system.g_cfg.esp.arms_chams_type != 6)
 									{
-										ImGui::Checkbox(crypt_str("Arms double material "), &g_cfg.esp.arms_double_material);
+										ImGui::Checkbox(crypt_str("Arms double material "), &config_system.g_cfg.esp.arms_double_material);
 										ImGui::SameLine();
-										ImGui::ColorEdit(crypt_str("##armsdoublematerial"), &g_cfg.esp.arms_double_material_color, ALPHA);
+										ImGui::ColorEdit(crypt_str("##armsdoublematerial"), &config_system.g_cfg.esp.arms_double_material_color, ALPHA);
 									}
 
-									ImGui::Checkbox(crypt_str("Arms animated material "), &g_cfg.esp.arms_animated_material);
+									ImGui::Checkbox(crypt_str("Arms animated material "), &config_system.g_cfg.esp.arms_animated_material);
 									ImGui::SameLine();
-									ImGui::ColorEdit(crypt_str("##armsanimatedmaterial"), &g_cfg.esp.arms_animated_material_color, ALPHA);
+									ImGui::ColorEdit(crypt_str("##armsanimatedmaterial"), &config_system.g_cfg.esp.arms_animated_material_color, ALPHA);
 								}
 
-								ImGui::Checkbox(crypt_str("Weapon chams"), &g_cfg.esp.weapon_chams);
+								ImGui::Checkbox(crypt_str("Weapon chams"), &config_system.g_cfg.esp.weapon_chams);
 								ImGui::SameLine();
-								ImGui::ColorEdit(crypt_str("##weaponchamscolors"), &g_cfg.esp.weapon_chams_color, ALPHA);
+								ImGui::ColorEdit(crypt_str("##weaponchamscolors"), &config_system.g_cfg.esp.weapon_chams_color, ALPHA);
 
-								if (g_cfg.esp.weapon_chams)
+								if (config_system.g_cfg.esp.weapon_chams)
 								{
-									draw_combo(crypt_str("Weapon chams material"), g_cfg.esp.weapon_chams_type, chamstype, ARRAYSIZE(chamstype));
+									draw_combo(crypt_str("Weapon chams material"), config_system.g_cfg.esp.weapon_chams_type, chamstype, ARRAYSIZE(chamstype));
 
-									if (g_cfg.esp.weapon_chams_type != 6)
+									if (config_system.g_cfg.esp.weapon_chams_type != 6)
 									{
-										ImGui::Checkbox(crypt_str("Weapon Double material "), &g_cfg.esp.weapon_double_material);
+										ImGui::Checkbox(crypt_str("Weapon Double material "), &config_system.g_cfg.esp.weapon_double_material);
 										ImGui::SameLine();
-										ImGui::ColorEdit(crypt_str("##weapondoublematerial"), &g_cfg.esp.weapon_double_material_color, ALPHA);
+										ImGui::ColorEdit(crypt_str("##weapondoublematerial"), &config_system.g_cfg.esp.weapon_double_material_color, ALPHA);
 									}
 
-									ImGui::Checkbox(crypt_str("Animated material "), &g_cfg.esp.weapon_animated_material);
+									ImGui::Checkbox(crypt_str("Animated material "), &config_system.g_cfg.esp.weapon_animated_material);
 									ImGui::SameLine();
-									ImGui::ColorEdit(crypt_str("##weaponanimatedmaterial"), &g_cfg.esp.weapon_animated_material_color, ALPHA);
+									ImGui::ColorEdit(crypt_str("##weaponanimatedmaterial"), &config_system.g_cfg.esp.weapon_animated_material_color, ALPHA);
 									ImGui::Spacing();
 								}
 							}
@@ -4235,13 +4269,13 @@ void c_menu::render2(bool is_open) {
 
 						ImGui::Spacing();
 
-						ImGui::Checkbox(crypt_str("Enabled"), &g_cfg.misc.ingame_radar);
-						ImGui::Checkbox(crypt_str("Draw local"), &g_cfg.radar.render_local);
-						ImGui::Checkbox(crypt_str("Draw enemies"), &g_cfg.radar.render_enemy);
-						ImGui::Checkbox(crypt_str("Draw teammates"), &g_cfg.radar.render_team);
-						ImGui::Checkbox(crypt_str("Draw planted c4"), &g_cfg.radar.render_planted_c4);
-						ImGui::Checkbox(crypt_str("Draw dropped c4"), &g_cfg.radar.render_dropped_c4);
-						ImGui::Checkbox(crypt_str("Draw health"), &g_cfg.radar.render_health);
+						ImGui::Checkbox(crypt_str("Enabled"), &config_system.g_cfg.misc.ingame_radar);
+						ImGui::Checkbox(crypt_str("Draw local"), &config_system.g_cfg.radar.render_local);
+						ImGui::Checkbox(crypt_str("Draw enemies"), &config_system.g_cfg.radar.render_enemy);
+						ImGui::Checkbox(crypt_str("Draw teammates"), &config_system.g_cfg.radar.render_team);
+						ImGui::Checkbox(crypt_str("Draw planted c4"), &config_system.g_cfg.radar.render_planted_c4);
+						ImGui::Checkbox(crypt_str("Draw dropped c4"), &config_system.g_cfg.radar.render_dropped_c4);
+						ImGui::Checkbox(crypt_str("Draw health"), &config_system.g_cfg.radar.render_health);
 
 						//tab_end();
 					}
@@ -4256,42 +4290,42 @@ void c_menu::render2(bool is_open) {
 							{
 								child_title(crypt_str("General"));
 
-								ImGui::Checkbox(crypt_str("Enabled"), &g_cfg.player.enable);
+								ImGui::Checkbox(crypt_str("Enabled"), &config_system.g_cfg.player.enable);
 
-								draw_multicombo(crypt_str("Indicators"), g_cfg.esp.indicators, indicators, ARRAYSIZE(indicators), preview);
+								draw_multicombo(crypt_str("Indicators"), config_system.g_cfg.esp.indicators, indicators, ARRAYSIZE(indicators), preview);
 								padding(0, 3);
 
-								draw_multicombo(crypt_str("Removals"), g_cfg.esp.removals, removals, ARRAYSIZE(removals), preview);
+								draw_multicombo(crypt_str("Removals"), config_system.g_cfg.esp.removals, removals, ARRAYSIZE(removals), preview);
 
-								if (g_cfg.esp.removals[REMOVALS_ZOOM])
-									ImGui::Checkbox(crypt_str("Fix zoom sensivity"), &g_cfg.esp.fix_zoom_sensivity);
+								if (config_system.g_cfg.esp.removals[REMOVALS_ZOOM])
+									ImGui::Checkbox(crypt_str("Fix zoom sensivity"), &config_system.g_cfg.esp.fix_zoom_sensivity);
 
 
 
-								ImGui::Checkbox(crypt_str("Client bullet impacts"), &g_cfg.esp.client_bullet_impacts);
+								ImGui::Checkbox(crypt_str("Client bullet impacts"), &config_system.g_cfg.esp.client_bullet_impacts);
 								ImGui::SameLine();
-								ImGui::ColorEdit(crypt_str("##clientbulletimpacts"), &g_cfg.esp.client_bullet_impacts_color, ALPHA);
+								ImGui::ColorEdit(crypt_str("##clientbulletimpacts"), &config_system.g_cfg.esp.client_bullet_impacts_color, ALPHA);
 
-								ImGui::Checkbox(crypt_str("Server bullet impacts"), &g_cfg.esp.server_bullet_impacts);
+								ImGui::Checkbox(crypt_str("Server bullet impacts"), &config_system.g_cfg.esp.server_bullet_impacts);
 								ImGui::SameLine();
-								ImGui::ColorEdit(crypt_str("##serverbulletimpacts"), &g_cfg.esp.server_bullet_impacts_color, ALPHA);
+								ImGui::ColorEdit(crypt_str("##serverbulletimpacts"), &config_system.g_cfg.esp.server_bullet_impacts_color, ALPHA);
 
-								ImGui::Checkbox(crypt_str("Local bullet tracers"), &g_cfg.esp.bullet_tracer);
+								ImGui::Checkbox(crypt_str("Local bullet tracers"), &config_system.g_cfg.esp.bullet_tracer);
 								ImGui::SameLine();
-								ImGui::ColorEdit(crypt_str("##bulltracecolor"), &g_cfg.esp.bullet_tracer_color, ALPHA);
+								ImGui::ColorEdit(crypt_str("##bulltracecolor"), &config_system.g_cfg.esp.bullet_tracer_color, ALPHA);
 
-								ImGui::Checkbox(crypt_str("Enemy bullet tracers"), &g_cfg.esp.enemy_bullet_tracer);
+								ImGui::Checkbox(crypt_str("Enemy bullet tracers"), &config_system.g_cfg.esp.enemy_bullet_tracer);
 								ImGui::SameLine();
 
-								ImGui::ColorEdit(crypt_str("##enemybulltracecolor"), &g_cfg.esp.enemy_bullet_tracer_color, ALPHA);
-								draw_multicombo(crypt_str("Hit marker"), g_cfg.esp.hitmarker, hitmarkers, ARRAYSIZE(hitmarkers), preview);
-								ImGui::Checkbox(crypt_str("Damage marker"), &g_cfg.esp.damage_marker);
-								ImGui::Checkbox(crypt_str("Kill effect"), &g_cfg.esp.kill_effect);
+								ImGui::ColorEdit(crypt_str("##enemybulltracecolor"), &config_system.g_cfg.esp.enemy_bullet_tracer_color, ALPHA);
+								draw_multicombo(crypt_str("Hit marker"), config_system.g_cfg.esp.hitmarker, hitmarkers, ARRAYSIZE(hitmarkers), preview);
+								ImGui::Checkbox(crypt_str("Damage marker"), &config_system.g_cfg.esp.damage_marker);
+								ImGui::Checkbox(crypt_str("Kill effect"), &config_system.g_cfg.esp.kill_effect);
 
-								if (g_cfg.esp.kill_effect)
-									ImGui::SliderFloat(crypt_str("Duration"), &g_cfg.esp.kill_effect_duration, 0.01f, 3.0f);
+								if (config_system.g_cfg.esp.kill_effect)
+									ImGui::SliderFloat(crypt_str("Duration"), &config_system.g_cfg.esp.kill_effect_duration, 0.01f, 3.0f);
 
-								ImGui::Checkbox(crypt_str("Velocity graph"), &g_cfg.esp.velocity_graph);
+								ImGui::Checkbox(crypt_str("Velocity graph"), &config_system.g_cfg.esp.velocity_graph);
 
 							}
 							ImGui::EndGroup();
@@ -4306,27 +4340,27 @@ void c_menu::render2(bool is_open) {
 							{
 								child_title(crypt_str("Other"));
 
-								draw_keybind(crypt_str("Third person"), &g_cfg.misc.thirdperson_toggle, crypt_str("##TPKEY__HOTKEY"));
+								draw_keybind(crypt_str("Third person"), &config_system.g_cfg.misc.thirdperson_toggle, crypt_str("##TPKEY__HOTKEY"));
 
-								ImGui::Checkbox(crypt_str("Third person when dead"), &g_cfg.misc.thirdperson_when_spectating);
+								ImGui::Checkbox(crypt_str("Third person when dead"), &config_system.g_cfg.misc.thirdperson_when_spectating);
 
-								if (g_cfg.misc.thirdperson_toggle.key > KEY_NONE && g_cfg.misc.thirdperson_toggle.key < KEY_MAX)
-									ImGui::SliderInt(crypt_str("Third person distance"), &g_cfg.misc.thirdperson_distance, 100, 300);
+								if (config_system.g_cfg.misc.thirdperson_toggle.key > KEY_NONE && config_system.g_cfg.misc.thirdperson_toggle.key < KEY_MAX)
+									ImGui::SliderInt(crypt_str("Third person distance"), &config_system.g_cfg.misc.thirdperson_distance, 100, 300);
 
-								ImGui::SliderInt(crypt_str("Field of view"), &g_cfg.esp.fov, 0, 89);
-								ImGui::Checkbox(crypt_str("Taser range"), &g_cfg.esp.taser_range);
-								ImGui::Checkbox(crypt_str("Show spread"), &g_cfg.esp.show_spread);
+								ImGui::SliderInt(crypt_str("Field of view"), &config_system.g_cfg.esp.fov, 0, 89);
+								ImGui::Checkbox(crypt_str("Taser range"), &config_system.g_cfg.esp.taser_range);
+								ImGui::Checkbox(crypt_str("Show spread"), &config_system.g_cfg.esp.show_spread);
 								ImGui::SameLine();
-								ImGui::ColorEdit(crypt_str("##spredcolor"), &g_cfg.esp.show_spread_color, ALPHA);
-								ImGui::Checkbox(crypt_str("Penetration crosshair"), &g_cfg.esp.penetration_reticle);
+								ImGui::ColorEdit(crypt_str("##spredcolor"), &config_system.g_cfg.esp.show_spread_color, ALPHA);
+								ImGui::Checkbox(crypt_str("Penetration crosshair"), &config_system.g_cfg.esp.penetration_reticle);
 
 								child_title(crypt_str("Viewmodel"));
 
-								ImGui::SliderInt(crypt_str("Viewmodel field of view"), &g_cfg.esp.viewmodel_fov, 0, 89);
-								ImGui::SliderInt(crypt_str("Viewmodel X"), &g_cfg.esp.viewmodel_x, -50, 50);
-								ImGui::SliderInt(crypt_str("Viewmodel Y"), &g_cfg.esp.viewmodel_y, -50, 50);
-								ImGui::SliderInt(crypt_str("Viewmodel Z"), &g_cfg.esp.viewmodel_z, -50, 50);
-								ImGui::SliderInt(crypt_str("Viewmodel roll"), &g_cfg.esp.viewmodel_roll, -180, 180);
+								ImGui::SliderInt(crypt_str("Viewmodel field of view"), &config_system.g_cfg.esp.viewmodel_fov, 0, 89);
+								ImGui::SliderInt(crypt_str("Viewmodel X"), &config_system.g_cfg.esp.viewmodel_x, -50, 50);
+								ImGui::SliderInt(crypt_str("Viewmodel Y"), &config_system.g_cfg.esp.viewmodel_y, -50, 50);
+								ImGui::SliderInt(crypt_str("Viewmodel Z"), &config_system.g_cfg.esp.viewmodel_z, -50, 50);
+								ImGui::SliderInt(crypt_str("Viewmodel roll"), &config_system.g_cfg.esp.viewmodel_roll, -180, 180);
 							}
 							ImGui::EndGroup();
 						}
@@ -4340,66 +4374,66 @@ void c_menu::render2(bool is_open) {
 
 						child_title(crypt_str("World"));
 
-						ImGui::Checkbox(crypt_str("Enabled"), &g_cfg.player.enable);
+						ImGui::Checkbox(crypt_str("Enabled"), &config_system.g_cfg.player.enable);
 
 
-						ImGui::Checkbox(crypt_str("Rain"), &g_cfg.esp.rain);
-						ImGui::Checkbox(crypt_str("Full bright"), &g_cfg.esp.bright);
+						ImGui::Checkbox(crypt_str("Rain"), &config_system.g_cfg.esp.rain);
+						ImGui::Checkbox(crypt_str("Full bright"), &config_system.g_cfg.esp.bright);
 
-						draw_combo(crypt_str("Skybox"), g_cfg.esp.skybox, skybox, ARRAYSIZE(skybox));
+						draw_combo(crypt_str("Skybox"), config_system.g_cfg.esp.skybox, skybox, ARRAYSIZE(skybox));
 
 						ImGui::Text(crypt_str("Color "));
 						ImGui::SameLine();
-						ImGui::ColorEdit(crypt_str("##skyboxcolor"), &g_cfg.esp.skybox_color, NOALPHA);
+						ImGui::ColorEdit(crypt_str("##skyboxcolor"), &config_system.g_cfg.esp.skybox_color, NOALPHA);
 
-						if (g_cfg.esp.skybox == 21)
+						if (config_system.g_cfg.esp.skybox == 21)
 						{
 							static char sky_custom[64] = "\0";
 
-							if (!g_cfg.esp.custom_skybox.empty())
-								strcpy_s(sky_custom, sizeof(sky_custom), g_cfg.esp.custom_skybox.c_str());
+							if (!config_system.g_cfg.esp.custom_skybox.empty())
+								strcpy_s(sky_custom, sizeof(sky_custom), config_system.g_cfg.esp.custom_skybox.c_str());
 
 							ImGui::Text(crypt_str("Name"));
 							ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.f);
 
 							if (ImGui::InputText(crypt_str("##customsky"), sky_custom, sizeof(sky_custom)))
-								g_cfg.esp.custom_skybox = sky_custom;
+								config_system.g_cfg.esp.custom_skybox = sky_custom;
 
 							ImGui::PopStyleVar();
 						}
 
-						ImGui::Checkbox(crypt_str("Color modulation"), &g_cfg.esp.nightmode);
+						ImGui::Checkbox(crypt_str("Color modulation"), &config_system.g_cfg.esp.nightmode);
 
-						if (g_cfg.esp.nightmode)
+						if (config_system.g_cfg.esp.nightmode)
 						{
 							ImGui::Text(crypt_str("World color "));
 							ImGui::SameLine();
-							ImGui::ColorEdit(crypt_str("##worldcolor"), &g_cfg.esp.world_color, ALPHA);
+							ImGui::ColorEdit(crypt_str("##worldcolor"), &config_system.g_cfg.esp.world_color, ALPHA);
 
 							ImGui::Text(crypt_str("Props color "));
 							ImGui::SameLine();
-							ImGui::ColorEdit(crypt_str("##propscolor"), &g_cfg.esp.props_color, ALPHA);
+							ImGui::ColorEdit(crypt_str("##propscolor"), &config_system.g_cfg.esp.props_color, ALPHA);
 						}
 
-						ImGui::Checkbox(crypt_str("World modulation"), &g_cfg.esp.world_modulation);
+						ImGui::Checkbox(crypt_str("World modulation"), &config_system.g_cfg.esp.world_modulation);
 
-						if (g_cfg.esp.world_modulation)
+						if (config_system.g_cfg.esp.world_modulation)
 						{
-							ImGui::SliderFloat(crypt_str("Bloom"), &g_cfg.esp.bloom, 0.0f, 750.0f);
-							ImGui::SliderFloat(crypt_str("Exposure"), &g_cfg.esp.exposure, 0.0f, 2000.0f);
-							ImGui::SliderFloat(crypt_str("Ambient"), &g_cfg.esp.ambient, 0.0f, 1500.0f);
+							ImGui::SliderFloat(crypt_str("Bloom"), &config_system.g_cfg.esp.bloom, 0.0f, 750.0f);
+							ImGui::SliderFloat(crypt_str("Exposure"), &config_system.g_cfg.esp.exposure, 0.0f, 2000.0f);
+							ImGui::SliderFloat(crypt_str("Ambient"), &config_system.g_cfg.esp.ambient, 0.0f, 1500.0f);
 						}
 
-						ImGui::Checkbox(crypt_str("Fog modulation"), &g_cfg.esp.fog);
+						ImGui::Checkbox(crypt_str("Fog modulation"), &config_system.g_cfg.esp.fog);
 
-						if (g_cfg.esp.fog)
+						if (config_system.g_cfg.esp.fog)
 						{
-							ImGui::SliderInt(crypt_str("Distance"), &g_cfg.esp.fog_distance, 0, 2500);
-							ImGui::SliderInt(crypt_str("Density"), &g_cfg.esp.fog_density, 0, 100);
+							ImGui::SliderInt(crypt_str("Distance"), &config_system.g_cfg.esp.fog_distance, 0, 2500);
+							ImGui::SliderInt(crypt_str("Density"), &config_system.g_cfg.esp.fog_density, 0, 100);
 
 							ImGui::Text(crypt_str("Color "));
 							ImGui::SameLine();
-							ImGui::ColorEdit(crypt_str("##fogcolor"), &g_cfg.esp.fog_color, NOALPHA);
+							ImGui::ColorEdit(crypt_str("##fogcolor"), &config_system.g_cfg.esp.fog_color, NOALPHA);
 						}
 					}
 
@@ -4451,13 +4485,13 @@ void c_menu::render2(bool is_open) {
 								// if we didnt choose any weapon
 								if (current_profile == -1)
 								{
-									for (auto i = 0; i < g_cfg.skins.skinChanger.size(); i++)
+									for (auto i = 0; i < config_system.g_cfg.skins.skinChanger.size(); i++)
 									{
 										// do we need update our preview for some reasons?
 										if (!all_skins[i])
 										{
-											g_cfg.skins.skinChanger.at(i).update();
-											all_skins[i] = get_skin_preview(get_wep(i, (i == 0 || i == 1) ? g_cfg.skins.skinChanger.at(i).definition_override_vector_index : -1, i == 0).c_str(), g_cfg.skins.skinChanger.at(i).skin_name, device); //-V810
+											config_system.g_cfg.skins.skinChanger.at(i).update();
+											all_skins[i] = get_skin_preview(get_wep(i, (i == 0 || i == 1) ? config_system.g_cfg.skins.skinChanger.at(i).definition_override_vector_index : -1, i == 0).c_str(), config_system.g_cfg.skins.skinChanger.at(i).skin_name, device); //-V810
 										}
 
 										// we licked on weapon
@@ -4494,12 +4528,12 @@ void c_menu::render2(bool is_open) {
 									// update if we have nullptr texture or if we push force update
 									if (!all_skins[current_profile] || need_update[current_profile])
 									{
-										all_skins[current_profile] = get_skin_preview(get_wep(current_profile, (current_profile == 0 || current_profile == 1) ? g_cfg.skins.skinChanger.at(current_profile).definition_override_vector_index : -1, current_profile == 0).c_str(), g_cfg.skins.skinChanger.at(current_profile).skin_name, device); //-V810
+										all_skins[current_profile] = get_skin_preview(get_wep(current_profile, (current_profile == 0 || current_profile == 1) ? config_system.g_cfg.skins.skinChanger.at(current_profile).definition_override_vector_index : -1, current_profile == 0).c_str(), config_system.g_cfg.skins.skinChanger.at(current_profile).skin_name, device); //-V810
 										need_update[current_profile] = false;
 									}
 
 									// get settings for selected weapon
-									auto& selected_entry = g_cfg.skins.skinChanger[current_profile];
+									auto& selected_entry = config_system.g_cfg.skins.skinChanger[current_profile];
 									selected_entry.itemIdIndex = current_profile;
 
 									ImGui::BeginGroup();
@@ -4674,15 +4708,15 @@ void c_menu::render2(bool is_open) {
 
 										if (current_profile != 1)
 										{
-											if (!g_cfg.skins.custom_name_tag[current_profile].empty())
-												strcpy_s(selected_entry.custom_name, sizeof(selected_entry.custom_name), g_cfg.skins.custom_name_tag[current_profile].c_str());
+											if (!config_system.g_cfg.skins.custom_name_tag[current_profile].empty())
+												strcpy_s(selected_entry.custom_name, sizeof(selected_entry.custom_name), config_system.g_cfg.skins.custom_name_tag[current_profile].c_str());
 
 											ImGui::Text(crypt_str("Name Tag"));
 											ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.f);
 
 											if (ImGui::InputText(crypt_str("##nametag"), selected_entry.custom_name, sizeof(selected_entry.custom_name)))
 											{
-												g_cfg.skins.custom_name_tag[current_profile] = selected_entry.custom_name;
+												config_system.g_cfg.skins.custom_name_tag[current_profile] = selected_entry.custom_name;
 												SkinChanger::scheduleHudUpdate();
 											}
 
@@ -4709,7 +4743,7 @@ void c_menu::render2(bool is_open) {
 											next_id = -1;
 											leave = true;
 										}
-										ImGui::Checkbox(crypt_str("Force rare animations"), &g_cfg.skins.rare_animations);
+										ImGui::Checkbox(crypt_str("Force rare animations"), &config_system.g_cfg.skins.rare_animations);
 
 										ImGui::EndGroup();
 
@@ -4731,7 +4765,7 @@ void c_menu::render2(bool is_open) {
 					}
 					else if (Active_Tab == 4 && Active_Changer_Tab == 2) //Changers | Profile
 					{
-					ImGui::Checkbox(crypt_str("Fake Prime"), &g_cfg.misc.prime);
+					ImGui::Checkbox(crypt_str("Fake Prime"), &config_system.g_cfg.misc.prime);
 					}
 					else if (Active_Tab == 4 && Active_Changer_Tab == 3) //Changers | Character
 					{
@@ -4749,39 +4783,39 @@ void c_menu::render2(bool is_open) {
 									child_title(crypt_str("General"));
 
 									//tab_start();
-									ImGui::Checkbox(crypt_str("Anti-untrusted"), &g_cfg.misc.anti_untrusted);
-									ImGui::Checkbox(crypt_str("Rank reveal"), &g_cfg.misc.rank_reveal);
-									ImGui::Checkbox(crypt_str("Unlock inventory access"), &g_cfg.misc.inventory_access);
-									ImGui::Checkbox(crypt_str("Gravity ragdolls"), &g_cfg.misc.ragdolls);
-									ImGui::Checkbox(crypt_str("Preserve killfeed"), &g_cfg.esp.preserve_killfeed);
-									ImGui::Checkbox(crypt_str("Aspect ratio"), &g_cfg.misc.aspect_ratio);
+									ImGui::Checkbox(crypt_str("Anti-untrusted"), &config_system.g_cfg.misc.anti_untrusted);
+									ImGui::Checkbox(crypt_str("Rank reveal"), &config_system.g_cfg.misc.rank_reveal);
+									ImGui::Checkbox(crypt_str("Unlock inventory access"), &config_system.g_cfg.misc.inventory_access);
+									ImGui::Checkbox(crypt_str("Gravity ragdolls"), &config_system.g_cfg.misc.ragdolls);
+									ImGui::Checkbox(crypt_str("Preserve killfeed"), &config_system.g_cfg.esp.preserve_killfeed);
+									ImGui::Checkbox(crypt_str("Aspect ratio"), &config_system.g_cfg.misc.aspect_ratio);
 
 								
 
-									if (g_cfg.misc.aspect_ratio)
+									if (config_system.g_cfg.misc.aspect_ratio)
 									{
 										padding(0, -5);
-										ImGui::SliderFloat(crypt_str("Amount"), &g_cfg.misc.aspect_ratio_amount, 1.0f, 2.0f);
+										ImGui::SliderFloat(crypt_str("Amount"), &config_system.g_cfg.misc.aspect_ratio_amount, 1.0f, 2.0f);
 									}
 
-									ImGui::Checkbox(crypt_str("Fake-lag"), &g_cfg.antiaim.fakelag);
-									if (g_cfg.antiaim.fakelag)
+									ImGui::Checkbox(crypt_str("Fake-lag"), &config_system.g_cfg.antiaim.fakelag);
+									if (config_system.g_cfg.antiaim.fakelag)
 									{
-										draw_combo(crypt_str("Fake-lag type"), g_cfg.antiaim.fakelag_type, fakelags, ARRAYSIZE(fakelags));
-										ImGui::SliderInt(crypt_str("Limit"), &g_cfg.antiaim.fakelag_amount, 1, 16);
+										draw_combo(crypt_str("Fake-lag type"), config_system.g_cfg.antiaim.fakelag_type, fakelags, ARRAYSIZE(fakelags));
+										ImGui::SliderInt(crypt_str("Limit"), &config_system.g_cfg.antiaim.fakelag_amount, 1, 16);
 
-										draw_multicombo(crypt_str("Fake-lag triggers"), g_cfg.antiaim.fakelag_enablers, lagstrigger, ARRAYSIZE(lagstrigger), preview);
+										draw_multicombo(crypt_str("Fake-lag triggers"), config_system.g_cfg.antiaim.fakelag_enablers, lagstrigger, ARRAYSIZE(lagstrigger), preview);
 
 										auto enabled_fakelag_triggers = false;
 
 										for (auto i = 0; i < ARRAYSIZE(lagstrigger); i++)
-											if (g_cfg.antiaim.fakelag_enablers[i])
+											if (config_system.g_cfg.antiaim.fakelag_enablers[i])
 												enabled_fakelag_triggers = true;
 
 										if (enabled_fakelag_triggers)
-											ImGui::SliderInt(crypt_str("Triggers limit"), &g_cfg.antiaim.triggers_fakelag_amount, 1, 16);
+											ImGui::SliderInt(crypt_str("Triggers limit"), &config_system.g_cfg.antiaim.triggers_fakelag_amount, 1, 16);
 									}
-									draw_combo(crypt_str("Force mm region"), g_cfg.misc.region_changer, mmregions, ARRAYSIZE(mmregions));
+									draw_combo(crypt_str("Force mm region"), config_system.g_cfg.misc.region_changer, mmregions, ARRAYSIZE(mmregions));
 									if (ImGui::CustomButton(crypt_str("Apply region changes"), crypt_str("##CONFIG__CREATE"), ImVec2(220 * dpi_scale, 26 * dpi_scale)))
 									{
 										misc::get().ChangeRegion();
@@ -4800,22 +4834,22 @@ void c_menu::render2(bool is_open) {
 									child_title(crypt_str("Information"));
 
 
-									ImGui::Checkbox(crypt_str("Watermark"), &g_cfg.menu.watermark);
-									ImGui::Checkbox(crypt_str("Spectators list"), &g_cfg.misc.spectators_list);
-									draw_combo(crypt_str("Hitsound"), g_cfg.esp.hitsound, sounds, ARRAYSIZE(sounds));
-									ImGui::Checkbox(crypt_str("Killsound"), &g_cfg.esp.killsound);
-									draw_multicombo(crypt_str("Logs"), g_cfg.misc.events_to_log, events, ARRAYSIZE(events), preview);
+									ImGui::Checkbox(crypt_str("Watermark"), &config_system.g_cfg.menu.watermark);
+									ImGui::Checkbox(crypt_str("Spectators list"), &config_system.g_cfg.misc.spectators_list);
+									draw_combo(crypt_str("Hitsound"), config_system.g_cfg.esp.hitsound, sounds, ARRAYSIZE(sounds));
+									ImGui::Checkbox(crypt_str("Killsound"), &config_system.g_cfg.esp.killsound);
+									draw_multicombo(crypt_str("Logs"), config_system.g_cfg.misc.events_to_log, events, ARRAYSIZE(events), preview);
 									padding(0, 3);
-									draw_multicombo(crypt_str("Logs output"), g_cfg.misc.log_output, events_output, ARRAYSIZE(events_output), preview);
+									draw_multicombo(crypt_str("Logs output"), config_system.g_cfg.misc.log_output, events_output, ARRAYSIZE(events_output), preview);
 
-									if (g_cfg.misc.events_to_log[EVENTLOG_HIT] || g_cfg.misc.events_to_log[EVENTLOG_ITEM_PURCHASES] || g_cfg.misc.events_to_log[EVENTLOG_BOMB])
+									if (config_system.g_cfg.misc.events_to_log[EVENTLOG_HIT] || config_system.g_cfg.misc.events_to_log[EVENTLOG_ITEM_PURCHASES] || config_system.g_cfg.misc.events_to_log[EVENTLOG_BOMB])
 									{
 										ImGui::Text(crypt_str("Color "));
 										ImGui::SameLine();
-										ImGui::ColorEdit(crypt_str("##logcolor"), &g_cfg.misc.log_color, ALPHA);
+										ImGui::ColorEdit(crypt_str("##logcolor"), &config_system.g_cfg.misc.log_color, ALPHA);
 									}
 
-									ImGui::Checkbox(crypt_str("Show CS:GO logs"), &g_cfg.misc.show_default_log);
+									ImGui::Checkbox(crypt_str("Show CS:GO logs"), &config_system.g_cfg.misc.show_default_log);
 								}
 								ImGui::EndGroup();
 							}
@@ -4840,21 +4874,21 @@ void c_menu::render2(bool is_open) {
 
 								//tab_start();
 
-								ImGui::Checkbox(crypt_str("Automatic jump"), &g_cfg.misc.bunnyhop);
-								draw_combo(crypt_str("Automatic strafes"), g_cfg.misc.airstrafe, strafes, ARRAYSIZE(strafes));
-								ImGui::Checkbox(crypt_str("Crouch in air"), &g_cfg.misc.crouch_in_air);
-								ImGui::Checkbox(crypt_str("Fast stop"), &g_cfg.misc.fast_stop);
-								ImGui::Checkbox(crypt_str("Slide walk"), &g_cfg.misc.slidewalk);
-								ImGui::Checkbox(crypt_str("No duck cooldown"), &g_cfg.misc.noduck);
+								ImGui::Checkbox(crypt_str("Automatic jump"), &config_system.g_cfg.misc.bunnyhop);
+								draw_combo(crypt_str("Automatic strafes"), config_system.g_cfg.misc.airstrafe, strafes, ARRAYSIZE(strafes));
+								ImGui::Checkbox(crypt_str("Crouch in air"), &config_system.g_cfg.misc.crouch_in_air);
+								ImGui::Checkbox(crypt_str("Fast stop"), &config_system.g_cfg.misc.fast_stop);
+								ImGui::Checkbox(crypt_str("Slide walk"), &config_system.g_cfg.misc.slidewalk);
+								ImGui::Checkbox(crypt_str("No duck cooldown"), &config_system.g_cfg.misc.noduck);
 
-								if (g_cfg.misc.noduck)
-									draw_keybind(crypt_str("Fake duck"), &g_cfg.misc.fakeduck_key, crypt_str("##FAKEDUCK__HOTKEY"));
+								if (config_system.g_cfg.misc.noduck)
+									draw_keybind(crypt_str("Fake duck"), &config_system.g_cfg.misc.fakeduck_key, crypt_str("##FAKEDUCK__HOTKEY"));
 
-								draw_keybind(crypt_str("Slow walk"), &g_cfg.misc.slowwalk_key, crypt_str("##SLOWWALK__HOTKEY"));
-								draw_keybind(crypt_str("Auto peek"), &g_cfg.misc.automatic_peek, crypt_str("##AUTOPEEK__HOTKEY"));
-								draw_keybind(crypt_str("Edge jump"), &g_cfg.misc.edge_jump, crypt_str("##EDGEJUMP__HOTKEY"));
-								draw_keybind(crypt_str("Edge bug"), &g_cfg.misc.edgebug, crypt_str("##EDGEBUG__HOTKEY"));
-								draw_keybind(crypt_str("Jump bug"), &g_cfg.misc.jumpbug, crypt_str("##JUMPBUG__HOTKEY"));
+								draw_keybind(crypt_str("Slow walk"), &config_system.g_cfg.misc.slowwalk_key, crypt_str("##SLOWWALK__HOTKEY"));
+								draw_keybind(crypt_str("Auto peek"), &config_system.g_cfg.misc.automatic_peek, crypt_str("##AUTOPEEK__HOTKEY"));
+								draw_keybind(crypt_str("Edge jump"), &config_system.g_cfg.misc.edge_jump, crypt_str("##EDGEJUMP__HOTKEY"));
+								draw_keybind(crypt_str("Edge bug"), &config_system.g_cfg.misc.edgebug, crypt_str("##EDGEBUG__HOTKEY"));
+								draw_keybind(crypt_str("Jump bug"), &config_system.g_cfg.misc.jumpbug, crypt_str("##JUMPBUG__HOTKEY"));
 
 							}
 							ImGui::EndGroup();
@@ -4869,18 +4903,18 @@ void c_menu::render2(bool is_open) {
 							{
 								child_title(crypt_str("Extra"));
 
-								ImGui::Checkbox(crypt_str("Anti-screenshot"), &g_cfg.misc.anti_screenshot);
-								ImGui::Checkbox(crypt_str("Clantag"), &g_cfg.misc.clantag_spammer);
-								ImGui::Checkbox(crypt_str("Chat spam"), &g_cfg.misc.chat);
-								ImGui::Checkbox(crypt_str("Enable buybot"), &g_cfg.misc.buybot_enable);
+								ImGui::Checkbox(crypt_str("Anti-screenshot"), &config_system.g_cfg.misc.anti_screenshot);
+								ImGui::Checkbox(crypt_str("Clantag"), &config_system.g_cfg.misc.clantag_spammer);
+								ImGui::Checkbox(crypt_str("Chat spam"), &config_system.g_cfg.misc.chat);
+								ImGui::Checkbox(crypt_str("Enable buybot"), &config_system.g_cfg.misc.buybot_enable);
 
-								if (g_cfg.misc.buybot_enable)
+								if (config_system.g_cfg.misc.buybot_enable)
 								{
-									draw_combo(crypt_str("Snipers"), g_cfg.misc.buybot1, mainwep, ARRAYSIZE(mainwep));
+									draw_combo(crypt_str("Snipers"), config_system.g_cfg.misc.buybot1, mainwep, ARRAYSIZE(mainwep));
 									padding(0, 3);
-									draw_combo(crypt_str("Pistols"), g_cfg.misc.buybot2, secwep, ARRAYSIZE(secwep));
+									draw_combo(crypt_str("Pistols"), config_system.g_cfg.misc.buybot2, secwep, ARRAYSIZE(secwep));
 									padding(0, 3);
-									draw_multicombo(crypt_str("Other"), g_cfg.misc.buybot3, grenades, ARRAYSIZE(grenades), preview);
+									draw_multicombo(crypt_str("Other"), config_system.g_cfg.misc.buybot3, grenades, ARRAYSIZE(grenades), preview);
 								}
 							}
 							ImGui::EndGroup();
@@ -4978,7 +5012,7 @@ void c_menu::render2(bool is_open) {
 							}
 
 							ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.f);
-							ImGui::ListBoxConfigArray(crypt_str("##CONFIGS"), &g_cfg.selected_config, files, 7);
+							ImGui::ListBoxConfigArray(crypt_str("##CONFIGS"), &config_system.g_cfg.selected_config, files, 7);
 							ImGui::PopStyleVar();
 
 							if (ImGui::CustomButton(crypt_str("Refresh configs"), crypt_str("##CONFIG__REFRESH"), ImVec2(220 * dpi_scale, 26 * dpi_scale)))
@@ -4999,7 +5033,7 @@ void c_menu::render2(bool is_open) {
 
 							if (ImGui::CustomButton(crypt_str("Create config"), crypt_str("##CONFIG__CREATE"), ImVec2(220 * dpi_scale, 26 * dpi_scale)))
 							{
-								g_cfg.new_config_name = config_name;
+								config_system.g_cfg.new_config_name = config_name;
 								add_config();
 							}
 
@@ -5288,6 +5322,78 @@ void c_menu::render2(bool is_open) {
 						}
 						else if (Active_Tab == 6 && Active_Movement_Tab == 2) //Changers | Profile
 						{
+							ImGui::NewLine();
+							ImGui::BeginChild("Recorder", ImVec2(280, 520), true);
+							padding(8, 8);
+
+
+							ImGui::Checkbox("Movement recorder", &config_system.g_cfg.misc.enable_movement); padding(8, 2);
+							if (config_system.g_cfg.misc.enable_movement)
+							{
+								draw_keybind(crypt_str("Recorder"), &config_system.g_cfg.misc.recorder, crypt_str("##RECORDER_KEY")); padding(8, 2);
+								draw_keybind(crypt_str("Player"), &config_system.g_cfg.misc.playing, crypt_str("##PLAYER_KEY")); padding(8, 2);
+
+								ImGui::Checkbox("Show the first path", &config_system.g_cfg.misc.showfirstpath); padding(8, 2);
+								//ImGui::SameLine(100); ImGui::ColorEdit4("##teste", &config_system.g_cfg.misc.showfirstpath_color); padding(8, 2);
+
+								ImGui::Checkbox("Show path", &config_system.g_cfg.misc.showpath); padding(8, 2);
+								//ImGui::SameLine(100); ImGui::ColorEdit4("##show_path", &config_system.g_cfg.misc.pathcolor); padding(8, 2);
+
+								ImGui::Checkbox("Show 3D circle", &config_system.g_cfg.misc.show3dcircle); padding(8, 2);
+								//ImGui::SameLine(100); ImGui::ColorEdit4("##show_3dcircle", &config_system.g_cfg.misc.circle3d); padding(8, 2);
+
+								if (config_system.g_cfg.misc.show3dcircle)
+								{
+
+									padding(6, 8); ImGui::SliderInt("Show circle distance", &config_system.g_cfg.misc.showcircle, 0, 5000); padding(8, 2);
+								}
+
+								padding(6, 8); ImGui::SliderFloat("Smooth", &config_system.g_cfg.misc.smooth, 10, 60); padding(8, 2);
+
+
+								if (static_cast<size_t>(current_config2) >= config_items2.size())
+									current_config2 = -1;
+
+								static char buffer[16];
+								padding(8, 2);
+								if (ImGui::Combo("Configs", &current_config2, [](void* data, int idx, const char** out_text) {
+									auto& vector = *static_cast<std::vector<std::string>*>(data);
+									*out_text = vector[idx].c_str();
+									return true;
+									}, &config_items2, config_items2.size(), 5) && current_config2 != -1)
+									strcpy(buffer, config_items2[current_config2].c_str());
+									ImGui::PushID(0);
+									ImGui::PushItemWidth(178);
+									padding(8, 2); if (ImGui::InputText("", buffer, IM_ARRAYSIZE(buffer), ImGuiInputTextFlags_EnterReturnsTrue)) {
+										if (current_config2 != -1)
+											config_system.rename2(current_config2, buffer);
+									}
+									ImGui::PopID();
+									ImGui::SameLine();
+									if (ImGui::CustomButton(("Create"), "##1", ImVec2(80, 18))) {
+										config_system.add2(buffer);
+									}
+
+
+									if (current_config2 != -1)
+									{
+
+										padding(8, 2);
+										if (ImGui::CustomButton(("Load Config"), "##2", ImVec2(80, 18))) {
+											config_system.load2(current_config2);
+										}
+										ImGui::SameLine();
+										if (ImGui::CustomButton(("Save Config"), "##3", ImVec2(80, 18))) {
+											config_system.save2(current_config2);
+										}
+										ImGui::SameLine();
+										if (ImGui::CustomButton(("Remove Config"), "##4", ImVec2(80, 18))) {
+											config_system.remove2(current_config2);
+										}
+
+									}
+							}
+							ImGui::EndChild();
 
 						}
 						else if (Active_Tab == 6 && Active_Movement_Tab == 3) //Changers | Character
@@ -5353,9 +5459,9 @@ void c_menu::render2(bool is_open) {
 						ImGui::BeginGroup();
 						{
 
-								ImGui::Checkbox(crypt_str("Developer mode"), &g_cfg.scripts.developer_mode);
-								ImGui::Checkbox(crypt_str("Allow HTTP requests"), &g_cfg.scripts.allow_http);
-								ImGui::Checkbox(crypt_str("Allow files read or write"), &g_cfg.scripts.allow_file);
+								ImGui::Checkbox(crypt_str("Developer mode"), &config_system.g_cfg.scripts.developer_mode);
+								ImGui::Checkbox(crypt_str("Allow HTTP requests"), &config_system.g_cfg.scripts.allow_http);
+								ImGui::Checkbox(crypt_str("Allow files read or write"), &config_system.g_cfg.scripts.allow_file);
 								ImGui::Spacing();
 
 								auto previous_check_box = false;

@@ -34,18 +34,18 @@ void __stdcall hooks::hooked_overrideview(CViewSetup* viewsetup)
 
 		if (weapon)
 		{
-			if (!g_ctx.local()->m_bIsScoped() && g_cfg.player.enable)
-				viewsetup->fov += g_cfg.esp.fov;
-			else if (g_cfg.esp.removals[REMOVALS_ZOOM] && g_cfg.player.enable)
+			if (!g_ctx.local()->m_bIsScoped() && config_system.g_cfg.player.enable)
+				viewsetup->fov += config_system.g_cfg.esp.fov;
+			else if (config_system.g_cfg.esp.removals[REMOVALS_ZOOM] && config_system.g_cfg.player.enable)
 			{
 				if (weapon->m_zoomLevel() == 1)
-					viewsetup->fov = 90.0f + (float)g_cfg.esp.fov;
+					viewsetup->fov = 90.0f + (float)config_system.g_cfg.esp.fov;
 				else
-					viewsetup->fov += (float)g_cfg.esp.fov;
+					viewsetup->fov += (float)config_system.g_cfg.esp.fov;
 			}
 		}
-		else if (g_cfg.player.enable)
-			viewsetup->fov += g_cfg.esp.fov;
+		else if (config_system.g_cfg.player.enable)
+			viewsetup->fov += config_system.g_cfg.esp.fov;
 
 		if (weapon)
 		{
@@ -54,16 +54,16 @@ void __stdcall hooks::hooked_overrideview(CViewSetup* viewsetup)
 			if (viewmodel)
 			{
 				auto eyeAng = viewsetup->angles;
-				eyeAng.z -= (float)g_cfg.esp.viewmodel_roll;
+				eyeAng.z -= (float)config_system.g_cfg.esp.viewmodel_roll;
 
 				viewmodel->set_abs_angles(eyeAng);
 			}
 
-			if (weapon->is_grenade() && g_cfg.esp.grenade_prediction && g_cfg.player.enable)
+			if (weapon->is_grenade() && config_system.g_cfg.esp.grenade_prediction && config_system.g_cfg.player.enable)
 				GrenadePrediction::get().View(viewsetup, weapon);
 		}
 
-		if (g_cfg.player.enable && (g_cfg.misc.thirdperson_toggle.key > KEY_NONE && g_cfg.misc.thirdperson_toggle.key < KEY_MAX || g_cfg.misc.thirdperson_when_spectating))
+		if (config_system.g_cfg.player.enable && (config_system.g_cfg.misc.thirdperson_toggle.key > KEY_NONE && config_system.g_cfg.misc.thirdperson_toggle.key < KEY_MAX || config_system.g_cfg.misc.thirdperson_when_spectating))
 			thirdperson(fakeducking);
 		else
 		{
@@ -110,7 +110,7 @@ void thirdperson(bool fakeducking)
 
 	if (g_ctx.local()->is_alive() && in_thirdperson) //-V807
 	{
-		auto distance = (float)g_cfg.misc.thirdperson_distance;
+		auto distance = (float)config_system.g_cfg.misc.thirdperson_distance;
 
 		Vector angles;
 		m_engine()->GetViewAngles(angles);
@@ -158,7 +158,7 @@ void thirdperson(bool fakeducking)
 		return;
 	}
 
-	if (g_cfg.misc.thirdperson_when_spectating)
+	if (config_system.g_cfg.misc.thirdperson_when_spectating)
 	{
 		if (require_reset)
 			g_ctx.local()->m_iObserverMode() = OBS_MODE_CHASE;

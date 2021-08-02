@@ -15,10 +15,10 @@ void zeusbot::run(CUserCmd* cmd)
 	scanned_targets.clear();
 	final_target.reset();
 
-	if (!g_cfg.ragebot.enable)
+	if (!config_system.g_cfg.ragebot.enable)
 		return;
 
-	if (!g_cfg.ragebot.zeus_bot)
+	if (!config_system.g_cfg.ragebot.zeus_bot)
 		return;
 
 	if (g_ctx.globals.weapon->m_iItemDefinitionIndex() != WEAPON_TASER)
@@ -155,8 +155,8 @@ void zeusbot::scan(adjust_data* record, scan_data& data)
 
 static bool compare_targets(const scanned_target& first, const scanned_target& second)
 {
-	if (g_cfg.player_list.high_priority[first.record->i] != g_cfg.player_list.high_priority[second.record->i])
-		return g_cfg.player_list.high_priority[first.record->i];
+	if (config_system.g_cfg.player_list.high_priority[first.record->i] != config_system.g_cfg.player_list.high_priority[second.record->i])
+		return config_system.g_cfg.player_list.high_priority[first.record->i];
 
 	return first.data.damage > second.data.damage;
 }
@@ -167,7 +167,7 @@ void zeusbot::find_best_target()
 
 	for (auto& target : scanned_targets)
 	{
-		if (target.fov > (float)g_cfg.ragebot.field_of_view)
+		if (target.fov > (float)config_system.g_cfg.ragebot.field_of_view)
 			continue;
 
 		final_target = target;
@@ -183,10 +183,10 @@ void zeusbot::fire(CUserCmd* cmd)
 
 	auto aim_angle = math::calculate_angle(g_ctx.globals.eye_pos, final_target.data.point.point).Clamp();
 
-	if (!g_cfg.ragebot.silent_aim)
+	if (!config_system.g_cfg.ragebot.silent_aim)
 		m_engine()->SetViewAngles(aim_angle);
 
-	if (!g_cfg.ragebot.autoshoot && !(cmd->m_buttons & IN_ATTACK))
+	if (!config_system.g_cfg.ragebot.autoshoot && !(cmd->m_buttons & IN_ATTACK))
 		return;
 
 	auto final_hitchance = hitchance(aim_angle);
@@ -261,7 +261,7 @@ void zeusbot::fire(CUserCmd* cmd)
 	log << crypt_str("damage: ") + std::to_string(final_target.data.damage) + crypt_str(", ");
 	log << crypt_str("backtrack: ") + std::to_string(backtrack_ticks);
 
-	if (g_cfg.misc.events_to_log[EVENTLOG_HIT])
+	if (config_system.g_cfg.misc.events_to_log[EVENTLOG_HIT])
 		eventlogs::get().addnew(log.str());
 //#endif
 	cmd->m_viewangles = aim_angle;

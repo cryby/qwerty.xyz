@@ -239,7 +239,7 @@ void eventlogs::events(IGameEvent* event)
 		}
 	};
 
-	if (g_cfg.misc.events_to_log[EVENTLOG_HIT] && !strcmp(event->GetName(), crypt_str("player_hurt")))
+	if (config_system.g_cfg.misc.events_to_log[EVENTLOG_HIT] && !strcmp(event->GetName(), crypt_str("player_hurt")))
 	{
 		auto userid = event->GetInt(crypt_str("userid")), attacker = event->GetInt(crypt_str("attacker"));
 
@@ -272,7 +272,7 @@ void eventlogs::events(IGameEvent* event)
 		}
 	}
 
-	if (g_cfg.misc.events_to_log[EVENTLOG_ITEM_PURCHASES] && !strcmp(event->GetName(), crypt_str("item_purchase")))
+	if (config_system.g_cfg.misc.events_to_log[EVENTLOG_ITEM_PURCHASES] && !strcmp(event->GetName(), crypt_str("item_purchase")))
 	{
 		auto userid = event->GetInt(crypt_str("userid"));
 
@@ -303,7 +303,7 @@ void eventlogs::events(IGameEvent* event)
 		notify::add_log("Buy", ss.str().c_str(), Color(0, 150, 240));
 	}
 
-	if (g_cfg.misc.events_to_log[EVENTLOG_BOMB] && !strcmp(event->GetName(), crypt_str("bomb_beginplant")))
+	if (config_system.g_cfg.misc.events_to_log[EVENTLOG_BOMB] && !strcmp(event->GetName(), crypt_str("bomb_beginplant")))
 	{
 		auto userid = event->GetInt(crypt_str("userid"));
 
@@ -329,7 +329,7 @@ void eventlogs::events(IGameEvent* event)
 		notify::add_log("Plant", ss.str().c_str(), Color(255, 66, 66));
 	}
 
-	if (g_cfg.misc.events_to_log[EVENTLOG_BOMB] && !strcmp(event->GetName(), crypt_str("bomb_begindefuse")))
+	if (config_system.g_cfg.misc.events_to_log[EVENTLOG_BOMB] && !strcmp(event->GetName(), crypt_str("bomb_begindefuse")))
 	{
 		auto userid = event->GetInt(crypt_str("userid"));
 
@@ -360,7 +360,7 @@ void eventlogs::addnew(std::string text, Color color, bool full_display)
 	if (!full_display)
 		return;
 
-	if (g_cfg.misc.log_output[EVENTLOG_OUTPUT_CONSOLE])
+	if (config_system.g_cfg.misc.log_output[EVENTLOG_OUTPUT_CONSOLE])
 	{
 		last_log = true;
 
@@ -371,14 +371,14 @@ void eventlogs::addnew(std::string text, Color color, bool full_display)
 		m_cvar()->ConsoleColorPrintf(Color::Pink, crypt_str("[ aiiuur.xyz] "));
 #endif
 #else
-		m_cvar()->ConsoleColorPrintf(Color(g_cfg.misc.log_color.r(), g_cfg.misc.log_color.g(), g_cfg.misc.log_color.b()), crypt_str("[ aiiuur.xyz] / ")); //-V807
+		m_cvar()->ConsoleColorPrintf(Color(config_system.g_cfg.misc.log_color.r(), config_system.g_cfg.misc.log_color.g(), config_system.g_cfg.misc.log_color.b()), crypt_str("[ aiiuur.xyz] / ")); //-V807
 #endif
 
-		m_cvar()->ConsoleColorPrintf(g_cfg.misc.log_color, text.c_str());
+		m_cvar()->ConsoleColorPrintf(config_system.g_cfg.misc.log_color, text.c_str());
 		m_cvar()->ConsolePrintf(crypt_str("\n"));
 	}
 
-	if (g_cfg.misc.log_output[EVENTLOG_OUTPUT_CHAT])
+	if (config_system.g_cfg.misc.log_output[EVENTLOG_OUTPUT_CHAT])
 	{
 		static CHudChat* chat = nullptr;
 

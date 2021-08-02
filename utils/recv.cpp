@@ -182,9 +182,9 @@ static void viewModelSequence(recvProxyData& data, void* arg2, void* arg3) noexc
 		{
 			if (const auto weapon_info = game_data::get_weapon_info(activeWeapon->m_iItemDefinitionIndex()))
 				data.value._int = get_new_animation(fnv::hashRuntime(weapon_info->model), data.value._int);
-			else if (g_cfg.skins.rare_animations && activeWeapon->m_iItemDefinitionIndex() == WEAPON_DEAGLE && data.value._int == 7)
+			else if (config_system.g_cfg.skins.rare_animations && activeWeapon->m_iItemDefinitionIndex() == WEAPON_DEAGLE && data.value._int == 7)
 				data.value._int = 8;
-			else if (g_cfg.skins.rare_animations && activeWeapon->m_iItemDefinitionIndex() == WEAPON_KNIFE_FALCHION && data.value._int == 12)
+			else if (config_system.g_cfg.skins.rare_animations && activeWeapon->m_iItemDefinitionIndex() == WEAPON_KNIFE_FALCHION && data.value._int == 12)
 				data.value._int = 13;
 		}
 	}
@@ -195,7 +195,7 @@ static void viewModelSequence(recvProxyData& data, void* arg2, void* arg3) noexc
 
 static void spottedHook(recvProxyData& data, void* arg2, void* arg3) noexcept
 {
-	data.value._int = g_cfg.ragebot.enable;
+	data.value._int = config_system.g_cfg.ragebot.enable;
 
 	constexpr auto hash{ fnv::hash("CBaseEntity->m_bSpotted") };
 	proxies[hash](data, arg2, arg3);

@@ -6,7 +6,7 @@
 #include <ShlObj_core.h>
 #include <Windows.h>
 #include <any>
-#include "..\..\cheats\visuals\other_esp.h"
+#include "..\cheats\visuals\other_esp.h"
 #include "..\utils\csgo.hpp"
 #include "..\cheats\misc\logs.h"
 #include "..\includes.hpp"
@@ -1002,7 +1002,7 @@ namespace ns_http //new
 {
 	std::string get(sol::this_state s, std::string& link)
 	{
-		if (!g_cfg.scripts.allow_http)
+		if (!config_system.g_cfg.scripts.allow_http)
 		{
 			c_lua::get().unload_script(get_current_script_id(s));
 			eventlogs::get().addnew(crypt_str("Please, allow HTTP requests"), Color::Yellow, false);
@@ -1025,7 +1025,7 @@ namespace ns_http //new
 
 	std::string post(sol::this_state s, std::string& link, std::string& params)
 	{
-		if (!g_cfg.scripts.allow_http)
+		if (!config_system.g_cfg.scripts.allow_http)
 		{
 			c_lua::get().unload_script(get_current_script_id(s));
 			eventlogs::get().addnew(crypt_str("Please, allow HTTP requests"), Color::Yellow, false);
@@ -1049,7 +1049,7 @@ namespace ns_file //new
 {
 	void append(sol::this_state s, std::string& path, std::string& data)
 	{
-		if (!g_cfg.scripts.allow_file)
+		if (!config_system.g_cfg.scripts.allow_file)
 		{
 			c_lua::get().unload_script(get_current_script_id(s));
 			eventlogs::get().addnew(crypt_str("Please, allow files read or write"), Color::Yellow, false);
@@ -1067,7 +1067,7 @@ namespace ns_file //new
 	}
 	void write(sol::this_state s, std::string& path, std::string& data)
 	{
-		if (!g_cfg.scripts.allow_file)
+		if (!config_system.g_cfg.scripts.allow_file)
 		{
 			c_lua::get().unload_script(get_current_script_id(s));
 			eventlogs::get().addnew(crypt_str("Please, allow files read or write"), Color::Yellow, false);
@@ -1086,7 +1086,7 @@ namespace ns_file //new
 	}
 	std::string read(sol::this_state s, std::string& path)
 	{
-		if (!g_cfg.scripts.allow_file)
+		if (!config_system.g_cfg.scripts.allow_file)
 		{
 			c_lua::get().unload_script(get_current_script_id(s));
 			eventlogs::get().addnew(crypt_str("Please, allow files read or write"), Color::Yellow, false);

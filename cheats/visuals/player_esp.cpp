@@ -40,7 +40,7 @@ void playeresp::paint_traverse()
 	static auto alpha = 1.0f;
 	c_dormant_esp::get().start();
 
-	if (g_cfg.player.arrows && g_ctx.local()->is_alive())
+	if (config_system.g_cfg.player.arrows && g_ctx.local()->is_alive())
 	{
 		static auto switch_alpha = false;
 
@@ -119,9 +119,9 @@ void playeresp::paint_traverse()
 
 		esp_alpha_fade[i] = math::clamp(esp_alpha_fade[i], 0.0f, 1.0f);
 
-		if (g_cfg.player.type[type].skeleton)
+		if (config_system.g_cfg.player.type[type].skeleton)
 		{
-			auto color = g_cfg.player.type[type].skeleton_color;
+			auto color = config_system.g_cfg.player.type[type].skeleton_color;
 			color.SetAlpha(min(255.0f * esp_alpha_fade[i], color.a()));
 			
 #if RELEASE
@@ -201,9 +201,9 @@ void playeresp::paint_traverse()
 
 			if (type == ENEMY)
 			{
-				if (g_cfg.player.arrows && g_ctx.local()->is_alive())
+				if (config_system.g_cfg.player.arrows && g_ctx.local()->is_alive())
 				{
-					auto color = g_cfg.player.arrows_color;
+					auto color = config_system.g_cfg.player.arrows_color;
 					color.SetAlpha((int)(min(255.0f * esp_alpha_fade[i] * alpha, color.a())));
 
 					if (e->IsDormant())
@@ -283,7 +283,7 @@ void playeresp::draw_skeleton(player_t* e, Color color, matrix3x4_t matrix[MAXST
 
 void playeresp::draw_box(player_t* m_entity, const Box& box)
 {
-	if (!g_cfg.player.type[type].box)
+	if (!config_system.g_cfg.player.type[type].box)
 		return;
 
 	auto alpha = 255.0f * esp_alpha_fade[m_entity->EntIndex()];
@@ -297,7 +297,7 @@ void playeresp::draw_box(player_t* m_entity, const Box& box)
 		outline_alpha 
 	};
 
-	auto color = m_entity->IsDormant() ? Color(130, 130, 130, 130) : g_cfg.player.type[type].box_color;
+	auto color = m_entity->IsDormant() ? Color(130, 130, 130, 130) : config_system.g_cfg.player.type[type].box_color;
 	color.SetAlpha(min(alpha, color.a()));
 
 	render::get().rect(box.x - 1, box.y - 1, box.w + 2, box.h + 2, outline_color);
@@ -307,7 +307,7 @@ void playeresp::draw_box(player_t* m_entity, const Box& box)
 
 void playeresp::draw_health(player_t* m_entity, const Box& box, const HPInfo& hpbox)
 {
-	if (!g_cfg.player.type[type].health)
+	if (!config_system.g_cfg.player.type[type].health)
 		return;
 
 	auto alpha = (int)(255.0f * esp_alpha_fade[m_entity->EntIndex()]);
@@ -317,8 +317,8 @@ void playeresp::draw_health(player_t* m_entity, const Box& box, const HPInfo& hp
 	auto color = m_entity->IsDormant() ? Color(130, 130, 130) : Color(150, (int)min(255.0f, hpbox.hp * 225.0f / 100.0f), 0);
 	auto hp_effect_color = Color(215, 20, 20, alpha);
 
-	if (g_cfg.player.type[type].custom_health_color)
-		color = m_entity->IsDormant() ? Color(130, 130, 130) : g_cfg.player.type[type].health_color;
+	if (config_system.g_cfg.player.type[type].custom_health_color)
+		color = m_entity->IsDormant() ? Color(130, 130, 130) : config_system.g_cfg.player.type[type].health_color;
 
 	color.SetAlpha(alpha);
 	render::get().rect(box.x - 6, box.y, 4, box.h, back_color);
@@ -351,7 +351,7 @@ bool playeresp::draw_ammobar(player_t* m_entity, const Box& box)
 	if (!m_entity->is_alive())
 		return false;
 
-	if (!g_cfg.player.type[type].ammo)
+	if (!config_system.g_cfg.player.type[type].ammo)
 		return false;
 
 	auto weapon = m_entity->m_hActiveWeapon().Get();
@@ -382,7 +382,7 @@ bool playeresp::draw_ammobar(player_t* m_entity, const Box& box)
 	};
 
 	auto text_color = m_entity->IsDormant() ? Color(130, 130, 130, alpha) : Color(255, 255, 255, alpha);
-	auto color = m_entity->IsDormant() ? Color(130, 130, 130, 130) : g_cfg.player.type[type].ammobar_color;
+	auto color = m_entity->IsDormant() ? Color(130, 130, 130, 130) : config_system.g_cfg.player.type[type].ammobar_color;
 
 	color.SetAlpha(min(alpha, color.a()));
 
@@ -425,7 +425,7 @@ bool playeresp::draw_ammobar(player_t* m_entity, const Box& box)
 
 void playeresp::draw_name(player_t* m_entity, const Box& box)
 {
-	if (!g_cfg.player.type[type].name)
+	if (!config_system.g_cfg.player.type[type].name)
 		return;
 
 	static auto sanitize = [](char* name) -> std::string
@@ -449,7 +449,7 @@ void playeresp::draw_name(player_t* m_entity, const Box& box)
 	{
 		auto name = sanitize(player_info.szName);
 
-		auto color = m_entity->IsDormant() ? Color(130, 130, 130, 130) : g_cfg.player.type[type].name_color;
+		auto color = m_entity->IsDormant() ? Color(130, 130, 130, 130) : config_system.g_cfg.player.type[type].name_color;
 		color.SetAlpha(min(255.0f * esp_alpha_fade[m_entity->EntIndex()], color.a()));
 
 		render::get().text(fonts[NAME], box.x + box.w / 2, box.y - 13, color, HFONT_CENTERED_X, name.c_str());
@@ -458,7 +458,7 @@ void playeresp::draw_name(player_t* m_entity, const Box& box)
 
 void playeresp::draw_weapon(player_t* m_entity, const Box& box, bool space)
 {
-	if (!g_cfg.player.type[type].weapon[WEAPON_ICON] && !g_cfg.player.type[type].weapon[WEAPON_TEXT])
+	if (!config_system.g_cfg.player.type[type].weapon[WEAPON_ICON] && !config_system.g_cfg.player.type[type].weapon[WEAPON_TEXT])
 		return;
 
 	auto weapon = m_entity->m_hActiveWeapon().Get();
@@ -471,16 +471,16 @@ void playeresp::draw_weapon(player_t* m_entity, const Box& box, bool space)
 	if (space)
 		pos += 5;
 
-	auto color = m_entity->IsDormant() ? Color(130, 130, 130, 130) : g_cfg.player.type[type].weapon_color;
+	auto color = m_entity->IsDormant() ? Color(130, 130, 130, 130) : config_system.g_cfg.player.type[type].weapon_color;
 	color.SetAlpha(min(255.0f * esp_alpha_fade[m_entity->EntIndex()], color.a()));
 
-	if (g_cfg.player.type[type].weapon[WEAPON_TEXT])
+	if (config_system.g_cfg.player.type[type].weapon[WEAPON_TEXT])
 	{
 		render::get().text(fonts[ESP], box.x + box.w / 2, pos, color, HFONT_CENTERED_X, weapon->get_name().c_str());
 		pos += 11;
 	}
 
-	if (g_cfg.player.type[type].weapon[WEAPON_ICON])
+	if (config_system.g_cfg.player.type[type].weapon[WEAPON_ICON])
 	{
 			render::get().text(fonts[SUBTABWEAPONS], box.x + box.w / 2, pos, color, HFONT_CENTERED_X, weapon->get_icon());
 	}
@@ -495,7 +495,7 @@ void playeresp::draw_flags(player_t* e, const Box& box)
 
 	auto _x = box.x + box.w + 3, _y = box.y - 3;
 
-	if (g_cfg.player.type[type].flags[FLAGS_MONEY])
+	if (config_system.g_cfg.player.type[type].flags[FLAGS_MONEY])
 	{
 		auto color = e->IsDormant() ? Color(130, 130, 130, 130) : Color(170, 190, 80);
 		color.SetAlpha(255.0f * esp_alpha_fade[e->EntIndex()]);
@@ -504,7 +504,7 @@ void playeresp::draw_flags(player_t* e, const Box& box)
 		_y += 8;
 	}
 
-	if (g_cfg.player.type[type].flags[FLAGS_ARMOR])
+	if (config_system.g_cfg.player.type[type].flags[FLAGS_ARMOR])
 	{
 		auto color = e->IsDormant() ? Color(130, 130, 130, 130) : Color(240, 240, 240);
 		color.SetAlpha(255.0f * esp_alpha_fade[e->EntIndex()]);
@@ -526,7 +526,7 @@ void playeresp::draw_flags(player_t* e, const Box& box)
 		}
 	}
 
-	if (g_cfg.player.type[type].flags[FLAGS_KIT] && e->m_bHasDefuser())
+	if (config_system.g_cfg.player.type[type].flags[FLAGS_KIT] && e->m_bHasDefuser())
 	{
 		auto color = e->IsDormant() ? Color(130, 130, 130, 130) : Color(240, 240, 240);
 		color.SetAlpha(255.0f * esp_alpha_fade[e->EntIndex()]);
@@ -535,7 +535,7 @@ void playeresp::draw_flags(player_t* e, const Box& box)
 		_y += 8;
 	}
 
-	if (g_cfg.player.type[type].flags[FLAGS_SCOPED])
+	if (config_system.g_cfg.player.type[type].flags[FLAGS_SCOPED])
 	{
 		auto scoped = e->m_bIsScoped();
 
@@ -552,7 +552,7 @@ void playeresp::draw_flags(player_t* e, const Box& box)
 		}
 	}
 
-	if (g_cfg.player.type[type].flags[FLAGS_FAKEDUCKING])
+	if (config_system.g_cfg.player.type[type].flags[FLAGS_FAKEDUCKING])
 	{
 		auto animstate = e->get_animation_state();
 
@@ -593,7 +593,7 @@ void playeresp::draw_flags(player_t* e, const Box& box)
 		}
 	}
 
-	if (g_cfg.player.type[type].flags[FLAGS_VULNERABLE] && weapon->is_non_aim())
+	if (config_system.g_cfg.player.type[type].flags[FLAGS_VULNERABLE] && weapon->is_non_aim())
 	{
 		auto color = e->IsDormant() ? Color(130, 130, 130, 130) : Color(205, 180, 110);
 		color.SetAlpha(255.0f * esp_alpha_fade[e->EntIndex()]);
@@ -602,7 +602,7 @@ void playeresp::draw_flags(player_t* e, const Box& box)
 		_y += 8;
 	}
 
-	if (g_cfg.player.type[type].flags[FLAGS_PING])
+	if (config_system.g_cfg.player.type[type].flags[FLAGS_PING])
 	{
 		player_info_t player_info;
 		m_engine()->GetPlayerInfo(e->EntIndex(), &player_info);
@@ -630,7 +630,7 @@ void playeresp::draw_flags(player_t* e, const Box& box)
 		}
 	}
 
-	if (g_cfg.player.type[type].flags[FLAGS_C4] && e->EntIndex() == g_ctx.globals.bomb_carrier)
+	if (config_system.g_cfg.player.type[type].flags[FLAGS_C4] && e->EntIndex() == g_ctx.globals.bomb_carrier)
 	{
 		auto color = e->IsDormant() ? Color(130, 130, 130, 130) : Color(163, 49, 93);
 		color.SetAlpha(255.0f * esp_alpha_fade[e->EntIndex()]);
@@ -642,7 +642,7 @@ void playeresp::draw_flags(player_t* e, const Box& box)
 
 void playeresp::draw_lines(player_t* e)
 {
-	if (!g_cfg.player.type[type].snap_lines)
+	if (!config_system.g_cfg.player.type[type].snap_lines)
 		return;
 
 	if (!g_ctx.local()->is_alive())
@@ -656,7 +656,7 @@ void playeresp::draw_lines(player_t* e)
 	if (!math::world_to_screen(e->GetAbsOrigin(), angle))
 		return;
 
-	auto color = e->IsDormant() ? Color(130, 130, 130, 130) : g_cfg.player.type[type].snap_lines_color;
+	auto color = e->IsDormant() ? Color(130, 130, 130, 130) : config_system.g_cfg.player.type[type].snap_lines_color;
 	color.SetAlpha(min(255.0f * esp_alpha_fade[e->EntIndex()], color.a()));
 
 	render::get().line(width / 2, height, angle.x, angle.y, color);
@@ -664,10 +664,10 @@ void playeresp::draw_lines(player_t* e)
 
 void playeresp::draw_multi_points(player_t* e)
 {
-	if (!g_cfg.ragebot.enable)
+	if (!config_system.g_cfg.ragebot.enable)
 		return;
 
-	if (!g_cfg.player.show_multi_points)
+	if (!config_system.g_cfg.player.show_multi_points)
 		return;
 
 	if (!g_ctx.local()->is_alive()) //-V807
@@ -742,7 +742,7 @@ void playeresp::draw_multi_points(player_t* e)
 		if (!math::world_to_screen(point.point, screen))
 			continue;
 
-		render::get().rect_filled(screen.x - 1, screen.y - 1, 3, 3, g_cfg.player.show_multi_points_color);
+		render::get().rect_filled(screen.x - 1, screen.y - 1, 3, 3, config_system.g_cfg.player.show_multi_points_color);
 		render::get().rect(screen.x - 2, screen.y - 2, 5, 5, Color::Black);
 	}
 }

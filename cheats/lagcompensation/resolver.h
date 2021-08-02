@@ -12,7 +12,7 @@ void lagcompensation::fsn(ClientFrameStage_t stage)
     if (stage != FRAME_NET_UPDATE_END)
         return;
 
-    if (!g_cfg.ragebot.enable && !g_cfg.legitbot.enabled)
+    if (!config_system.g_cfg.ragebot.enable && !config_system.g_cfg.legitbot.enabled)
         return;
 
     for (auto i = 1; i < m_globals()->m_maxclients; i++) //-V807
@@ -47,7 +47,7 @@ void lagcompensation::fsn(ClientFrameStage_t stage)
 
 bool lagcompensation::valid(int i, player_t* e)
 {
-    if (!g_cfg.ragebot.enable && !g_cfg.legitbot.enabled || !e->valid(false))
+    if (!config_system.g_cfg.ragebot.enable && !config_system.g_cfg.legitbot.enabled || !e->valid(false))
     {
         if (!e->is_alive())
         {
@@ -324,7 +324,7 @@ void lagcompensation::update_player_animations(player_t* e)
     };
 
 
-    if (!player_info.fakeplayer && g_ctx.local()->is_alive() && e->m_iTeamNum() != g_ctx.local()->m_iTeamNum() && !g_cfg.legitbot.enabled) //-V807
+    if (!player_info.fakeplayer && g_ctx.local()->is_alive() && e->m_iTeamNum() != g_ctx.local()->m_iTeamNum() && !config_system.g_cfg.legitbot.enabled) //-V807
     {
         animstate->m_flGoalFeetYaw = previous_goal_feet_yaw[e->EntIndex()]; //-V807
 
@@ -365,7 +365,7 @@ void lagcompensation::update_player_animations(player_t* e)
         player_resolver[e->EntIndex()].initialize(e, record, previous_goal_feet_yaw[e->EntIndex()], e->m_angEyeAngles().x);
         player_resolver[e->EntIndex()].resolve_yaw();
 
-        if (g_cfg.player_list.low_delta[e->EntIndex()])
+        if (config_system.g_cfg.player_list.low_delta[e->EntIndex()])
         {
             switch (record->side)
             {

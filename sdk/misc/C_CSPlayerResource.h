@@ -2,7 +2,7 @@
 
 #include <Windows.h>
 #include "..\..\utils\netmanager.hpp"
-#include "..\..\utils\crypt_str.h"
+#include "..\utils\crypt_str.h"
 
 #define OFFSET(type, name, offset)\
 type &name##() const\

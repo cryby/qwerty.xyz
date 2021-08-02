@@ -3,7 +3,7 @@
 #include "..\includes.hpp"
 #include "..\sdk\math\Vector.hpp"
 #include "..\sdk\misc\CUserCmd.hpp"
-#include "..\..\utils\crypt_str.h"
+#include "..\utils\crypt_str.h"
 
 class entity_t;
 class player_t;

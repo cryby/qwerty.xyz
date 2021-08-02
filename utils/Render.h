@@ -1,5 +1,5 @@
-#pragma once
-#include "includes.hpp"
+/*#pragma once
+#include "../includes.hpp"
 
 namespace render2 {
 	enum e_textflags {
@@ -38,4 +38,4 @@ public:
 
 };
 
-inline ImGuiRendering* g_Render;
+inline ImGuiRendering* g_Render;*/

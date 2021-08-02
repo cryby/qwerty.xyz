@@ -441,6 +441,19 @@ public:
         return (m_lifeState());
     }
 
+    uint32_t& m_iOcclusionFlags()
+    {
+        return *(uint32_t*)((uintptr_t)this + 0xA28);
+    }
+
+    uint32_t& m_iOcclusionFramecount()
+    {
+        return *(uint32_t*)((uintptr_t)this + 0xA30);
+    }
+
+    int last_ticks[65];
+    int GetChokedPackets();
+
     uint32_t& m_iMostRecentModelBoneCounter();
     float& m_flLastBoneSetupTime();
 

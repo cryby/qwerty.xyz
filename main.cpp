@@ -73,6 +73,15 @@ DWORD WINAPI main(PVOID base)
 	Beep(875, 432);
 	Beep(815, 400);
 
+	std::filesystem::path path3;
+	PWSTR pathToDocuments3;
+	if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Documents, 0, NULL, &pathToDocuments3))) {
+		path3 = pathToDocuments3;
+		path3 /= "Dynamism.space/MovementRecorder";
+		CoTaskMemFree(pathToDocuments3);
+	}
+	std::filesystem::create_directory(path3);
+
 		g_ctx.signatures =
 		{
 			crypt_str("A1 ? ? ? ? 50 8B 08 FF 51 0C"),

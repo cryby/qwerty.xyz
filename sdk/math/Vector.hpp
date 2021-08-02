@@ -1,5 +1,6 @@
 #pragma once
 #include <sstream>
+#define CHECK_VALID( _v ) 0
 
 constexpr auto RadPi = 3.14159265358979323846;
 constexpr auto DegPi = 180.0;

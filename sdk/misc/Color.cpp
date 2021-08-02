@@ -5,7 +5,7 @@
 
 Color Color::Black(0, 0, 0);
 Color Color::White(255, 255, 255);
-Color Color::Red(0, 255, 255);
+Color Color::Red(255, 0, 0);
 Color Color::Green(0, 255, 0);
 Color Color::Blue(0, 0, 255);
 Color Color::Yellow(255, 255, 0);
@@ -45,7 +45,7 @@ __inline void Color::SetColor(int _r, int _g, int _b, int _a)
 	_CColor[3] = (unsigned char)_a;
 }
 
-__inline void Color::SetColor(float _r, float _g, float _b, float _a)
+void Color::SetColor(float _r, float _g, float _b, float _a)
 {
 	_CColor[0] = static_cast<unsigned char>(_r * 255.0f); //-V2004
 	_CColor[1] = static_cast<unsigned char>(_g * 255.0f); //-V2004

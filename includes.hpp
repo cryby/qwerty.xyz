@@ -88,3 +88,4 @@
 #define m_viewrenderbeams g_csgo.m_viewrenderbeams
 #define m_soundservices g_csgo.m_soundservices
 #define m_basefilesys g_csgo.m_basefilesys
+#define m_weaponsystem g_csgo.m_WeaponSystem

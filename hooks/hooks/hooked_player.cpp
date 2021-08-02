@@ -16,7 +16,7 @@ _declspec(noinline)bool hooks::setupbones_detour(void* ecx, matrix3x4_t* bone_wo
 
 	if (!ecx)
 		result = ((SetupBonesFn)original_setupbones)(ecx, bone_world_out, max_bones, bone_mask, current_time);
-	else if (!g_cfg.ragebot.enable && !g_cfg.legitbot.enabled)
+	else if (!config_system.g_cfg.ragebot.enable && !config_system.g_cfg.legitbot.enabled)
 		result = ((SetupBonesFn)original_setupbones)(ecx, bone_world_out, max_bones, bone_mask, current_time);
 	else
 	{
@@ -34,7 +34,7 @@ _declspec(noinline)bool hooks::setupbones_detour(void* ecx, matrix3x4_t* bone_wo
 
 			if (g_ctx.globals.setuping_bones)
 				result = ((SetupBonesFn)original_setupbones)(ecx, bone_world_out, max_bones, bone_mask, current_time);
-			else if (g_cfg.legitbot.enabled && player != g_ctx.local())
+			else if (config_system.g_cfg.legitbot.enabled && player != g_ctx.local())
 				result = ((SetupBonesFn)original_setupbones)(ecx, bone_world_out, max_bones, bone_mask, current_time);
 			else if (!g_ctx.local()->is_alive())
 				result = ((SetupBonesFn)original_setupbones)(ecx, bone_world_out, max_bones, bone_mask, current_time);
@@ -95,7 +95,7 @@ _declspec(noinline)void hooks::updateclientsideanimation_detour(player_t* player
 	if (player == g_ctx.local())
 		return ((UpdateClientSideAnimationFn)original_updateclientsideanimation)(player);
 
-	if (!g_cfg.ragebot.enable && !g_cfg.legitbot.enabled)
+	if (!config_system.g_cfg.ragebot.enable && !config_system.g_cfg.legitbot.enabled)
 		return ((UpdateClientSideAnimationFn)original_updateclientsideanimation)(player);
 
 	if (!player->valid(false, false))
@@ -215,7 +215,7 @@ void __fastcall hooks::hooked_modifyeyeposition(c_baseplayeranimationstate* stat
 
 _declspec(noinline)void hooks::calcviewmodelbob_detour(player_t* player, Vector& position)
 {
-	if (!g_cfg.esp.removals[REMOVALS_LANDING_BOB] || player != g_ctx.local() || !g_ctx.local()->is_alive())
+	if (!config_system.g_cfg.esp.removals[REMOVALS_LANDING_BOB] || player != g_ctx.local() || !g_ctx.local()->is_alive())
 		return ((CalcViewmodelBobFn)original_calcviewmodelbob)(player, position);
 }
 

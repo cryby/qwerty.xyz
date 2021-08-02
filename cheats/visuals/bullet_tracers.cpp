@@ -139,19 +139,19 @@ void bullettracers::draw_beams()
 
 		if (TIME_TO_TICKS(m_globals()->m_curtime) > TIME_TO_TICKS(impacts.begin()->time))
 		{
-			auto color = g_cfg.esp.enemy_bullet_tracer_color;
+			auto color = config_system.g_cfg.esp.enemy_bullet_tracer_color;
 
 			if (impacts.begin()->e == g_ctx.local())
 			{
-				if (!g_cfg.esp.bullet_tracer)
+				if (!config_system.g_cfg.esp.bullet_tracer)
 				{
 					impacts.erase(impacts.begin());
 					continue;
 				}
 
-				color = g_cfg.esp.bullet_tracer_color;
+				color = config_system.g_cfg.esp.bullet_tracer_color;
 			}
-			else if (!g_cfg.esp.enemy_bullet_tracer)
+			else if (!config_system.g_cfg.esp.enemy_bullet_tracer)
 			{
 				impacts.erase(impacts.begin());
 				continue;

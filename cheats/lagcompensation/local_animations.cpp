@@ -162,7 +162,7 @@ void local_animations::update_fake_animations()
 		local_data.animstate->m_flHeadHeightOrOffsetFromHittingGroundAnimation = 1.0f;
 
 		g_ctx.local()->setup_bones_fixed(g_ctx.globals.fake_matrix, BONE_USED_BY_ANYTHING);
-		local_data.visualize_lag = g_cfg.player.visualize_lag;
+		local_data.visualize_lag = config_system.g_cfg.player.visualize_lag;
 
 		if (!local_data.visualize_lag)
 		{

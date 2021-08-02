@@ -15041,6 +15041,7 @@ namespace hooks
 	bool input_shouldListen = false;
 
 	ButtonCode_t* input_receivedKeyval;
+	LPDIRECT3DTEXTURE9 WaterMarker = nullptr;
 
 	LRESULT __stdcall Hooked_WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
@@ -15071,9 +15072,9 @@ namespace hooks
 			{
 				if (g_ctx.globals.current_weapon != -1)
 				{
-					if (g_cfg.ragebot.enable)
+					if (config_system.g_cfg.ragebot.enable)
 						rage_weapon = g_ctx.globals.current_weapon;
-					else if (g_cfg.legitbot.enabled)
+					else if (config_system.g_cfg.legitbot.enabled)
 						legit_weapon = g_ctx.globals.current_weapon;
 				}
 			}
@@ -15134,6 +15135,9 @@ namespace hooks
 				D3DXCreateTextureFromFileInMemoryEx(pDevice, &lowchest, sizeof(lowchest), 20, 20, D3DX_DEFAULT, D3DUSAGE_DYNAMIC, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, NULL, NULL, &c_menu::get().lowchest);
 			if (c_menu::get().lowchest1 == nullptr)
 				D3DXCreateTextureFromFileInMemoryEx(pDevice, &lowchest1, sizeof(lowchest1), 20, 20, D3DX_DEFAULT, D3DUSAGE_DYNAMIC, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, NULL, NULL, &c_menu::get().lowchest1);
+
+			if (WaterMarker == nullptr)
+				//D3DXCreateTextureFromFileInMemoryEx(pDevice, &WaterMark, sizeof(WaterMark), 500, 550, D3DX_DEFAULT, 0, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, NULL, NULL, &WaterMarker);
 
 			if (c_menu::get().pel == nullptr)
 				D3DXCreateTextureFromFileInMemoryEx(pDevice, &pel, sizeof(pel), 20, 20, D3DX_DEFAULT, D3DUSAGE_DYNAMIC, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, NULL, NULL, &c_menu::get().pel);
@@ -15377,7 +15381,7 @@ void __fastcall hooks::hooked_setmousecodestate(void* thisptr, void* edx, Button
 {
 	static auto original_fn = oEmitSound;
 
-	if (g_cfg.misc.auto_accept_matchmaking) {
+	if (config_system.g_cfg.misc.auto_accept_matchmaking) {
 		if (!strcmp(data.soundEntry, "UIPanorama.popup_accept_match_beep")) {
 			static auto fnAccept = reinterpret_cast<bool(__stdcall*)(const char*)>(util::FindSignature("client.dll", "55 8B EC 83 E4 F8 8B 4D 08 BA ? ? ? ? E8 ? ? ? ? 85 C0 75 12"));
 
