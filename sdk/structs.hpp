@@ -450,7 +450,7 @@ public:
     {
         return *(uint32_t*)((uintptr_t)this + 0xA30);
     }
-
+    Vector get_eye_pos();
     int last_ticks[65];
     int GetChokedPackets();
 

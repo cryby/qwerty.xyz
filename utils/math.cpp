@@ -44,6 +44,24 @@ namespace math
 		return FASTSQRT(v.x * v.x + v.y * v.y + v.z * v.z);
 	}
 
+	float AngleDiff(float destAngle, float srcAngle)
+	{
+		float delta;
+
+		delta = fmodf(destAngle - srcAngle, 360.0f);
+		if (destAngle > srcAngle)
+		{
+			if (delta >= 180)
+				delta -= 360;
+		}
+		else
+		{
+			if (delta <= -180)
+				delta += 360;
+		}
+		return delta;
+	}
+
 	bool screen_transform(const Vector& in, Vector& out)
 	{
 		const auto& w2_s_matrix = world_to_screen_matrix();

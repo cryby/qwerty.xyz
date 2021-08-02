@@ -3784,12 +3784,91 @@ void c_menu::render2(bool is_open) {
 					}
 					else if (Active_Tab == 2 && Active_Legit_Tab == 3) //Legit | Trigger
 					{
-					bool xd = false;
-					ImGui::Checkbox("Nigga", &xd);
+					ImGui::Columns(2, nullptr, false);
+					child_title(crypt_str("Recorder"));
+					ImGui::BeginChild("it3ems", { 300, 430 });
+					{
+						padding(8, 8);
+
+						ImGui::BeginGroup();
+						{
+
+
+							ImGui::Checkbox("Movement recorder", &config_system.g_cfg.misc.enable_movement); padding(8, 2);
+							if (config_system.g_cfg.misc.enable_movement)
+							{
+								draw_keybind(crypt_str("Recorder"), &config_system.g_cfg.misc.recorder, crypt_str("##RECORDER_KEY")); padding(8, 2);
+								draw_keybind(crypt_str("Player"), &config_system.g_cfg.misc.playing, crypt_str("##PLAYER_KEY")); padding(8, 2);
+
+								ImGui::Checkbox("Show the first path", &config_system.g_cfg.misc.showfirstpath); padding(8, 2);
+								ImGui::SameLine(100); ImGui::ColorEdit4("##teste", &config_system.g_cfg.misc.showfirstpath_color); padding(8, 2);
+
+								ImGui::Checkbox("Show path", &config_system.g_cfg.misc.showpath); padding(8, 2);
+								ImGui::SameLine(100); ImGui::ColorEdit4("##show_path", &config_system.g_cfg.misc.pathcolor); padding(8, 2);
+
+								ImGui::Checkbox("Show 3D circle", &config_system.g_cfg.misc.show3dcircle); padding(8, 2);
+								ImGui::SameLine(100); ImGui::ColorEdit4("##show_3dcircle", &config_system.g_cfg.misc.circle3d); padding(8, 2);
+
+								if (config_system.g_cfg.misc.show3dcircle)
+								{
+
+									padding(6, 8); ImGui::SliderInt("Show circle distance", &config_system.g_cfg.misc.showcircle, 0, 5000); padding(8, 2);
+								}
+
+								padding(6, 8); ImGui::SliderFloat("Smooth", &config_system.g_cfg.misc.smooth, 10, 60); padding(8, 2);
+
+
+								if (static_cast<size_t>(current_config2) >= config_items2.size())
+									current_config2 = -1;
+
+								static char buffer[16];
+								padding(8, 2);
+								if (ImGui::Combo("Configs", &current_config2, [](void* data, int idx, const char** out_text) {
+									auto& vector = *static_cast<std::vector<std::string>*>(data);
+									*out_text = vector[idx].c_str();
+									return true;
+									}, &config_items2, config_items2.size(), 5) && current_config2 != -1)
+									strcpy(buffer, config_items2[current_config2].c_str());
+									ImGui::PushID(0);
+									ImGui::PushItemWidth(178);
+									padding(8, 2); if (ImGui::InputText("", buffer, IM_ARRAYSIZE(buffer), ImGuiInputTextFlags_EnterReturnsTrue)) {
+										if (current_config2 != -1)
+											config_system.rename2(current_config2, buffer);
+									}
+									ImGui::PopID();
+									ImGui::SameLine();
+									if (ImGui::CustomButton(("Create"), "##1", ImVec2(80, 18))) {
+										config_system.add2(buffer);
+									}
+
+
+									if (current_config2 != -1)
+									{
+
+										padding(8, 2);
+										if (ImGui::CustomButton(("Load Config"), "##2", ImVec2(80, 18))) {
+											config_system.load2(current_config2);
+										}
+										ImGui::SameLine();
+										if (ImGui::CustomButton(("Save Config"), "##3", ImVec2(80, 18))) {
+											config_system.save2(current_config2);
+										}
+										ImGui::SameLine();
+										if (ImGui::CustomButton(("Remove Config"), "##4", ImVec2(80, 18))) {
+											config_system.remove2(current_config2);
+										}
+
+									}
+							}
+							ImGui::EndGroup();
+						}
+					}
+					ImGui::EndChild();
 
 					}
 					else if (Active_Tab == 2 && Active_Legit_Tab == 4) //Legit | Others
 					{
+					static int map = 0;
 					ImGui::Checkbox(crypt_str("Blockbot"), &config_system.g_cfg.misc.blockbot_enabled);
 
 					if (config_system.g_cfg.misc.blockbot_enabled == 1)
@@ -3800,6 +3879,173 @@ void c_menu::render2(bool is_open) {
 					}
 
 					ImGui::Checkbox(crypt_str("Force Crosshair"), &config_system.g_cfg.misc.forcecrosshair);
+					
+
+					ImGui::Checkbox("Grenade helper", &config_system.g_cfg.grenadehelper.enable); padding(8, 2);
+
+					ImGui::Combo("Choose the map", &map, "de_mirage\0de_inferno\0de_overpass\0de_dust2\0de_cache\0de_nuke\0de_cbble\0de_train"); padding(8, 2);
+					if (map == 0)
+					{
+						static char pos_name[256] = "";
+						ImGui::InputText("Put name here", pos_name, 256);
+						std::string opt_pos_name = pos_name;
+
+						padding(8, 2); if (ImGui::CustomButton("Add new pos", "##1"))
+						{
+							if (!m_engine()->IsInGame())
+								return;
+
+							mirage new_str;
+							new_str.info = opt_pos_name;
+							new_str.pos = g_ctx.local()->GetAbsOrigin();
+							new_str.ang = g_ctx.local()->get_shoot_position();
+							m_engine()->GetViewAngles(new_str.ang);
+
+							config_system.g_cfg.grenadehelper.MirageGrenade.push_back(new_str);
+						}
+					}
+					if (map == 1)
+					{
+						static char pos_name[256] = "";
+						ImGui::InputText("Put name here", pos_name, 256);
+						std::string opt_pos_name = pos_name;
+
+						padding(8, 2);	if (ImGui::CustomButton("Add new pos", "##1"))
+						{
+							if (!m_engine()->IsInGame())
+								return;
+
+							inferno new_str;
+							new_str.info = opt_pos_name;
+							new_str.pos = g_ctx.local()->GetAbsOrigin();
+							new_str.ang = g_ctx.local()->get_shoot_position();
+							m_engine()->GetViewAngles(new_str.ang);
+
+							config_system.g_cfg.grenadehelper.InfernoGrenade.push_back(new_str);
+						}
+					}
+
+					if (map == 7)
+					{
+						static char pos_name[256] = "";
+						ImGui::InputText("Put name here", pos_name, 256);
+						std::string opt_pos_name = pos_name;
+
+						padding(8, 2); if (ImGui::CustomButton("Add new pos", "##1"))
+						{
+							if (!m_engine()->IsInGame())
+								return;
+
+							train new_str;
+							new_str.info = opt_pos_name;
+							new_str.pos = g_ctx.local()->GetAbsOrigin();
+							new_str.ang = g_ctx.local()->get_shoot_position();
+							m_engine()->GetViewAngles(new_str.ang);
+
+							config_system.g_cfg.grenadehelper.trainGrenade.push_back(new_str);
+						}
+					}
+
+					if (map == 3)
+					{
+						static char pos_name[256] = "";
+						ImGui::InputText("Put name here", pos_name, 256);
+						std::string opt_pos_name = pos_name;
+
+						padding(8, 2); if (ImGui::CustomButton("Add new pos", "##1"))
+						{
+							if (!m_engine()->IsInGame())
+								return;
+
+							dust2 new_str;
+							new_str.info = opt_pos_name;
+							new_str.pos = g_ctx.local()->GetAbsOrigin();
+							new_str.ang = g_ctx.local()->get_shoot_position();
+							m_engine()->GetViewAngles(new_str.ang);
+
+							config_system.g_cfg.grenadehelper.dust2Grenade.push_back(new_str);
+						}
+					}
+					if (map == 2)
+					{
+						static char pos_name[256] = "";
+						ImGui::InputText("Put name here", pos_name, 256);
+						std::string opt_pos_name = pos_name;
+
+						padding(8, 2);	if (ImGui::CustomButton("Add new pos", "##1"))
+						{
+							if (!m_engine()->IsInGame())
+								return;
+
+							overpass new_str;
+							new_str.info = opt_pos_name;
+							new_str.pos = g_ctx.local()->GetAbsOrigin();
+							new_str.ang = g_ctx.local()->get_shoot_position();
+							m_engine()->GetViewAngles(new_str.ang);
+
+							config_system.g_cfg.grenadehelper.overpassGrenade.push_back(new_str);
+						}
+					}
+					if (map == 5)
+					{
+						static char pos_name[256] = "";
+						ImGui::InputText("Put name here", pos_name, 256);
+						std::string opt_pos_name = pos_name;
+
+						padding(8, 2);	if (ImGui::CustomButton("Add new pos", "##1"))
+						{
+							if (!m_engine()->IsInGame())
+								return;
+
+							nuke new_str;
+							new_str.info = opt_pos_name;
+							new_str.pos = g_ctx.local()->GetAbsOrigin();
+							new_str.ang = g_ctx.local()->get_shoot_position();
+							m_engine()->GetViewAngles(new_str.ang);
+
+							config_system.g_cfg.grenadehelper.nukeGrenade.push_back(new_str);
+						}
+					}
+					if (map == 4)
+					{
+						static char pos_name[256] = "";
+						ImGui::InputText("Put name here", pos_name, 256);
+						std::string opt_pos_name = pos_name;
+
+						padding(8, 2);	if (ImGui::CustomButton("Add new pos", "##1"))
+						{
+							if (!m_engine()->IsInGame())
+								return;
+
+							cache new_str;
+							new_str.info = opt_pos_name;
+							new_str.pos = g_ctx.local()->GetAbsOrigin();
+							new_str.ang = g_ctx.local()->get_shoot_position();
+							m_engine()->GetViewAngles(new_str.ang);
+
+							config_system.g_cfg.grenadehelper.cacheGrenade.push_back(new_str);
+						}
+					}
+					if (map == 6)
+					{
+						static char pos_name[256] = "";
+						ImGui::InputText("Put name here", pos_name, 256);
+						std::string opt_pos_name = pos_name;
+
+						padding(8, 2);	if (ImGui::CustomButton("Add new pos", "##1"))
+						{
+							if (!m_engine()->IsInGame())
+								return;
+
+							cbble new_str;
+							new_str.info = opt_pos_name;
+							new_str.pos = g_ctx.local()->GetAbsOrigin();
+							new_str.ang = g_ctx.local()->get_shoot_position();
+							m_engine()->GetViewAngles(new_str.ang);
+
+							config_system.g_cfg.grenadehelper.cbbleGrenade.push_back(new_str);
+						}
+					}
 					
 					}
 					if (Active_Tab == 3 && Active_Visuals_Tab == 1) //Visuals | ESP
@@ -5322,78 +5568,6 @@ void c_menu::render2(bool is_open) {
 						}
 						else if (Active_Tab == 6 && Active_Movement_Tab == 2) //Changers | Profile
 						{
-							ImGui::NewLine();
-							ImGui::BeginChild("Recorder", ImVec2(280, 520), true);
-							padding(8, 8);
-
-
-							ImGui::Checkbox("Movement recorder", &config_system.g_cfg.misc.enable_movement); padding(8, 2);
-							if (config_system.g_cfg.misc.enable_movement)
-							{
-								draw_keybind(crypt_str("Recorder"), &config_system.g_cfg.misc.recorder, crypt_str("##RECORDER_KEY")); padding(8, 2);
-								draw_keybind(crypt_str("Player"), &config_system.g_cfg.misc.playing, crypt_str("##PLAYER_KEY")); padding(8, 2);
-
-								ImGui::Checkbox("Show the first path", &config_system.g_cfg.misc.showfirstpath); padding(8, 2);
-								//ImGui::SameLine(100); ImGui::ColorEdit4("##teste", &config_system.g_cfg.misc.showfirstpath_color); padding(8, 2);
-
-								ImGui::Checkbox("Show path", &config_system.g_cfg.misc.showpath); padding(8, 2);
-								//ImGui::SameLine(100); ImGui::ColorEdit4("##show_path", &config_system.g_cfg.misc.pathcolor); padding(8, 2);
-
-								ImGui::Checkbox("Show 3D circle", &config_system.g_cfg.misc.show3dcircle); padding(8, 2);
-								//ImGui::SameLine(100); ImGui::ColorEdit4("##show_3dcircle", &config_system.g_cfg.misc.circle3d); padding(8, 2);
-
-								if (config_system.g_cfg.misc.show3dcircle)
-								{
-
-									padding(6, 8); ImGui::SliderInt("Show circle distance", &config_system.g_cfg.misc.showcircle, 0, 5000); padding(8, 2);
-								}
-
-								padding(6, 8); ImGui::SliderFloat("Smooth", &config_system.g_cfg.misc.smooth, 10, 60); padding(8, 2);
-
-
-								if (static_cast<size_t>(current_config2) >= config_items2.size())
-									current_config2 = -1;
-
-								static char buffer[16];
-								padding(8, 2);
-								if (ImGui::Combo("Configs", &current_config2, [](void* data, int idx, const char** out_text) {
-									auto& vector = *static_cast<std::vector<std::string>*>(data);
-									*out_text = vector[idx].c_str();
-									return true;
-									}, &config_items2, config_items2.size(), 5) && current_config2 != -1)
-									strcpy(buffer, config_items2[current_config2].c_str());
-									ImGui::PushID(0);
-									ImGui::PushItemWidth(178);
-									padding(8, 2); if (ImGui::InputText("", buffer, IM_ARRAYSIZE(buffer), ImGuiInputTextFlags_EnterReturnsTrue)) {
-										if (current_config2 != -1)
-											config_system.rename2(current_config2, buffer);
-									}
-									ImGui::PopID();
-									ImGui::SameLine();
-									if (ImGui::CustomButton(("Create"), "##1", ImVec2(80, 18))) {
-										config_system.add2(buffer);
-									}
-
-
-									if (current_config2 != -1)
-									{
-
-										padding(8, 2);
-										if (ImGui::CustomButton(("Load Config"), "##2", ImVec2(80, 18))) {
-											config_system.load2(current_config2);
-										}
-										ImGui::SameLine();
-										if (ImGui::CustomButton(("Save Config"), "##3", ImVec2(80, 18))) {
-											config_system.save2(current_config2);
-										}
-										ImGui::SameLine();
-										if (ImGui::CustomButton(("Remove Config"), "##4", ImVec2(80, 18))) {
-											config_system.remove2(current_config2);
-										}
-
-									}
-							}
-							ImGui::EndChild();
 
 						}
 						else if (Active_Tab == 6 && Active_Movement_Tab == 3) //Changers | Character

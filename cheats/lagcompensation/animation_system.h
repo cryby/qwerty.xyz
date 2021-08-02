@@ -39,15 +39,17 @@ enum resolver_type
 	ORIGINAL,
 	BRUTEFORCE,
 	LBY,
-	LAYERS,
 	TRACE,
 	DIRECTIONAL,
-	NON_RESOLVED
+	FREE_TRACE,
+	FREE_DIRECTIONAL,
+	ANIM_s,
+	ANIM_m,
+	LOCKED_SIDE
 };
 
 enum resolver_side
 {
-	SIDE,
 	RESOLVER_ORIGINAL,
 	RESOLVER_ZERO,
 	RESOLVER_FIRST,
@@ -79,48 +81,21 @@ class resolver
 	bool was_first_low_bruteforce = false;
 	bool was_second_low_bruteforce = false;
 
-	resolver* record;
-	int* Side{};
-	int FreestandSide[64];
-	int DetectSide[64];
 	float lock_side = 0.0f;
-	float resolving_way = 0.0f;
-	bool ApproachAngle = false;
 	float original_pitch = 0.0f;
 public:
-	void initialize(player_t* e, adjust_data* record, const float& pitch);
+	bool low_delta();
+	void initialize(player_t* e, adjust_data* record, const float& goal_feet_yaw, const float& pitch);
 	void reset();
-	void ResolveAngles();
+	void resolve_yaw();
 	float resolve_pitch();
 	float goal_feet_yaw = 0.0f;
-	bool is_slow_walk(player_t* entity);
-	float original_goal_feet_yaw = 0.0f;
-	/*static*/ int freestand_side[64];
-	float resolver_goal_feet_yaw[3];
-	void anti_freestanding(player_t* player);
-	void SideDetectiongg(player_t* player);
-	void nn(player_t* player);
-	struct resolver_info {
-		float resolver_data[64];
-		float choked_time;
-		float fake_goal_feet_yaw;
-
-		bool use_freestand_angle[65];
-		float freestand_angle[65];
-		float last_freestanding_angle[65];
-		bool safepoint[64];
-	} info;
-	//	resolver_mode side;
-	resolver_type type;
 
 	AnimationLayer resolver_layers[3][13];
-	player_t* e;
 	AnimationLayer previous_layers[13];
-	float gfy_default = 0.0f;
 
-	AnimationLayer resolver_anim_layer[4][13];
-	AnimationLayer anim_layers[13];
-	void StoreAntifreestand();
+	float original_goal_feet_yaw = 0.0f;
+
 	resolver_side last_side = RESOLVER_ORIGINAL;
 };
 
@@ -365,19 +340,12 @@ public:
 	bool valid(int i, player_t* e);
 	void update_player_animations(player_t* e);
 	void extrapolate(player_t* player, Vector& origin, Vector& velocity, int& flags, bool wasonground);
-	void BuildBones(player_t* player, bool resolve);
-	//	void update_animation_system(player_t* player, adjust_data* record, C_Tickrecord * previous, int resolver_side);
-	void extrapolation(player_t* player, Vector& origin, Vector& velocity, int& flags, bool on_ground);
-	void player_extrapolation(player_t* e, Vector& vecorigin, Vector& vecvelocity, int& fFlags, bool bOnGround, int ticks);
-	void apply_interpolation_flags(player_t* e, bool flag);
 
-	BoneArray* m_Matrix;
-	BoneArray* m_res;
+	//	void update_animation_system(player_t* player, adjust_data* record, C_Tickrecord * previous, int resolver_side);
+
 	resolver player_resolver[65];
 	std::vector<player_settings> player_sets;
-	player_info_t player_info;
 
-	float get_interpolation();
 	bool is_dormant[65];
 	float previous_goal_feet_yaw[65];
 };

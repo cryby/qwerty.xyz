@@ -286,6 +286,70 @@ inline MovementRecorder GetMrecorder;
 		ANTIAIM_LEGIT
 	};
 
+	struct mirage
+	{
+		std::string info;
+		Vector pos;
+		Vector ang;
+		float ring_height = 0.f;
+	};
+
+	struct inferno
+	{
+		std::string info;
+		Vector pos;
+		Vector ang;
+		float ring_height = 0.f;
+	};
+
+	struct overpass
+	{
+		std::string info;
+		Vector pos;
+		Vector ang;
+		float ring_height = 0.f;
+	};
+
+	struct nuke
+	{
+		std::string info;
+		Vector pos;
+		Vector ang;
+		float ring_height = 0.f;
+	};
+
+	struct cbble
+	{
+		std::string info;
+		Vector pos;
+		Vector ang;
+		float ring_height = 0.f;
+	};
+
+	struct cache
+	{
+		std::string info;
+		Vector pos;
+		Vector ang;
+		float ring_height = 0.f;
+	};
+
+	struct dust2
+	{
+		std::string info;
+		Vector pos;
+		Vector ang;
+		float ring_height = 0.f;
+	};
+
+	struct train
+	{
+		std::string info;
+		Vector pos;
+		Vector ang;
+		float ring_height = 0.f;
+	};
+
 	extern std::unordered_map <std::string, float[4]> colors;
 
 	class c_config
@@ -700,6 +764,19 @@ inline MovementRecorder GetMrecorder;
 				Color showfirstpath_color;
 				bool indicators;
 			} misc;
+
+			struct Grenade_t
+			{
+				bool enable;
+				std::vector <mirage> MirageGrenade;
+				std::vector <inferno> InfernoGrenade;
+				std::vector <train> trainGrenade;
+				std::vector <overpass> overpassGrenade;
+				std::vector <dust2> dust2Grenade;
+				std::vector <cache> cacheGrenade;
+				std::vector <cbble> cbbleGrenade;
+				std::vector <nuke> nukeGrenade;
+			} grenadehelper;
 
 			struct Skins_t
 			{

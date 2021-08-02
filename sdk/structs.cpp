@@ -304,6 +304,11 @@ bool weapon_t::can_double_tap()
 	return true;
 }
 
+Vector player_t::get_eye_pos()
+{
+	return m_vecOrigin() + m_vecViewOffset();
+}
+
 int weapon_t::get_max_tickbase_shift()
 {
 	if (!can_double_tap())

@@ -13,6 +13,7 @@ namespace math {
 	void normalize_angles(Vector& angles);
 	float angle_distance(float firstangle, float secondangle);
 	void normalize_angle(QAngle& angles);
+	float AngleDiff(float destAngle, float srcAngle);
 	void normalize_vector(Vector& vector);
 	const matrix3x4_t& world_to_screen_matrix();
 	bool WorldToScreen(const Vector& in, Vector& out);
