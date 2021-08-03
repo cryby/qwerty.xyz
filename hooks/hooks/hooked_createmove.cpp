@@ -255,8 +255,8 @@ bool __stdcall hooks::hooked_createmove(float smt, CUserCmd* m_pcmd)
 	if (key_binds::get().get_key_bind_state(24)) //-V807
 		misc::get().jumpbug(m_pcmd);
 
-	g_MovementRecorder.MovementR(m_pcmd);
-	g_MovementRecorder.MovementP(m_pcmd);
+	//g_MovementRecorder.MovementR(m_pcmd);
+	//g_MovementRecorder.MovementP(m_pcmd);
 
 	if (key_binds::get().get_key_bind_state(21))
 		slowwalk::get().create_move(m_pcmd);

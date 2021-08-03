@@ -366,12 +366,12 @@ void eventlogs::addnew(std::string text, Color color, bool full_display)
 
 #if RELEASE
 #if BETA
-		m_cvar()->ConsoleColorPrintf(Color::Pink, crypt_str("[ aiiuur.xyz] ")); //-V807
+		m_cvar()->ConsoleColorPrintf(Color::Pink, crypt_str("[ qwerty.xyz] ")); //-V807
 #else
-		m_cvar()->ConsoleColorPrintf(Color::Pink, crypt_str("[ aiiuur.xyz] "));
+		m_cvar()->ConsoleColorPrintf(Color::Pink, crypt_str("[ qwerty.xyz] "));
 #endif
 #else
-		m_cvar()->ConsoleColorPrintf(Color(config_system.g_cfg.misc.log_color.r(), config_system.g_cfg.misc.log_color.g(), config_system.g_cfg.misc.log_color.b()), crypt_str("[ aiiuur.xyz] / ")); //-V807
+		m_cvar()->ConsoleColorPrintf(Color(config_system.g_cfg.misc.log_color.r(), config_system.g_cfg.misc.log_color.g(), config_system.g_cfg.misc.log_color.b()), crypt_str("[ qwerty.xyz] / ")); //-V807
 #endif
 
 		m_cvar()->ConsoleColorPrintf(config_system.g_cfg.misc.log_color, text.c_str());
@@ -387,14 +387,14 @@ void eventlogs::addnew(std::string text, Color color, bool full_display)
 
 #if RELEASE
 #if BETA
-		auto log = crypt_str("[ \x0CAaiiuur.xyz\x01] ") + text;
+		auto log = crypt_str("[ \x0CAqwerty.xyz\x01] ") + text;
 		chat->chat_print(log.c_str());
 #else
-		auto log = crypt_str("[ \x0Caiiuur.xyz\x01] ") + text;
+		auto log = crypt_str("[ \x0Cqwerty.xyz\x01] ") + text;
 		chat->chat_print(log.c_str());
 #endif
 #else
-		auto log = crypt_str("\x0Caiiuur.xyz\x01/ ") + text;
+		auto log = crypt_str("\x0Cqwerty.xyz\x01/ ") + text;
 		chat->chat_print(log.c_str());
 #endif
 	}

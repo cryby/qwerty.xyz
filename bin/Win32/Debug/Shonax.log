@@ -1,0 +1,25 @@
+﻿LINK : warning LNK4075: ignoring '/INCREMENTAL' due to '/LTCG' specification
+LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
+autowall.obj : error LNK2001: unresolved external symbol __imp___CrtDbgReport
+autowall.obj : error LNK2001: unresolved external symbol __imp___invalid_parameter
+autowall.obj : error LNK2001: unresolved external symbol __imp___calloc_dbg
+logs.obj : error LNK2001: unresolved external symbol "void __cdecl notify::add_log(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> >,class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> >,class Color,class Color,int)" (?add_log@notify@@YAXV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@0VColor@@1H@Z)
+world_esp.obj : error LNK2001: unresolved external symbol "public: virtual void __thiscall c_grenade_prediction::grenade_warning(class projectile_t *)" (?grenade_warning@c_grenade_prediction@@UAEXPAVprojectile_t@@@Z)
+hooked_createmove.obj : error LNK2001: unresolved external symbol "public: bool __thiscall MovementRe::MovementP(class CUserCmd *)" (?MovementP@MovementRe@@QAE_NPAVCUserCmd@@@Z)
+hooked_createmove.obj : error LNK2001: unresolved external symbol "public: void __thiscall MovementRe::MovementR(class CUserCmd *)" (?MovementR@MovementRe@@QAEXPAVCUserCmd@@@Z)
+hooked_createmove.obj : error LNK2001: unresolved external symbol "class MovementRe g_MovementRecorder" (?g_MovementRecorder@@3VMovementRe@@A)
+Clua.obj : error LNK2001: unresolved external symbol __imp__WSAGetLastError@0
+Clua.obj : error LNK2001: unresolved external symbol __imp__freeaddrinfo@4
+Clua.obj : error LNK2001: unresolved external symbol __imp__recv@16
+Clua.obj : error LNK2001: unresolved external symbol __imp__connect@12
+Clua.obj : error LNK2001: unresolved external symbol __imp__socket@12
+Clua.obj : error LNK2001: unresolved external symbol __imp__send@16
+Clua.obj : error LNK2001: unresolved external symbol __imp__WSAStartup@8
+Clua.obj : error LNK2001: unresolved external symbol __imp__getaddrinfo@16
+Clua.obj : error LNK2001: unresolved external symbol __imp__closesocket@4
+Clua.obj : error LNK2001: unresolved external symbol __imp__WSACleanup@0
+msvcprtd.lib(locale0_implib.obj) : error LNK2001: unresolved external symbol __imp___free_dbg
+msvcprtd.lib(filesystem.obj) : error LNK2001: unresolved external symbol __imp___free_dbg
+msvcprtd.lib(locale0_implib.obj) : error LNK2001: unresolved external symbol __imp___malloc_dbg
+msvcprtd.lib(filesystem.obj) : error LNK2001: unresolved external symbol __imp___malloc_dbg
+C:\Users\cryBy\Documents\GitHub\qwerty.xyz\build\Win32\Debug\hvh.dll : fatal error LNK1120: 20 unresolved externals

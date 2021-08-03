@@ -58,7 +58,7 @@ void worldesp::paint_traverse()
 
 			break;
 		default:
-			c_grenade_prediction::get().grenade_warning((projectile_t*)e);
+			//c_grenade_prediction::get().grenade_warning((projectile_t*)e);
 			grenade_projectiles(e);
 
 			if (client_class->m_ClassID == CAK47 || client_class->m_ClassID == CDEagle || client_class->m_ClassID >= CWeaponAug && client_class->m_ClassID <= CWeaponZoneRepulsor) //-V648

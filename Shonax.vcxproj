@@ -14,16 +14,16 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{1B8103F7-F793-47B0-9FBE-44EC66BC319D}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>Qwerty</RootNamespace>
+    <RootNamespace>Shonax</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
-    <ProjectName>Qwerty</ProjectName>
+    <ProjectName>Kitsune</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
+    <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -50,27 +50,27 @@
     <OutDir>$(SolutionDir)build\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</IntDir>
     <ExecutablePath>$(VC_ExecutablePath_x86);$(WindowsSDK_ExecutablePath);$(VS_ExecutablePath);$(MSBuild_ExecutablePath);$(SystemRoot)\SysWow64;$(FxCopDir);$(PATH);$(ExecutablePath);$(DXSDK_DIR)Utilities\bin\x86</ExecutablePath>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;$(LibraryPath);$(DXSDK_DIR)Lib\x86</LibraryPath>
+    <IncludePath>C:\Users\cryBy\Documents\GitHub\qwerty.xyz\UI\freetype\include;C:\Users\cryBy\Documents\GitHub\qwerty.xyz;C:\Users\cryBy\Documents\GitHub\qwerty.xyz\lua\lua\src;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
+    <LibraryPath>C:\Users\cryBy\Documents\GitHub\qwerty.xyz\UI\freetype\objs;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;$(LibraryPath);$(DXSDK_DIR)Lib\x86</LibraryPath>
     <TargetName>hvh</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>C:\HFNHOOK\RandoInjector-master\Release</OutDir>
+    <OutDir>C:\HFNHOOK</OutDir>
     <IntDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</IntDir>
     <ExecutablePath>$(VC_ExecutablePath_x86);$(WindowsSDK_ExecutablePath);$(VS_ExecutablePath);$(MSBuild_ExecutablePath);$(SystemRoot)\SysWow64;$(FxCopDir);$(PATH);$(ExecutablePath);$(DXSDK_DIR)Utilities\bin\x86</ExecutablePath>
     <IncludePath>C:\Users\Patryk\Desktop\DX9 SDK\Include;C:\Users\Shonax\Desktop\shonax\game sdk 2020\steam_sdk;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(IncludePath);$(DXSDK_DIR)Include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include;$(SolutionDir)\UI\freetype\include;$(SolutionDir)\lua\lua\src;$(SolutionDir);$(SolutionDir)\lua</IncludePath>
     <LibraryPath>C:\Users\Patryk\Desktop\DX9 SDK\Lib\x86;$(SolutionDir)\Lua;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;$(LibraryPath);$(DXSDK_DIR)Lib\x86;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Lib\x86;$(SolutionDir)\UI\freetype\objs;$(SolutionDir)\detours</LibraryPath>
-    <TargetName>cheat</TargetName>
+    <TargetName>kitsune</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <Optimization>Full</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;Shonax_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
@@ -80,6 +80,7 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -137,9 +138,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="cheats\autowall\autowall.cpp" />
-    <ClCompile Include="cheats\beta\BackTrack.cpp" />
-    <ClCompile Include="cheats\beta\fakeprime.cpp" />
-    <ClCompile Include="cheats\beta\NameChanger.cpp" />
     <ClCompile Include="cheats\fakewalk\slowwalk.cpp" />
     <ClCompile Include="cheats\lagcompensation\animation_system.cpp" />
     <ClCompile Include="cheats\lagcompensation\local_animations.cpp" />
@@ -156,17 +154,13 @@
     <ClCompile Include="cheats\misc\misc.cpp" />
     <ClCompile Include="cheats\misc\prediction_system.cpp" />
     <ClCompile Include="cheats\misc\spammers.cpp" />
-    <ClCompile Include="cheats\movement\movementrecorder.cpp" />
-    <ClCompile Include="cheats\movement\recorder.cpp" />
     <ClCompile Include="cheats\ragebot\aim.cpp" />
     <ClCompile Include="cheats\ragebot\antiaim.cpp" />
     <ClCompile Include="cheats\ragebot\knifebot.cpp" />
     <ClCompile Include="cheats\ragebot\zeusbot.cpp" />
     <ClCompile Include="cheats\visuals\bullet_tracers.cpp" />
     <ClCompile Include="cheats\visuals\dormant_esp.cpp" />
-    <ClCompile Include="cheats\visuals\GHelper.cpp" />
     <ClCompile Include="cheats\visuals\GrenadePrediction.cpp" />
-    <ClCompile Include="cheats\visuals\grenade_warning.cpp" />
     <ClCompile Include="cheats\visuals\logger.cpp" />
     <ClCompile Include="cheats\visuals\nightmode.cpp" />
     <ClCompile Include="cheats\visuals\other_esp.cpp" />
@@ -243,7 +237,6 @@
     <ClCompile Include="nSkinz\item_definitions.cpp" />
     <ClCompile Include="nSkinz\SkinChanger.cpp" />
     <ClCompile Include="nSkinz\Utilities\Platform.cpp" />
-    <ClCompile Include="Render.cpp" />
     <ClCompile Include="resources\custom_sounds.cpp" />
     <ClCompile Include="sdk\math\Vector2D.cpp" />
     <ClCompile Include="sdk\math\Vector4D.cpp" />
@@ -265,17 +258,13 @@
     <ClCompile Include="utils\md5.cpp" />
     <ClCompile Include="utils\netmanager.cpp" />
     <ClCompile Include="utils\recv.cpp" />
-    <ClCompile Include="utils\Render.cpp" />
     <ClCompile Include="utils\sha-256.cpp" />
     <ClCompile Include="utils\twofish.cpp" />
     <ClCompile Include="utils\util.cpp" />
-    <ClCompile Include="Variables.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Bytesa.h" />
     <ClInclude Include="cheats\autowall\autowall.h" />
-    <ClInclude Include="cheats\beta\BackTrack.h" />
-    <ClInclude Include="cheats\beta\NameChanger.h" />
     <ClInclude Include="cheats\fakewalk\slowwalk.h" />
     <ClInclude Include="cheats\lagcompensation\animation_system.h" />
     <ClInclude Include="cheats\lagcompensation\local_animations.h" />
@@ -291,16 +280,13 @@
     <ClInclude Include="cheats\misc\misc.h" />
     <ClInclude Include="cheats\misc\prediction_system.h" />
     <ClInclude Include="cheats\misc\spammers.h" />
-    <ClInclude Include="cheats\movement\movementrecorder.h" />
     <ClInclude Include="cheats\ragebot\aim.h" />
     <ClInclude Include="cheats\ragebot\antiaim.h" />
     <ClInclude Include="cheats\ragebot\knifebot.h" />
     <ClInclude Include="cheats\ragebot\zeusbot.h" />
     <ClInclude Include="cheats\visuals\bullet_tracers.h" />
     <ClInclude Include="cheats\visuals\dormant_esp.h" />
-    <ClInclude Include="cheats\visuals\GHelper.h" />
     <ClInclude Include="cheats\visuals\GrenadePrediction.h" />
-    <ClInclude Include="cheats\visuals\grenade_warning.h" />
     <ClInclude Include="cheats\visuals\logger.hpp" />
     <ClInclude Include="cheats\visuals\nightmode.h" />
     <ClInclude Include="cheats\visuals\other_esp.h" />
@@ -414,7 +400,6 @@
     <ClInclude Include="nSkinz\SkinChanger.h" />
     <ClInclude Include="nSkinz\Utilities\Platform.hpp" />
     <ClInclude Include="nSkinz\Utilities\vmt_smart_hook.hpp" />
-    <ClInclude Include="Render.h" />
     <ClInclude Include="resources\custom_sounds.hpp" />
     <ClInclude Include="resources\sounds.hpp" />
     <ClInclude Include="sdk\interfaces\CClientState.hpp" />
@@ -482,7 +467,6 @@
     <ClInclude Include="sdk\misc\Recv.hpp" />
     <ClInclude Include="sdk\misc\Studio.hpp" />
     <ClInclude Include="sdk\misc\threadtools.h" />
-    <ClInclude Include="sdk\misc\CUserCmd.h" />
     <ClInclude Include="sdk\misc\UtlBuffer.hpp" />
     <ClInclude Include="sdk\misc\UtlMemory.hpp" />
     <ClInclude Include="sdk\misc\UtlString.hpp" />
@@ -494,7 +478,6 @@
     <ClInclude Include="utils\crypt_str.h" />
     <ClInclude Include="utils\csgo.hpp" />
     <ClInclude Include="utils\ctx.hpp" />
-    <ClInclude Include="utils\dirent.h" />
     <ClInclude Include="utils\draw_manager.h" />
     <ClInclude Include="utils\imports.h" />
     <ClInclude Include="utils\json.hpp" />
@@ -504,12 +487,10 @@
     <ClInclude Include="utils\netmanager.hpp" />
     <ClInclude Include="utils\protect.h" />
     <ClInclude Include="utils\recv.h" />
-    <ClInclude Include="utils\Render.h" />
     <ClInclude Include="utils\sha-256.h" />
     <ClInclude Include="utils\singleton.h" />
     <ClInclude Include="utils\twofish.h" />
     <ClInclude Include="utils\util.hpp" />
-    <ClInclude Include="Variables.h" />
     <ClInclude Include="version.h" />
   </ItemGroup>
   <ItemGroup>
