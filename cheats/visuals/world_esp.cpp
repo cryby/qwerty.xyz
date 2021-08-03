@@ -2,7 +2,6 @@
 // PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
 
 #include "world_esp.h"
-#include "grenade_warning.h"
 
 void worldesp::paint_traverse()
 {
@@ -41,13 +40,13 @@ void worldesp::paint_traverse()
 			bomb_timer(e);
 			break;
 		case CC4:
-			if (config_system.g_cfg.player.type[ENEMY].flags[FLAGS_C4] || config_system.g_cfg.player.type[TEAM].flags[FLAGS_C4] || config_system.g_cfg.player.type[LOCAL].flags[FLAGS_C4] || config_system.g_cfg.esp.bomb_timer)
+			if (g_cfg.player.type[ENEMY].flags[FLAGS_C4] || g_cfg.player.type[TEAM].flags[FLAGS_C4] || g_cfg.player.type[LOCAL].flags[FLAGS_C4] || g_cfg.esp.bomb_timer)
 			{
 				auto owner = (player_t*)m_entitylist()->GetClientEntityFromHandle(e->m_hOwnerEntity());
 
-				if ((config_system.g_cfg.player.type[ENEMY].flags[FLAGS_C4] || config_system.g_cfg.player.type[TEAM].flags[FLAGS_C4] || config_system.g_cfg.player.type[LOCAL].flags[FLAGS_C4]) && owner->valid(false, false))
+				if ((g_cfg.player.type[ENEMY].flags[FLAGS_C4] || g_cfg.player.type[TEAM].flags[FLAGS_C4] || g_cfg.player.type[LOCAL].flags[FLAGS_C4]) && owner->valid(false, false))
 					g_ctx.globals.bomb_carrier = owner->EntIndex();
-				else if (config_system.g_cfg.esp.bomb_timer && !owner->is_player())
+				else if (g_cfg.esp.bomb_timer && !owner->is_player())
 				{
 					auto screen = ZERO;
 
@@ -58,7 +57,6 @@ void worldesp::paint_traverse()
 
 			break;
 		default:
-			c_grenade_prediction::get().grenade_warning((projectile_t*)e);
 			grenade_projectiles(e);
 
 			if (client_class->m_ClassID == CAK47 || client_class->m_ClassID == CDEagle || client_class->m_ClassID >= CWeaponAug && client_class->m_ClassID <= CWeaponZoneRepulsor) //-V648
@@ -74,7 +72,7 @@ void worldesp::skybox_changer()
 	static auto load_skybox = reinterpret_cast<void(__fastcall*)(const char*)>(util::FindSignature(crypt_str("engine.dll"), crypt_str("55 8B EC 81 EC ? ? ? ? 56 57 8B F9 C7 45")));
 	auto skybox_name = backup_skybox;
 
-	switch (config_system.g_cfg.esp.skybox)
+	switch (g_cfg.esp.skybox)
 	{
 	case 1:
 		skybox_name = "cs_tibet";
@@ -137,7 +135,7 @@ void worldesp::skybox_changer()
 		skybox_name = "vietnam";
 		break;
 	case 21:
-		skybox_name = config_system.g_cfg.esp.custom_skybox;
+		skybox_name = g_cfg.esp.custom_skybox;
 		break;
 	}
 
@@ -148,30 +146,30 @@ void worldesp::skybox_changer()
 	static auto color_g = (unsigned char)255;
 	static auto color_b = (unsigned char)255;
 
-	if (skybox_number != config_system.g_cfg.esp.skybox)
+	if (skybox_number != g_cfg.esp.skybox)
 	{
 		changed = true;
-		skybox_number = config_system.g_cfg.esp.skybox;
+		skybox_number = g_cfg.esp.skybox;
 	}
 	else if (old_skybox_name != skybox_name)
 	{
 		changed = true;
 		old_skybox_name = skybox_name;
 	}
-	else if (color_r != config_system.g_cfg.esp.skybox_color[0])
+	else if (color_r != g_cfg.esp.skybox_color[0])
 	{
 		changed = true;
-		color_r = config_system.g_cfg.esp.skybox_color[0];
+		color_r = g_cfg.esp.skybox_color[0];
 	}
-	else if (color_g != config_system.g_cfg.esp.skybox_color[1])
+	else if (color_g != g_cfg.esp.skybox_color[1])
 	{
 		changed = true;
-		color_g = config_system.g_cfg.esp.skybox_color[1];
+		color_g = g_cfg.esp.skybox_color[1];
 	}
-	else if (color_b != config_system.g_cfg.esp.skybox_color[2])
+	else if (color_b != g_cfg.esp.skybox_color[2])
 	{
 		changed = true;
-		color_b = config_system.g_cfg.esp.skybox_color[2];
+		color_b = g_cfg.esp.skybox_color[2];
 	}
 
 	if (changed)
@@ -189,7 +187,7 @@ void worldesp::skybox_changer()
 				continue;
 
 			if (strstr(material->GetTextureGroupName(), crypt_str("SkyBox")))
-				material->ColorModulate(config_system.g_cfg.esp.skybox_color[0] / 255.0f, config_system.g_cfg.esp.skybox_color[1] / 255.0f, config_system.g_cfg.esp.skybox_color[2] / 255.0f);
+				material->ColorModulate(g_cfg.esp.skybox_color[0] / 255.0f, g_cfg.esp.skybox_color[1] / 255.0f, g_cfg.esp.skybox_color[2] / 255.0f);
 		}
 	}
 }
@@ -198,7 +196,7 @@ void worldesp::fog_changer()
 {
 	static auto fog_override = m_cvar()->FindVar(crypt_str("fog_override")); //-V807
 
-	if (!config_system.g_cfg.esp.fog)
+	if (!g_cfg.esp.fog)
 	{
 		if (fog_override->GetBool())
 			fog_override->SetValue(FALSE);
@@ -216,16 +214,16 @@ void worldesp::fog_changer()
 
 	static auto fog_end = m_cvar()->FindVar(crypt_str("fog_end"));
 
-	if (fog_end->GetInt() != config_system.g_cfg.esp.fog_distance)
-		fog_end->SetValue(config_system.g_cfg.esp.fog_distance);
+	if (fog_end->GetInt() != g_cfg.esp.fog_distance)
+		fog_end->SetValue(g_cfg.esp.fog_distance);
 
 	static auto fog_maxdensity = m_cvar()->FindVar(crypt_str("fog_maxdensity"));
 
-	if (fog_maxdensity->GetFloat() != (float)config_system.g_cfg.esp.fog_density * 0.01f) //-V550
-		fog_maxdensity->SetValue((float)config_system.g_cfg.esp.fog_density * 0.01f);
+	if (fog_maxdensity->GetFloat() != (float)g_cfg.esp.fog_density * 0.01f) //-V550
+		fog_maxdensity->SetValue((float)g_cfg.esp.fog_density * 0.01f);
 
 	char buffer_color[12];
-	sprintf_s(buffer_color, 12, "%i %i %i", config_system.g_cfg.esp.fog_color.r(), config_system.g_cfg.esp.fog_color.g(), config_system.g_cfg.esp.fog_color.b());
+	sprintf_s(buffer_color, 12, "%i %i %i", g_cfg.esp.fog_color.r(), g_cfg.esp.fog_color.g(), g_cfg.esp.fog_color.b());
 
 	static auto fog_color = m_cvar()->FindVar(crypt_str("fog_color"));
 
@@ -235,26 +233,36 @@ void worldesp::fog_changer()
 
 void worldesp::world_modulation(entity_t* entity)
 {
-	if (!config_system.g_cfg.esp.world_modulation)
+	if (!g_cfg.esp.world_modulation)
 		return;
 
 	entity->set_m_bUseCustomBloomScale(TRUE);
-	entity->set_m_flCustomBloomScale(config_system.g_cfg.esp.bloom * 0.01f);
+	entity->set_m_flCustomBloomScale(g_cfg.esp.bloom * 0.01f);
 
 	entity->set_m_bUseCustomAutoExposureMin(TRUE);
-	entity->set_m_flCustomAutoExposureMin(config_system.g_cfg.esp.exposure * 0.001f);
+	entity->set_m_flCustomAutoExposureMin(g_cfg.esp.exposure * 0.001f);
 
 	entity->set_m_bUseCustomAutoExposureMax(TRUE);
-	entity->set_m_flCustomAutoExposureMax(config_system.g_cfg.esp.exposure * 0.001f);
+	entity->set_m_flCustomAutoExposureMax(g_cfg.esp.exposure * 0.001f);
 }
 
 void worldesp::molotov_timer(entity_t* entity)
 {
-	if (!config_system.g_cfg.esp.molotov_timer)
+	if (!g_cfg.esp.molotov_timer)
 		return;
 
 	auto inferno = reinterpret_cast<inferno_t*>(entity);
 	auto origin = inferno->GetAbsOrigin();
+	if (entity->GetClientClass()->m_ClassID == CInferno) {
+		auto inferno = reinterpret_cast<inferno_t*>(entity);
+
+		Vector mins, maxs;
+		inferno->GetClientRenderable()->GetRenderBounds(mins, maxs);
+
+		render::get().Draw3DFilledCircle(entity->m_vecOrigin(), Vector(maxs - mins).Length2D() * 0.5, g_cfg.esp.molotov_timer_color);
+
+	}
+	static auto inferno_pizdec_lgbt = m_cvar()->FindVar(crypt_str("inferno_max_range"));
 
 	Vector screen_origin;
 
@@ -266,94 +274,52 @@ void worldesp::molotov_timer(entity_t* entity)
 
 	static auto size = Vector2D(35.0f, 5.0f);
 	render::get().circle_filled(screen_origin.x, screen_origin.y - size.y * 0.5f, 60, 20, Color(15, 15, 15, 187));
-
-	render::get().rect_filled(screen_origin.x - size.x * 0.5f, screen_origin.y - size.y * 0.5f - 1.0f, size.x, size.y, Color(37, 37, 37, config_system.g_cfg.esp.molotov_timer_color.a()));
-	render::get().rect_filled(screen_origin.x - size.x * 0.5f + 2.0f, screen_origin.y - size.y * 0.5f, (size.x - 4.0f) * factor, size.y - 2.0f, config_system.g_cfg.esp.molotov_timer_color);
-
-	render::get().rect(screen_origin.x - size.x * 0.5f, screen_origin.y - size.y * 0.5f, size.x, size.y, Color(7, 7, 7, config_system.g_cfg.esp.molotov_timer_color.a()));
-	render::get().text(fonts[ESP], screen_origin.x, screen_origin.y - size.y * 0.5f + 12.0f, config_system.g_cfg.esp.molotov_timer_color, HFONT_CENTERED_X | HFONT_CENTERED_Y, "FIRE");
-	render::get().text(fonts[GRENADES], screen_origin.x + 1.0f, screen_origin.y - size.y * 0.5f - 9.0f, config_system.g_cfg.esp.molotov_timer_color, HFONT_CENTERED_X | HFONT_CENTERED_Y, "l");
-	render::get().text(fonts[WARNING_icon], screen_origin.x + 1.0f, screen_origin.y - 20.5f, Color(220, 220, 220, 245), HFONT_CENTERED_X | HFONT_CENTERED_Y, "l");
+	//int x, int y, int radius, int start_angle, int percent, int thickness, Color color
+	render::get().draw_arc(screen_origin.x, screen_origin.y - size.y * 0.5f, 20, -90, (360 * factor), 2, (15, 15, 15, g_cfg.esp.molotov_timer_color));
+	//
+	//render::get().rect_filled(screen_origin.x - size.x * 0.5f, screen_origin.y - size.y * 0.5f - 1.0f, size.x, size.y, Color(37, 37, 37, g_cfg.esp.molotov_timer_color.a()));
+	//render::get().rect_filled(screen_origin.x - size.x * 0.5f + 2.0f, screen_origin.y - size.y * 0.5f, (size.x - 4.0f) * factor, size.y - 2.0f, g_cfg.esp.molotov_timer_color);
+	//
+	//render::get().rect(screen_origin.x - size.x * 0.5f, screen_origin.y - size.y * 0.5f, size.x, size.y, Color(7, 7, 7, g_cfg.esp.molotov_timer_color.a()));
+	render::get().text(fonts[ESP], screen_origin.x, screen_origin.y - size.y * 0.5f + 12.0f, g_cfg.esp.molotov_timer_color, HFONT_CENTERED_X | HFONT_CENTERED_Y, "");
+	render::get().text(fonts[GRENADES], screen_origin.x + 1.0f, screen_origin.y - size.y * 0.5f + 2.0f, g_cfg.esp.molotov_timer_color, HFONT_CENTERED_X | HFONT_CENTERED_Y, "l");
 }
 
 void worldesp::smoke_timer(entity_t* entity)
-
 {
-
-	if (!config_system.g_cfg.esp.smoke_timer)
-
+	if (!g_cfg.esp.smoke_timer)
 		return;
 
-
-
-	auto smoke = reinterpret_cast <smoke_t*> (entity);
-
-
+	auto smoke = reinterpret_cast<smoke_t*>(entity);
 
 	if (!smoke->m_nSmokeEffectTickBegin() || !smoke->m_bDidSmokeEffect())
-
 		return;
-
-
 
 	auto origin = smoke->GetAbsOrigin();
 
-
-
 	Vector screen_origin;
 
-
-
 	if (!math::world_to_screen(origin, screen_origin))
-
 		return;
 
-
-
 	auto spawn_time = TICKS_TO_TIME(smoke->m_nSmokeEffectTickBegin());
-
 	auto factor = (spawn_time + smoke_t::get_expiry_time() - m_globals()->m_curtime) / smoke_t::get_expiry_time();
 
-
-
 	static auto size = Vector2D(35.0f, 5.0f);
-
 	render::get().circle_filled(screen_origin.x, screen_origin.y - size.y * 0.5f, 60, 20, Color(15, 15, 15, 187));
+	render::get().draw_arc(screen_origin.x, screen_origin.y - size.y * 0.5f, 20, -90, (360 * factor), 2, (15, 15, 15, g_cfg.esp.smoke_timer_color));
 
+	//render::get().rect_filled(screen_origin.x - size.x * 0.5f, screen_origin.y - size.y * 0.5f - 1.0f, size.x, size.y, Color(37, 37, 37, g_cfg.esp.smoke_timer_color.a()));
+//	render::get().rect_filled(screen_origin.x - size.x * 0.5f + 2.0f, screen_origin.y - size.y * 0.5f, (size.x - 4.0f) * factor, size.y - 2.0f, g_cfg.esp.smoke_timer_color);
 
-
-
-
-	render::get().CircularProgressBar(screen_origin.x, screen_origin.y - size.y * 0.5f, 17, 20, 0, 360 * factor, Color(255, 255, 255, 187), true);
-
-
-
-	//render::get().Draw3DRainbowCircle1(screen_origin.x, screen_origin.y - size.y * 0.7f, 60, 20, Color (0, 0, 0, 187)); // sex
-
-
-
-
-
-
-
-	//render::get().rect_filled(screen_origin.x - size.x * 0.5f, screen_origin.y - size.y * 0.5f - 1.0f, size.x, size.y, Color (37, 37, 37, config_system.g_cfg.esp.smoke_timer_color.a ()));
-
-	//render::get().rect_filled(screen_origin.x - size.x * 0.5f + 2.0f, screen_origin.y - size.y * 0.5f, (size.x - 4.0f) * factor, size.y - 2.0f, config_system.g_cfg.esp.smoke_timer_color);
-
-
-
-	//render::get().rect(screen_origin.x - size.x * 0.5f, screen_origin.y - size.y * 0.5f, size.x, size.y, Color (7, 7, 7, g_cfg .esp.smoke_timer_color.a ()));
-
-	render::get().text(fonts[ESP], screen_origin.x, screen_origin.y - size.y * 0.5f, config_system.g_cfg.esp.smoke_timer_color, HFONT_CENTERED_X | HFONT_CENTERED_Y, "SMOKE");
-	render::get().text(fonts[WARNING_icon], screen_origin.x + 1.0f, screen_origin.y - 19.0f, config_system.g_cfg.esp.smoke_timer_color, HFONT_CENTERED_X | HFONT_CENTERED_Y, "k");
-
-	//render::get().text(fonts [GRENADES], screen_origin.x + 1.0f, screen_origin.y - size.y * 0.5f - 9.0f, config_system.g_cfg.esp.smoke_timer_color, HFONT_CENTERED_X | HFONT_CENTERED_Y, "k" );
-
+//	render::get().rect(screen_origin.x - size.x * 0.5f, screen_origin.y - size.y * 0.5f, size.x, size.y, Color(7, 7, 7, g_cfg.esp.smoke_timer_color.a()));
+	render::get().text(fonts[ESP], screen_origin.x, screen_origin.y - size.y * 0.5f + 12.0f, g_cfg.esp.smoke_timer_color, HFONT_CENTERED_X | HFONT_CENTERED_Y, "");
+	render::get().text(fonts[GRENADES], screen_origin.x + 1.0f, screen_origin.y - size.y * 0.5f + 2.0f, g_cfg.esp.smoke_timer_color, HFONT_CENTERED_X | HFONT_CENTERED_Y, "k");
 }
 
 void worldesp::grenade_projectiles(entity_t* entity)
 {
-	if (!config_system.g_cfg.esp.projectiles)
+	if (!g_cfg.esp.projectiles)
 		return;
 
 	auto client_class = entity->GetClientClass();
@@ -421,31 +387,30 @@ void worldesp::grenade_projectiles(entity_t* entity)
 
 		if (util::get_bbox(entity, box, false))
 		{
-
-			if (config_system.g_cfg.esp.grenade_esp[GRENADE_BOX])
+			if (g_cfg.esp.grenade_esp[GRENADE_BOX])
 			{
-				render::get().rect(box.x, box.y, box.w, box.h, config_system.g_cfg.esp.grenade_box_color);
+				render::get().rect(box.x, box.y, box.w, box.h, g_cfg.esp.grenade_box_color);
 
-				if (config_system.g_cfg.esp.grenade_esp[GRENADE_ICON])
-					render::get().text(fonts[GRENADES], box.x + box.w / 2, box.y - 21, config_system.g_cfg.esp.projectiles_color, HFONT_CENTERED_X, grenade_icon.c_str());
+				if (g_cfg.esp.grenade_esp[GRENADE_ICON])
+					render::get().text(fonts[GRENADES], box.x + box.w / 2, box.y - 21, g_cfg.esp.projectiles_color, HFONT_CENTERED_X, grenade_icon.c_str());
 
-				if (config_system.g_cfg.esp.grenade_esp[GRENADE_TEXT])
-					render::get().text(fonts[ESP], box.x + box.w / 2, box.y + box.h + 2, config_system.g_cfg.esp.projectiles_color, HFONT_CENTERED_X, grenade_name.c_str());
+				if (g_cfg.esp.grenade_esp[GRENADE_TEXT])
+					render::get().text(fonts[ESP], box.x + box.w / 2, box.y + box.h + 2, g_cfg.esp.projectiles_color, HFONT_CENTERED_X, grenade_name.c_str());
 			}
 			else
 			{
-				if (config_system.g_cfg.esp.grenade_esp[GRENADE_ICON] && config_system.g_cfg.esp.grenade_esp[GRENADE_TEXT])
+				if (g_cfg.esp.grenade_esp[GRENADE_ICON] && g_cfg.esp.grenade_esp[GRENADE_TEXT])
 				{
-					render::get().text(fonts[GRENADES], box.x + box.w / 2, box.y + box.h / 2 - 10, config_system.g_cfg.esp.projectiles_color, HFONT_CENTERED_X, grenade_icon.c_str());
-					render::get().text(fonts[ESP], box.x + box.w / 2, box.y + box.h / 2 + 7, config_system.g_cfg.esp.projectiles_color, HFONT_CENTERED_X, grenade_name.c_str());
+					render::get().text(fonts[GRENADES], box.x + box.w / 2, box.y + box.h / 2 - 10, g_cfg.esp.projectiles_color, HFONT_CENTERED_X, grenade_icon.c_str());
+					render::get().text(fonts[ESP], box.x + box.w / 2, box.y + box.h / 2 + 7, g_cfg.esp.projectiles_color, HFONT_CENTERED_X, grenade_name.c_str());
 				}
 				else
 				{
-					if (config_system.g_cfg.esp.grenade_esp[GRENADE_ICON])
-						render::get().text(fonts[GRENADES], box.x + box.w / 2, box.y + box.h / 2, config_system.g_cfg.esp.projectiles_color, HFONT_CENTERED_X | HFONT_CENTERED_Y, grenade_icon.c_str());
+					if (g_cfg.esp.grenade_esp[GRENADE_ICON])
+						render::get().text(fonts[GRENADES], box.x + box.w / 2, box.y + box.h / 2, g_cfg.esp.projectiles_color, HFONT_CENTERED_X | HFONT_CENTERED_Y, grenade_icon.c_str());
 
-					if (config_system.g_cfg.esp.grenade_esp[GRENADE_TEXT])
-						render::get().text(fonts[ESP], box.x + box.w / 2, box.y + box.h / 2, config_system.g_cfg.esp.projectiles_color, HFONT_CENTERED_X | HFONT_CENTERED_Y, grenade_name.c_str());
+					if (g_cfg.esp.grenade_esp[GRENADE_TEXT])
+						render::get().text(fonts[ESP], box.x + box.w / 2, box.y + box.h / 2, g_cfg.esp.projectiles_color, HFONT_CENTERED_X | HFONT_CENTERED_Y, grenade_name.c_str());
 				}
 			}
 		}
@@ -473,45 +438,45 @@ void worldesp::grenade_projectiles(entity_t* entity)
 			{
 				auto offset = 0;
 
-				if (config_system.g_cfg.esp.weapon[WEAPON_BOX])
+				if (g_cfg.esp.weapon[WEAPON_BOX])
 				{
-					render::get().rect(box.x, box.y, box.w, box.h, config_system.g_cfg.esp.box_color);
+					render::get().rect(box.x, box.y, box.w, box.h, g_cfg.esp.box_color);
 
-					if (config_system.g_cfg.esp.weapon[WEAPON_ICON])
+					if (g_cfg.esp.weapon[WEAPON_ICON])
 					{
-						render::get().text(fonts[SUBTABWEAPONS], box.x + box.w / 2, box.y - 14, config_system.g_cfg.esp.weapon_color, HFONT_CENTERED_X, weapon->get_icon());
+						render::get().text(fonts[SUBTABWEAPONS], box.x + box.w / 2, box.y - 14, g_cfg.esp.weapon_color, HFONT_CENTERED_X, weapon->get_icon());
 						offset = 14;
 					}
 
-					if (config_system.g_cfg.esp.weapon[WEAPON_TEXT])
-						render::get().text(fonts[ESP], box.x + box.w / 2, box.y + box.h + 2, config_system.g_cfg.esp.weapon_color, HFONT_CENTERED_X, weapon->get_name().c_str());
+					if (g_cfg.esp.weapon[WEAPON_TEXT])
+						render::get().text(fonts[ESP], box.x + box.w / 2, box.y + box.h + 2, g_cfg.esp.weapon_color, HFONT_CENTERED_X, weapon->get_name().c_str());
 
-					if (config_system.g_cfg.esp.weapon[WEAPON_DISTANCE])
+					if (g_cfg.esp.weapon[WEAPON_DISTANCE])
 					{
 						auto distance = g_ctx.local()->GetAbsOrigin().DistTo(weapon->GetAbsOrigin()) / 12.0f;
-						render::get().text(fonts[ESP], box.x + box.w / 2, box.y - 13 - offset, config_system.g_cfg.esp.weapon_color, HFONT_CENTERED_X, "%i FT", (int)distance);
+						render::get().text(fonts[ESP], box.x + box.w / 2, box.y - 13 - offset, g_cfg.esp.weapon_color, HFONT_CENTERED_X, "%i FT", (int)distance);
 					}
 				}
 				else
 				{
-					if (config_system.g_cfg.esp.weapon[WEAPON_ICON])
-						render::get().text(fonts[SUBTABWEAPONS], box.x + box.w / 2, box.y + box.h / 2 - 7, config_system.g_cfg.esp.weapon_color, HFONT_CENTERED_X, weapon->get_icon());
+					if (g_cfg.esp.weapon[WEAPON_ICON])
+						render::get().text(fonts[SUBTABWEAPONS], box.x + box.w / 2, box.y + box.h / 2 - 7, g_cfg.esp.weapon_color, HFONT_CENTERED_X, weapon->get_icon());
 
-					if (config_system.g_cfg.esp.weapon[WEAPON_TEXT])
-						render::get().text(fonts[ESP], box.x + box.w / 2, box.y + box.h / 2 + 6, config_system.g_cfg.esp.weapon_color, HFONT_CENTERED_X, weapon->get_name().c_str());
+					if (g_cfg.esp.weapon[WEAPON_TEXT])
+						render::get().text(fonts[ESP], box.x + box.w / 2, box.y + box.h / 2 + 6, g_cfg.esp.weapon_color, HFONT_CENTERED_X, weapon->get_name().c_str());
 
-					if (config_system.g_cfg.esp.weapon[WEAPON_DISTANCE])
+					if (g_cfg.esp.weapon[WEAPON_DISTANCE])
 					{
 						auto distance = g_ctx.local()->GetAbsOrigin().DistTo(weapon->GetAbsOrigin()) / 12.0f;
 
-						if (config_system.g_cfg.esp.weapon[WEAPON_ICON] && config_system.g_cfg.esp.weapon[WEAPON_TEXT])
+						if (g_cfg.esp.weapon[WEAPON_ICON] && g_cfg.esp.weapon[WEAPON_TEXT])
 							offset = 21;
-						else if (config_system.g_cfg.esp.weapon[WEAPON_ICON])
+						else if (g_cfg.esp.weapon[WEAPON_ICON])
 							offset = 21;
-						else if (config_system.g_cfg.esp.weapon[WEAPON_TEXT])
+						else if (g_cfg.esp.weapon[WEAPON_TEXT])
 							offset = 8;
 
-						render::get().text(fonts[ESP], box.x + box.w / 2, box.y + box.h / 2 - offset, config_system.g_cfg.esp.weapon_color, HFONT_CENTERED_X, "%i FT", (int)distance);
+						render::get().text(fonts[ESP], box.x + box.w / 2, box.y + box.h / 2 - offset, g_cfg.esp.weapon_color, HFONT_CENTERED_X, "%i FT", (int)distance);
 					}
 				}
 			}
@@ -521,7 +486,7 @@ void worldesp::grenade_projectiles(entity_t* entity)
 
 void worldesp::bomb_timer(entity_t* entity)
 {
-	if (!config_system.g_cfg.esp.bomb_timer)
+	if (!g_cfg.esp.bomb_timer)
 		return;
 
 	if (!g_ctx.globals.bomb_timer_enable)
@@ -539,24 +504,39 @@ void worldesp::bomb_timer(entity_t* entity)
 	static int width, height;
 	m_engine()->GetScreenSize(width, height);
 
-	auto factor = bomb_timer / c4timer * height;
+	auto factor = bomb_timer / c4timer;
 
 	auto red_factor = (int)(255.0f - bomb_timer / c4timer * 255.0f);
 	auto green_factor = (int)(bomb_timer / c4timer * 255.0f);
 
-	render::get().rect_filled(0, height - factor, 26, factor, Color(red_factor, green_factor, 0, 100));
+	//render::get().rect_filled(50, 400, 26, factor, Color(red_factor, green_factor, 0, 100));
+	//render::get().draw_arc()
+	//render::get().draw_arc(45 , 350-factor, 30, -90, (360* factor), 4, Color(red_factor, green_factor, 0, 100));
+	//render::get().draw_arc(50, 350 - factor * 0.5f, 20, -90, (360 * factor), 2, Color (red_factor, green_factor, 0, 100));
+
 
 	auto text_position = height - factor + 11;
-
+	auto text_position1 = height - factor + 23;
 	if (text_position > height - 9)
 		text_position = height - 9;
 
-	render::get().text(fonts[ESP], 13, text_position, Color::White, HFONT_CENTERED_X | HFONT_CENTERED_Y, "%0.1f", bomb_timer);
+	if (text_position1 > height - 12)
+		text_position1 = height - 12;
+	render::get().rect_filled(30, 490, 120, 40, Color(15, 15, 62, 150));
+	render::get().text(fonts[BOMB1], 110, 510, Color(red_factor, green_factor, 0, 255), HFONT_CENTERED_X | HFONT_CENTERED_Y, "%0.1f", bomb_timer);
+	render::get().text(fonts[BOMB], 60, 510, Color(104, 108, 188, 255), HFONT_CENTERED_X | HFONT_CENTERED_Y, "o");
+	render::get().rect_filled(30, 520 - factor, 120, factor, Color(red_factor, green_factor, 0, 100));
+
+	render::get().rect(30, 490, 120, 2, Color(104, 108, 188, 255));
+	//render::get().rect_filled(30, height - factor, 26, factor, Color(red_factor, green_factor, 0, 100));
+
+	//render::get().rect_filled()
 
 	Vector screen;
 
 	if (math::world_to_screen(entity->GetAbsOrigin(), screen))
-		render::get().text(fonts[ESP], screen.x, screen.y, Color(red_factor, green_factor, 0), HFONT_CENTERED_X | HFONT_CENTERED_Y, "BOMB");
+		render::get().text(fonts[GRENADES], screen.x, screen.y, Color(red_factor, green_factor, 0), HFONT_CENTERED_X | HFONT_CENTERED_Y, "o");
+
 }
 
 void worldesp::dropped_weapons(entity_t* entity)
@@ -573,72 +553,72 @@ void worldesp::dropped_weapons(entity_t* entity)
 	{
 		auto offset = 0;
 
-		if (config_system.g_cfg.esp.weapon[WEAPON_BOX])
+		if (g_cfg.esp.weapon[WEAPON_BOX])
 		{
-			render::get().rect(box.x, box.y, box.w, box.h, config_system.g_cfg.esp.box_color);
+			render::get().rect(box.x, box.y, box.w, box.h, g_cfg.esp.box_color);
 
-			if (config_system.g_cfg.esp.weapon[WEAPON_ICON])
+			if (g_cfg.esp.weapon[WEAPON_ICON])
 			{
-				render::get().text(fonts[SUBTABWEAPONS], box.x + box.w / 2, box.y - 14, config_system.g_cfg.esp.weapon_color, HFONT_CENTERED_X, weapon->get_icon());
+				render::get().text(fonts[SUBTABWEAPONS], box.x + box.w / 2, box.y - 14, g_cfg.esp.weapon_color, HFONT_CENTERED_X, weapon->get_icon());
 				offset = 14;
 			}
 
-			if (config_system.g_cfg.esp.weapon[WEAPON_TEXT])
-				render::get().text(fonts[ESP], box.x + box.w / 2, box.y + box.h + 2, config_system.g_cfg.esp.weapon_color, HFONT_CENTERED_X, weapon->get_name().c_str());
+			if (g_cfg.esp.weapon[WEAPON_TEXT])
+				render::get().text(fonts[ESP], box.x + box.w / 2, box.y + box.h + 2, g_cfg.esp.weapon_color, HFONT_CENTERED_X, weapon->get_name().c_str());
 
-			if (config_system.g_cfg.esp.weapon[WEAPON_AMMO] && entity->GetClientClass()->m_ClassID != CBaseCSGrenadeProjectile && entity->GetClientClass()->m_ClassID != CSmokeGrenadeProjectile && entity->GetClientClass()->m_ClassID != CSensorGrenadeProjectile && entity->GetClientClass()->m_ClassID != CMolotovProjectile && entity->GetClientClass()->m_ClassID != CDecoyProjectile)
+			if (g_cfg.esp.weapon[WEAPON_AMMO] && entity->GetClientClass()->m_ClassID != CBaseCSGrenadeProjectile && entity->GetClientClass()->m_ClassID != CSmokeGrenadeProjectile && entity->GetClientClass()->m_ClassID != CSensorGrenadeProjectile && entity->GetClientClass()->m_ClassID != CMolotovProjectile && entity->GetClientClass()->m_ClassID != CDecoyProjectile)
 			{
 				auto inner_back_color = Color::Black;
 				inner_back_color.SetAlpha(153);
 
 				render::get().rect_filled(box.x - 1, box.y + box.h + 14, box.w + 2, 4, inner_back_color);
-				render::get().rect_filled(box.x, box.y + box.h + 15, weapon->m_iClip1() * box.w / weapon->get_csweapon_info()->iMaxClip1, 2, config_system.g_cfg.esp.weapon_ammo_color);
+				render::get().rect_filled(box.x, box.y + box.h + 15, weapon->m_iClip1() * box.w / weapon->get_csweapon_info()->iMaxClip1, 2, g_cfg.esp.weapon_ammo_color);
 			}
 
-			if (config_system.g_cfg.esp.weapon[WEAPON_DISTANCE])
+			if (g_cfg.esp.weapon[WEAPON_DISTANCE])
 			{
 				auto distance = g_ctx.local()->GetAbsOrigin().DistTo(weapon->GetAbsOrigin()) / 12.0f;
-				render::get().text(fonts[ESP], box.x + box.w / 2, box.y - 13 - offset, config_system.g_cfg.esp.weapon_color, HFONT_CENTERED_X, "%i FT", (int)distance);
+				render::get().text(fonts[ESP], box.x + box.w / 2, box.y - 13 - offset, g_cfg.esp.weapon_color, HFONT_CENTERED_X, "%i FT", (int)distance);
 			}
 		}
 		else
 		{
-			if (config_system.g_cfg.esp.weapon[WEAPON_ICON])
-				render::get().text(fonts[SUBTABWEAPONS], box.x + box.w / 2, box.y + box.h / 2 - 7, config_system.g_cfg.esp.weapon_color, HFONT_CENTERED_X, weapon->get_icon());
+			if (g_cfg.esp.weapon[WEAPON_ICON])
+				render::get().text(fonts[SUBTABWEAPONS], box.x + box.w / 2, box.y + box.h / 2 - 7, g_cfg.esp.weapon_color, HFONT_CENTERED_X, weapon->get_icon());
 
-			if (config_system.g_cfg.esp.weapon[WEAPON_TEXT])
-				render::get().text(fonts[ESP], box.x + box.w / 2, box.y + box.h / 2 + 6, config_system.g_cfg.esp.weapon_color, HFONT_CENTERED_X, weapon->get_name().c_str());
+			if (g_cfg.esp.weapon[WEAPON_TEXT])
+				render::get().text(fonts[ESP], box.x + box.w / 2, box.y + box.h / 2 + 6, g_cfg.esp.weapon_color, HFONT_CENTERED_X, weapon->get_name().c_str());
 
-			if (config_system.g_cfg.esp.weapon[WEAPON_AMMO] && entity->GetClientClass()->m_ClassID != CBaseCSGrenadeProjectile && entity->GetClientClass()->m_ClassID != CSmokeGrenadeProjectile && entity->GetClientClass()->m_ClassID != CSensorGrenadeProjectile && entity->GetClientClass()->m_ClassID != CMolotovProjectile && entity->GetClientClass()->m_ClassID != CDecoyProjectile)
+			if (g_cfg.esp.weapon[WEAPON_AMMO] && entity->GetClientClass()->m_ClassID != CBaseCSGrenadeProjectile && entity->GetClientClass()->m_ClassID != CSmokeGrenadeProjectile && entity->GetClientClass()->m_ClassID != CSensorGrenadeProjectile && entity->GetClientClass()->m_ClassID != CMolotovProjectile && entity->GetClientClass()->m_ClassID != CDecoyProjectile)
 			{
 				static auto pos = 0;
 
-				if (config_system.g_cfg.esp.weapon[WEAPON_ICON] && config_system.g_cfg.esp.weapon[WEAPON_TEXT])
+				if (g_cfg.esp.weapon[WEAPON_ICON] && g_cfg.esp.weapon[WEAPON_TEXT])
 					pos = 19;
-				else if (config_system.g_cfg.esp.weapon[WEAPON_ICON])
+				else if (g_cfg.esp.weapon[WEAPON_ICON])
 					pos = 8;
-				else if (config_system.g_cfg.esp.weapon[WEAPON_TEXT])
+				else if (g_cfg.esp.weapon[WEAPON_TEXT])
 					pos = 19;
 
 				auto inner_back_color = Color::Black;
 				inner_back_color.SetAlpha(153);
 
 				render::get().rect_filled(box.x - 1, box.y + box.h / 2 + pos - 1, box.w + 2, 4, inner_back_color);
-				render::get().rect_filled(box.x, box.y + box.h / 2 + pos, weapon->m_iClip1() * box.w / weapon->get_csweapon_info()->iMaxClip1, 2, config_system.g_cfg.esp.weapon_ammo_color);
+				render::get().rect_filled(box.x, box.y + box.h / 2 + pos, weapon->m_iClip1() * box.w / weapon->get_csweapon_info()->iMaxClip1, 2, g_cfg.esp.weapon_ammo_color);
 			}
 
-			if (config_system.g_cfg.esp.weapon[WEAPON_DISTANCE])
+			if (g_cfg.esp.weapon[WEAPON_DISTANCE])
 			{
 				auto distance = g_ctx.local()->GetAbsOrigin().DistTo(weapon->GetAbsOrigin()) / 12.0f;
 
-				if (config_system.g_cfg.esp.weapon[WEAPON_ICON] && config_system.g_cfg.esp.weapon[WEAPON_TEXT])
+				if (g_cfg.esp.weapon[WEAPON_ICON] && g_cfg.esp.weapon[WEAPON_TEXT])
 					offset = 21;
-				else if (config_system.g_cfg.esp.weapon[WEAPON_ICON])
+				else if (g_cfg.esp.weapon[WEAPON_ICON])
 					offset = 21;
-				else if (config_system.g_cfg.esp.weapon[WEAPON_TEXT])
+				else if (g_cfg.esp.weapon[WEAPON_TEXT])
 					offset = 8;
 
-				render::get().text(fonts[ESP], box.x + box.w / 2, box.y + box.h / 2 - offset, config_system.g_cfg.esp.weapon_color, HFONT_CENTERED_X, "%i FT", (int)distance);
+				render::get().text(fonts[ESP], box.x + box.w / 2, box.y + box.h / 2 - offset, g_cfg.esp.weapon_color, HFONT_CENTERED_X, "%i FT", (int)distance);
 			}
 		}
 	}

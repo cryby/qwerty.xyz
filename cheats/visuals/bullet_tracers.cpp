@@ -119,13 +119,13 @@ void bullettracers::draw_beams()
 
 	while (!impacts.empty())
 	{
-		if (impacts.begin()->impact_position.IsZero())
+		if (impacts.begin()->impact_position.IsZero()) //-V807
 		{
 			impacts.erase(impacts.begin());
 			continue;
 		}
 
-		if (fabs(m_globals()->m_curtime - impacts.begin()->time) > 4.0f)
+		if (fabs(m_globals()->m_curtime - impacts.begin()->time) > 4.0f) //-V807
 		{
 			impacts.erase(impacts.begin());
 			continue;
@@ -139,27 +139,25 @@ void bullettracers::draw_beams()
 
 		if (TIME_TO_TICKS(m_globals()->m_curtime) > TIME_TO_TICKS(impacts.begin()->time))
 		{
-			auto color = config_system.g_cfg.esp.enemy_bullet_tracer_color;
+			auto color = g_cfg.esp.enemy_bullet_tracer_color;
 
 			if (impacts.begin()->e == g_ctx.local())
 			{
-				if (!config_system.g_cfg.esp.bullet_tracer)
+				if (!g_cfg.esp.bullet_tracer)
 				{
 					impacts.erase(impacts.begin());
 					continue;
 				}
 
-				color = config_system.g_cfg.esp.bullet_tracer_color;
+				color = g_cfg.esp.bullet_tracer_color;
 			}
-			else if (!config_system.g_cfg.esp.enemy_bullet_tracer)
+			else if (!g_cfg.esp.enemy_bullet_tracer)
 			{
 				impacts.erase(impacts.begin());
 				continue;
 			}
 
-			// @note - if you want default uncomment draw_beam and comment m_debugoverlay()->AddLineOverlayAlpha.
-			m_debugoverlay()->AddLineOverlayAlpha(impacts.begin()->e == g_ctx.local() ? aim::get().last_shoot_position : impacts.begin()->e->get_shoot_position(), impacts.begin()->impact_position, (float)color.r(), (float)color.g(), (float)color.b(), 255, false, 4);
-			//draw_beam(impacts.begin()->e == g_ctx.local(), impacts.begin()->e == g_ctx.local() ? aim::get().last_shoot_position : impacts.begin()->e->get_shoot_position(), impacts.begin()->impact_position, color);
+			draw_beam(impacts.begin()->e == g_ctx.local(), impacts.begin()->e == g_ctx.local() ? aim::get().last_shoot_position : impacts.begin()->e->get_shoot_position(), impacts.begin()->impact_position, color);
 			impacts.erase(impacts.begin());
 			continue;
 		}

@@ -96,11 +96,11 @@ public:
 	C_CSPlayerResource * m_playerresource();
 	CSGameRulesProxy * m_gamerules();
 	ILocalize * m_localize();
-	IWeaponSystem* m_WeaponSystem();
 	IBaseFileSystem* m_basefilesys();
-
+	IEngineTool* m_enginetool();
 	DWORD m_postprocessing();
 	DWORD m_ccsplayerrenderablevftable();
+	IWeaponSystem* m_WeaponSystem();
 private:
 	IDirect3DDevice9 * p_device = nullptr;
 	IVEngineClient * p_engine = nullptr;
@@ -134,9 +134,9 @@ private:
 	C_CSPlayerResource * p_playerresource = nullptr;
 	CSGameRulesProxy * p_gamerules = nullptr;
 	ILocalize * p_localize = nullptr;
-	IWeaponSystem* p_WeaponSystem = nullptr;
 	IBaseFileSystem* p_basefilesys = nullptr;
-
+	IEngineTool* p_enginetool = nullptr;
+	IWeaponSystem* p_WeaponSystem = nullptr;
 	DWORD p_postprocessing = 0;
 	DWORD p_ccsplayerrenderablevftable = 0;
 };

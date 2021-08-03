@@ -26,7 +26,7 @@ public:
 	float desync_angle = 0.0f;
 };
 
-enum 
+enum
 {
 	SIDE_NONE = -1,
 	SIDE_BACK,

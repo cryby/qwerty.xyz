@@ -31,7 +31,7 @@
 #define IN_GRENADE2  (1 << 24) // grenade 2
 #define IN_LOOKSPIN  (1 << 25)
 
-class CUserCmd
+class CUserCmd 
 {
 public:
 	CUserCmd()
@@ -44,7 +44,7 @@ public:
 
 	};
 
-	CRC32_t GetChecksum(void) const
+	CRC32_t GetChecksum(void) const 
 	{
 		CRC32_t crc;
 		CRC32_Init(&crc);
@@ -87,18 +87,9 @@ public:
 	char    pad_0x4C[0x18];		// 0x4C Current sizeof( usercmd ) =  100  = 0x64
 };
 
-class CVerifiedUserCmd
+class CVerifiedUserCmd 
 {
 public:
 	CUserCmd m_cmd;
 	CRC32_t  m_crc;
-};
-
-class C_CommandContext
-{
-public:
-	bool            needsprocessing;
-
-	CUserCmd        cmd;
-	int                command_number;
 };

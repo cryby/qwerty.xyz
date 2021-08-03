@@ -14,10 +14,10 @@ void knifebot::run(CUserCmd* cmd)
 {
 	final_target.reset();
 
-	if (!config_system.g_cfg.ragebot.enable)
+	if (!g_cfg.ragebot.enable)
 		return;
 
-	if (!config_system.g_cfg.ragebot.knife_bot)
+	if (!g_cfg.ragebot.knife_bot)
 		return;
 
 	if (!g_ctx.globals.weapon->is_knife())

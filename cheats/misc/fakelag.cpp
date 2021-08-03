@@ -9,7 +9,7 @@
 
 void fakelag::Fakelag(CUserCmd* m_pcmd)
 {
-	if (config_system.g_cfg.antiaim.fakelag && !g_ctx.globals.exploits)
+	if (g_cfg.antiaim.fakelag && !g_ctx.globals.exploits)
 	{
 		static auto force_choke = false;
 
@@ -30,7 +30,7 @@ void fakelag::Fakelag(CUserCmd* m_pcmd)
 
 	static auto fluctuate_ticks = 0;
 	static auto switch_ticks = false;
-	static auto random_factor = min(rand() % 16 + 1, config_system.g_cfg.antiaim.triggers_fakelag_amount);
+	static auto random_factor = min(rand() % 16 + 1, g_cfg.antiaim.triggers_fakelag_amount);
 
 	auto choked = m_clientstate()->iChokedCommands; //-V807
 	auto flags = engineprediction::get().backup_data.flags; //-V807
@@ -43,10 +43,10 @@ void fakelag::Fakelag(CUserCmd* m_pcmd)
 	if (weapon_info)
 		max_speed = g_ctx.globals.scoped ? weapon_info->flMaxPlayerSpeedAlt : weapon_info->flMaxPlayerSpeed;
 
-	switch (config_system.g_cfg.antiaim.fakelag_type)
+	switch (g_cfg.antiaim.fakelag_type)
 	{
 	case 0:
-		max_choke = config_system.g_cfg.antiaim.triggers_fakelag_amount;
+		max_choke = g_cfg.antiaim.triggers_fakelag_amount;
 		break;
 	case 1:
 		max_choke = random_factor;
@@ -57,12 +57,12 @@ void fakelag::Fakelag(CUserCmd* m_pcmd)
 			auto dynamic_factor = std::ceilf(64.0f / (velocity2d * m_globals()->m_intervalpertick));
 
 			if (dynamic_factor > 16)
-				dynamic_factor = config_system.g_cfg.antiaim.triggers_fakelag_amount;
+				dynamic_factor = g_cfg.antiaim.triggers_fakelag_amount;
 
 			max_choke = dynamic_factor;
 		}
 		else
-			max_choke = config_system.g_cfg.antiaim.triggers_fakelag_amount;
+			max_choke = g_cfg.antiaim.triggers_fakelag_amount;
 		break;
 	case 3:
 		max_choke = fluctuate_ticks;
@@ -73,7 +73,16 @@ void fakelag::Fakelag(CUserCmd* m_pcmd)
 		max_choke = m_engine()->IsVoiceRecording() ? 1 : min(max_choke, 6);
 
 	if (misc::get().recharging_double_tap)
-		max_choke = g_ctx.globals.weapon->get_max_tickbase_shift();
+	{
+		if (g_cfg.ragebot.slow_teleport) {
+			auto max_tickbase_shift = m_gamerules()->m_bIsValveDS() ? 6 : 19;
+			max_choke = 0;
+		}
+		else {
+			auto max_tickbase_shift = m_gamerules()->m_bIsValveDS() ? 6 : 19;
+			max_choke = min(13, max_tickbase_shift);
+		}
+	}
 
 	if (g_ctx.local()->m_fFlags() & FL_ONGROUND && engineprediction::get().backup_data.flags & FL_ONGROUND && !m_gamerules()->m_bIsValveDS() && key_binds::get().get_key_bind_state(20)) //-V807
 	{
@@ -86,9 +95,9 @@ void fakelag::Fakelag(CUserCmd* m_pcmd)
 	}
 	else
 	{
-		if (config_system.g_cfg.ragebot.enable && g_ctx.globals.current_weapon != -1 && !g_ctx.globals.exploits && config_system.g_cfg.antiaim.fakelag && config_system.g_cfg.antiaim.fakelag_enablers[FAKELAG_PEEK] && config_system.g_cfg.antiaim.triggers_fakelag_amount > 6 && !started_peeking && velocity >= 5.0f)
+		if (g_cfg.ragebot.enable && g_ctx.globals.current_weapon != -1 && !g_ctx.globals.exploits && g_cfg.antiaim.fakelag && g_cfg.antiaim.fakelag_enablers[FAKELAG_PEEK] && g_cfg.antiaim.triggers_fakelag_amount > 6 && !started_peeking && velocity >= 5.0f)
 		{
-			auto predicted_eye_pos = g_ctx.globals.eye_pos + engineprediction::get().backup_data.velocity * m_globals()->m_intervalpertick * (float)config_system.g_cfg.antiaim.triggers_fakelag_amount * 0.5f;
+			auto predicted_eye_pos = g_ctx.globals.eye_pos + engineprediction::get().backup_data.velocity * m_globals()->m_intervalpertick * (float)g_cfg.antiaim.triggers_fakelag_amount * 0.5f;
 
 			for (auto i = 1; i < m_globals()->m_maxclients; i++)
 			{
@@ -117,9 +126,9 @@ void fakelag::Fakelag(CUserCmd* m_pcmd)
 
 					if (!data.valid())
 					{
-						random_factor = min(rand() % 16 + 1, config_system.g_cfg.antiaim.triggers_fakelag_amount);
+						random_factor = min(rand() % 16 + 1, g_cfg.antiaim.triggers_fakelag_amount);
 						switch_ticks = !switch_ticks;
-						fluctuate_ticks = switch_ticks ? config_system.g_cfg.antiaim.triggers_fakelag_amount : max(config_system.g_cfg.antiaim.triggers_fakelag_amount - 2, 1);
+						fluctuate_ticks = switch_ticks ? g_cfg.antiaim.triggers_fakelag_amount : max(g_cfg.antiaim.triggers_fakelag_amount - 2, 1);
 
 						g_ctx.send_packet = true;
 						started_peeking = true;
@@ -130,7 +139,7 @@ void fakelag::Fakelag(CUserCmd* m_pcmd)
 			}
 		}
 
-		if (!g_ctx.globals.exploits && config_system.g_cfg.antiaim.fakelag && config_system.g_cfg.antiaim.fakelag_enablers[FAKELAG_PEEK] && started_peeking)
+		if (!g_ctx.globals.exploits && g_cfg.antiaim.fakelag && g_cfg.antiaim.fakelag_enablers[FAKELAG_PEEK] && started_peeking)
 		{
 			if (choked < max_choke)
 				g_ctx.send_packet = false;
@@ -138,14 +147,14 @@ void fakelag::Fakelag(CUserCmd* m_pcmd)
 			{
 				started_peeking = false;
 
-				random_factor = min(rand() % 16 + 1, config_system.g_cfg.antiaim.triggers_fakelag_amount);
+				random_factor = min(rand() % 16 + 1, g_cfg.antiaim.triggers_fakelag_amount);
 				switch_ticks = !switch_ticks;
-				fluctuate_ticks = switch_ticks ? config_system.g_cfg.antiaim.triggers_fakelag_amount : max(config_system.g_cfg.antiaim.triggers_fakelag_amount - 2, 1);
+				fluctuate_ticks = switch_ticks ? g_cfg.antiaim.triggers_fakelag_amount : max(g_cfg.antiaim.triggers_fakelag_amount - 2, 1);
 
 				g_ctx.send_packet = true;
 			}
 		}
-		else if (!g_ctx.globals.exploits && config_system.g_cfg.antiaim.fakelag && velocity >= 5.0f && g_ctx.globals.slowwalking && config_system.g_cfg.antiaim.fakelag_enablers[FAKELAG_SLOW_WALK])
+		else if (!g_ctx.globals.exploits && g_cfg.antiaim.fakelag && velocity >= 5.0f && g_ctx.globals.slowwalking && g_cfg.antiaim.fakelag_enablers[FAKELAG_SLOW_WALK])
 		{
 			if (choked < max_choke)
 				g_ctx.send_packet = false;
@@ -153,14 +162,14 @@ void fakelag::Fakelag(CUserCmd* m_pcmd)
 			{
 				started_peeking = false;
 
-				random_factor = min(rand() % 16 + 1, config_system.g_cfg.antiaim.triggers_fakelag_amount);
+				random_factor = min(rand() % 16 + 1, g_cfg.antiaim.triggers_fakelag_amount);
 				switch_ticks = !switch_ticks;
-				fluctuate_ticks = switch_ticks ? config_system.g_cfg.antiaim.triggers_fakelag_amount : max(config_system.g_cfg.antiaim.triggers_fakelag_amount - 2, 1);
+				fluctuate_ticks = switch_ticks ? g_cfg.antiaim.triggers_fakelag_amount : max(g_cfg.antiaim.triggers_fakelag_amount - 2, 1);
 
 				g_ctx.send_packet = true;
 			}
 		}
-		else if (!g_ctx.globals.exploits && config_system.g_cfg.antiaim.fakelag && velocity >= 5.0f && !g_ctx.globals.slowwalking && g_ctx.local()->m_fFlags() & FL_ONGROUND && engineprediction::get().backup_data.flags & FL_ONGROUND && config_system.g_cfg.antiaim.fakelag_enablers[FAKELAG_MOVE])
+		else if (!g_ctx.globals.exploits && g_cfg.antiaim.fakelag && velocity >= 5.0f && !g_ctx.globals.slowwalking && g_ctx.local()->m_fFlags() & FL_ONGROUND && engineprediction::get().backup_data.flags & FL_ONGROUND && g_cfg.antiaim.fakelag_enablers[FAKELAG_MOVE])
 		{
 			if (choked < max_choke)
 				g_ctx.send_packet = false;
@@ -168,14 +177,14 @@ void fakelag::Fakelag(CUserCmd* m_pcmd)
 			{
 				started_peeking = false;
 
-				random_factor = min(rand() % 16 + 1, config_system.g_cfg.antiaim.triggers_fakelag_amount);
+				random_factor = min(rand() % 16 + 1, g_cfg.antiaim.triggers_fakelag_amount);
 				switch_ticks = !switch_ticks;
-				fluctuate_ticks = switch_ticks ? config_system.g_cfg.antiaim.triggers_fakelag_amount : max(config_system.g_cfg.antiaim.triggers_fakelag_amount - 2, 1);
+				fluctuate_ticks = switch_ticks ? g_cfg.antiaim.triggers_fakelag_amount : max(g_cfg.antiaim.triggers_fakelag_amount - 2, 1);
 
 				g_ctx.send_packet = true;
 			}
 		}
-		else if (!g_ctx.globals.exploits && config_system.g_cfg.antiaim.fakelag && !g_ctx.globals.slowwalking && !(g_ctx.local()->m_fFlags() & FL_ONGROUND && engineprediction::get().backup_data.flags & FL_ONGROUND) && config_system.g_cfg.antiaim.fakelag_enablers[FAKELAG_AIR])
+		else if (!g_ctx.globals.exploits && g_cfg.antiaim.fakelag && !g_ctx.globals.slowwalking && !(g_ctx.local()->m_fFlags() & FL_ONGROUND && engineprediction::get().backup_data.flags & FL_ONGROUND) && g_cfg.antiaim.fakelag_enablers[FAKELAG_AIR])
 		{
 			if (choked < max_choke)
 				g_ctx.send_packet = false;
@@ -183,16 +192,16 @@ void fakelag::Fakelag(CUserCmd* m_pcmd)
 			{
 				started_peeking = false;
 
-				random_factor = min(rand() % 16 + 1, config_system.g_cfg.antiaim.triggers_fakelag_amount);
+				random_factor = min(rand() % 16 + 1, g_cfg.antiaim.triggers_fakelag_amount);
 				switch_ticks = !switch_ticks;
-				fluctuate_ticks = switch_ticks ? config_system.g_cfg.antiaim.triggers_fakelag_amount : max(config_system.g_cfg.antiaim.triggers_fakelag_amount - 2, 1);
+				fluctuate_ticks = switch_ticks ? g_cfg.antiaim.triggers_fakelag_amount : max(g_cfg.antiaim.triggers_fakelag_amount - 2, 1);
 
 				g_ctx.send_packet = true;
 			}
 		}
-		else if (!g_ctx.globals.exploits && config_system.g_cfg.antiaim.fakelag)
+		else if (!g_ctx.globals.exploits && g_cfg.antiaim.fakelag)
 		{
-			max_choke = config_system.g_cfg.antiaim.fakelag_amount;
+			max_choke = g_cfg.antiaim.fakelag_amount;
 
 			if (m_gamerules()->m_bIsValveDS())
 				max_choke = min(max_choke, 6);
@@ -203,14 +212,14 @@ void fakelag::Fakelag(CUserCmd* m_pcmd)
 			{
 				started_peeking = false;
 
-				random_factor = min(rand() % 16 + 1, config_system.g_cfg.antiaim.fakelag_amount);
+				random_factor = min(rand() % 16 + 1, g_cfg.antiaim.fakelag_amount);
 				switch_ticks = !switch_ticks;
-				fluctuate_ticks = switch_ticks ? config_system.g_cfg.antiaim.fakelag_amount : max(config_system.g_cfg.antiaim.fakelag_amount - 2, 1);
+				fluctuate_ticks = switch_ticks ? g_cfg.antiaim.fakelag_amount : max(g_cfg.antiaim.fakelag_amount - 2, 1);
 
 				g_ctx.send_packet = true;
 			}
 		}
-		else if (g_ctx.globals.exploits || !antiaim::get().condition(m_pcmd, false) && (antiaim::get().type == ANTIAIM_LEGIT || config_system.g_cfg.antiaim.type[antiaim::get().type].desync)) //-V648
+		else if (g_ctx.globals.exploits || !antiaim::get().condition(m_pcmd, false) && (g_cfg.antiaim.desync)) //-V648
 		{
 			condition = true;
 			started_peeking = false;

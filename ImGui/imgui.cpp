@@ -2381,6 +2381,24 @@ void ImGui::PushStyleVar(ImGuiStyleVar idx, float val)
     IM_ASSERT(0 && "Called PushStyleVar() float variant but variable is not a float!");
 }
 
+void ImGui::RenderCheckMark(ImVec2 pos, ImU32 col, float sz)
+{
+    ImGuiContext& g = *GImGui;
+    ImGuiWindow* window = g.CurrentWindow;
+
+    float thickness = ImMax(sz / 5.0f, 1.0f);
+    sz -= thickness * 0.5f;
+    pos += ImVec2(thickness * 0.25f, thickness * 0.25f);
+
+    float third = sz / 3.0f;
+    float bx = pos.x + third;
+    float by = pos.y + sz - third * 0.5f;
+    window->DrawList->PathLineTo(ImVec2(bx - third, by - third));
+    window->DrawList->PathLineTo(ImVec2(bx, by));
+    window->DrawList->PathLineTo(ImVec2(bx + third * 2, by - third * 2));
+    window->DrawList->PathStroke(col, false, thickness);
+}
+
 void ImGui::PushStyleVar(ImGuiStyleVar idx, const ImVec2& val)
 {
     const ImGuiStyleVarInfo* var_info = GetStyleVarInfo(idx);
@@ -5370,6 +5388,8 @@ void ImGui::UpdateWindowParentAndRootLinks(ImGuiWindow* window, ImGuiWindowFlags
 //   You can use the "##" or "###" markers to use the same label with different id, or same id with different label. See documentation at the top of this file.
 // - Return false when window is collapsed, so you can early out in your code. You always need to call ImGui::End() even if false is returned.
 // - Passing 'bool* p_open' displays a Close button on the upper-right corner of the window, the pointed value will be set to false when the button is pressed.
+
+
 bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
 {
     ImGuiContext& g = *GImGui;
@@ -8127,7 +8147,7 @@ static bool ImGui::NavScoreItem(ImGuiNavMoveResult* result, ImRect cand)
         {
             ImFormatString(buf, IM_ARRAYSIZE(buf), "%.0f/%.0f", dist_box, dist_center);
             ImDrawList* draw_list = GetForegroundDrawList(window);
-            draw_list->AddRectFilled(cand.Min, cand.Max, IM_COL32(255, 255, 255, 200));
+            draw_list->AddRectFilled(cand.Min, cand.Max, IM_COL32(255, 0, 0, 200));
             draw_list->AddText(g.IO.FontDefault, 13.0f, cand.Min, IM_COL32(255, 255, 255, 255), buf);
         }
     }

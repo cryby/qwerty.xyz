@@ -119,4 +119,4 @@ public:
 	std::byte        pad8[0x50];                //0x4D38
 	Vector            angViewPoint;            //0x4D88
 	std::byte        pad9[0xD0];                //0x4D9A
-};
+}; 

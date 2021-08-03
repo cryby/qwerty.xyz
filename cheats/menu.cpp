@@ -7,65 +7,7 @@
 #include "../ImGui/code_editor.h"
 #include "../constchars.h"
 #include "../cheats/misc/logs.h"
-#include "..\cheats\misc\misc.h"
 #include "..\steam_sdk\steam_api.h"
-#include "../configs/configs.h"
-
-CHAR my_documents[MAX_PATH];
-HRESULT result = SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, my_documents);
-
-constexpr auto& config_items = config_system.get_configs();
-static int current_config = -1;
-
-constexpr auto& config_items2 = config_system.get_configs2();
-static int current_config2 = -1;
-bool OpenConfig = false;
-
-#define IMAGE_X 110
-#define IMAGE_Y 245
-
-#define IMAGE_OUTLINE 50
-
-#define LINES_X 70
-#define LINES_Y 80
-
-#define BOX_POS_X 45
-#define BOX_POS_Y 20
-
-#define BOX_SIZE_X 160
-#define BOX_SIZE_Y 310
-
-#define MV_HEALTH_TEXT crypt_str("50")
-#define MV_ARMOR_TEXT crypt_str("50")
-#define MV_NAME_TEXT crypt_str("Name")
-#define MV_WEAPON_TEXT crypt_str("Awp")
-#define MV_WEAPON_TEXT_ICO crypt_str("S") //M4A4 Icon
-#define MV_DISTANCE_TEXT crypt_str("5m")
-#define MV_MONEY_TEXT crypt_str("1000$")
-#define MV_SCOPE_TEXT crypt_str("SCOPED")
-#define MV_FLASHED_TEXT crypt_str("FLASHED")
-#define MV_DEFUSING_TEXT crypt_str("DEFUSING")
-
-#define FULL_BACK_SIZE_X 100
-#define FULL_BACK_SIZE_Y 100
-
-#define SELECTED_BORDER_SIZE 4
-
-#define VIS_PREW_ZONE_X 300 *c_menu::get().dpi_scale 
-#define VIS_PREW_ZONE_Y 300 *c_menu::get().dpi_scale 
-
-bool IsMousPress = false;
-bool IsMousClick = false;
-
-int BoxSize_Y = 0;
-int BoxSize_X = 0;
-
-bool IsBlockMove = false;
-
-
-int c_menu::MoveStruct::ActiveIdx = -1;
-int c_menu::MoveStruct::LastActive = -1;
-bool c_menu::MoveStruct::InitMItems = false;
 
 #define ALPHA (ImGuiColorEditFlags_AlphaPreview | ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_AlphaBar| ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Float)
 #define NOALPHA (ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Float)
@@ -80,590 +22,562 @@ auto loaded_editing_script = false;
 static auto menu_setupped = false;
 static auto should_update = true;
 
+static auto Active_Tab = 1;
+static auto Active_Rage_Tab = 1;
+static auto Active_Legit_Tab = 1;
+static auto Active_Visuals_Tab = 1;
+static auto Active_Changer_Tab = 1;
+static auto Active_Misc_Tab = 1;
+static auto Active_Config_Tab = 1;
+static auto Active_Steam_Tab = 1;
+bool hitbox1;
+
 IDirect3DTexture9* all_skins[36];
-void c_menu::Move(MoveStruct& Cont, bool IsPressed, ImVec2 MouseP, ImVec2 StartP, ImVec2 CLines, bool IsText)
+
+ImVec2 pos;
+ImVec2 s;
+ImDrawList* draw1;
+static int tabs;
+static int subtabs;
+template<class T, class U>
+static T ilsuckit(const T& in, const U& low, const U& high)
 {
-	ImGuiIO& g = ImGui::GetIO();
-	bool ChangeSide = false;
-	if (MoveStruct::ActiveIdx == Cont.Id || MoveStruct::ActiveIdx == -1)
+	if (in <= low)
+		return low;
+
+	if (in >= high)
+		return high;
+
+	return in;
+}
+/// <new>
+namespace ImGui
+{
+	bool Tab_all(const char* icon, const char* label, const char* desc, const ImVec2& size_arg, const bool selected, ImFont* f)
 	{
-		if (IsPressed && Cont.IsHover && Cont.Set)
+		ImGuiWindow* window = ImGui::GetCurrentWindow();
+		if (window->SkipItems)
+			return false;
+
+		static float sizeplus = 0.f;
+
+		ImGuiContext& g = *GImGui;
+		const ImGuiStyle& style = g.Style;
+		const ImGuiID id = window->GetID(label);
+		const ImVec2 label_size = ImGui::CalcTextSize(label, NULL, true);
+
+		ImVec2 pos = window->DC.CursorPos;
+
+		ImVec2 size = ImGui::CalcItemSize(size_arg, label_size.x + style.FramePadding.x * 2.0f, label_size.y + style.FramePadding.y * 2.0f);
+
+		const ImRect bb(pos, ImVec2(pos.x + size.x, pos.y + size.y));
+		ImGui::ItemSize(size, style.FramePadding.y);
+		if (!ImGui::ItemAdd(bb, id))
+			return false;
+
+
+		bool hovered, held;
+		bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, 0);
+
+
+
+
+
+		ImColor color = ImColor(92, 92, 95, 255);
+
+
+
+		float deltatime = 1.5f * ImGui::GetIO().DeltaTime;
+		static std::map<ImGuiID, float> hover_animation;
+		auto it_hover = hover_animation.find(id);
+		if (it_hover == hover_animation.end())
 		{
-			MoveStruct::ActiveIdx = Cont.Id;
-			MoveStruct::LastActive = Cont.Id;
+			hover_animation.insert({ id, 0.f });
+			it_hover = hover_animation.find(id);
+		}
+		if (selected)
+			it_hover->second = ilsuckit(it_hover->second + (3.f * ImGui::GetIO().DeltaTime * (hovered ? 1.f : -1.f)), 0.0f, 1.f);
+		else
+			it_hover->second = ilsuckit(it_hover->second + (3.f * ImGui::GetIO().DeltaTime), 0.0f, 1.f);
 
-			Cont.Offset.x = StartP.x - (MouseP.x - Cont.Correct.x);
-			Cont.Offset.y = StartP.y - (MouseP.y - Cont.Correct.y);
+		const ImVec4 text_dis = style.Colors[ImGuiCol_Text];
+		const ImVec4 text_act = ImVec4(244 / 255.f, 244 / 255.f, 244 / 255.f, 1.f);
 
-			if (!IsText)
+		const ImVec4 hover_act = ImVec4(30 / 255.f, 30 / 255.f, 30 / 255.f, 0.f);
+		const ImVec4 hover_dis = ImVec4(30 / 255.f, 30 / 255.f, 30 / 255.f, 1.f);
+
+		static std::map<ImGuiID, ImVec4> hover_color;
+		auto it_hcolor = hover_color.find(id);
+		if (it_hcolor == hover_color.end())
+		{
+			hover_color.insert({ id, hover_dis });
+			it_hcolor = hover_color.find(id);
+		}
+		if (selected)
+		{
+			ImVec4 to = hover_dis;
+			if (it_hcolor->second.x != to.x)
 			{
-				Sides OSide = Cont.Side;
-
-				if (Cont.Center.x > CLines.x) { Cont.Side = RIGHT_S; }
-				if (Cont.Center.x < CLines.x) { Cont.Side = LEFT_S; }
-
-				if (g.MousePos.y < CLines.y + (BoxSize_Y / 8)) { Cont.Side = TOP_S; }
-				if (g.MousePos.y > CLines.y + BoxSize_Y - (BoxSize_Y / 8)) { Cont.Side = DOWN_S; }
-
-				if (OSide != Cont.Side && ((OSide != LEFT_S || Cont.Side != RIGHT_S) && (OSide != RIGHT_S || Cont.Side != LEFT_S)))
-					ChangeSide = true;
+				if (it_hcolor->second.x < to.x)
+					it_hcolor->second.x = ImMin(it_hcolor->second.x + deltatime, to.x);
+				else if (it_hcolor->second.x > to.x)
+					it_hcolor->second.x = ImMax(to.x, it_hcolor->second.x - deltatime);
 			}
-			else
+
+			if (it_hcolor->second.y != to.y)
 			{
-				if (Cont.Center.x > CLines.x) { Cont.Side = RIGHT_S; }
-				if (Cont.Center.x < CLines.x) { Cont.Side = LEFT_S; }
+				if (it_hcolor->second.y < to.y)
+					it_hcolor->second.y = ImMin(it_hcolor->second.y + deltatime, to.y);
+				else if (it_hcolor->second.y > to.y)
+					it_hcolor->second.y = ImMax(to.y, it_hcolor->second.y - deltatime);
+			}
 
-				if (Cont.Center.x > CLines.x && Cont.Center.y > CLines.y + (BoxSize_Y / 3)) { Cont.Side = CENTER_RIGHT_S; }
-				if (Cont.Center.x < CLines.x && Cont.Center.y > CLines.y + (BoxSize_Y / 3)) { Cont.Side = CENTER_LEFT_S; }
-
-				if (Cont.Center.x > CLines.x && Cont.Center.y > CLines.y + BoxSize_Y - (BoxSize_Y / 3)) { Cont.Side = DOWN_RIGHT_DOWN_S; }
-				if (Cont.Center.x < CLines.x && Cont.Center.y > CLines.y + BoxSize_Y - (BoxSize_Y / 3)) { Cont.Side = DOWN_LEFT_DOWN_S; }
-
-				if (Cont.Center.y < CLines.y) { Cont.Side = TOP_S; }
-				if (Cont.Center.y < CLines.y && Cont.Center.x < CLines.x - (BoxSize_X / 4)) { Cont.Side = LEFT_TOP_S; }
-				if (Cont.Center.y < CLines.y && Cont.Center.x > CLines.x + (BoxSize_X / 4)) { Cont.Side = RIGHT_TOP_S; }
-
-				if (Cont.Center.y > CLines.y + BoxSize_Y) { Cont.Side = DOWN_S; }
-				if (Cont.Center.y > CLines.y + BoxSize_Y && Cont.Center.x < CLines.x - (BoxSize_X / 4)) { Cont.Side = LEFT_DOWN_S; }
-				if (Cont.Center.y > CLines.y + BoxSize_Y && Cont.Center.x > CLines.x + (BoxSize_X / 4)) { Cont.Side = RIGHT_DOWN_S; }
+			if (it_hcolor->second.z != to.z)
+			{
+				if (it_hcolor->second.z < to.z)
+					it_hcolor->second.z = ImMin(it_hcolor->second.z + deltatime, to.z);
+				else if (it_hcolor->second.z > to.z)
+					it_hcolor->second.z = ImMax(to.z, it_hcolor->second.z - deltatime);
 			}
 		}
 		else
-			MoveStruct::ActiveIdx = -1;
-
-		Cont.Position = ImVec2(StartP.x - Cont.Offset.x, StartP.y - Cont.Offset.y);
-
-		if ((MouseP.x < (Cont.Position.x + Cont.Size.x) && MouseP.x > Cont.Position.x) && (MouseP.y < (Cont.Position.y + Cont.Size.y) && MouseP.y > Cont.Position.y))
-			Cont.IsHover = true;
-		else
-			Cont.IsHover = false;
-
-		if (IsPressed && Cont.IsHover)
 		{
-			if (!Cont.Set && !IsBlockMove)
+			ImVec4 to = hovered ? hover_dis : hover_act;
+			if (it_hcolor->second.x != to.x)
 			{
-				Cont.Set = true;
-				Cont.Correct.x = MouseP.x - Cont.Position.x;
-				Cont.Correct.y = MouseP.y - Cont.Position.y;
+				if (it_hcolor->second.x < to.x)
+					it_hcolor->second.x = ImMin(it_hcolor->second.x + deltatime, to.x);
+				else if (it_hcolor->second.x > to.x)
+					it_hcolor->second.x = ImMax(to.x, it_hcolor->second.x - deltatime);
+			}
+
+			if (it_hcolor->second.y != to.y)
+			{
+				if (it_hcolor->second.y < to.y)
+					it_hcolor->second.y = ImMin(it_hcolor->second.y + deltatime, to.y);
+				else if (it_hcolor->second.y > to.y)
+					it_hcolor->second.y = ImMax(to.y, it_hcolor->second.y - deltatime);
+			}
+
+			if (it_hcolor->second.z != to.z)
+			{
+				if (it_hcolor->second.z < to.z)
+					it_hcolor->second.z = ImMin(it_hcolor->second.z + deltatime, to.z);
+				else if (it_hcolor->second.z > to.z)
+					it_hcolor->second.z = ImMax(to.z, it_hcolor->second.z - deltatime);
+			}
+		}
+
+		static std::map<ImGuiID, ImVec4> text_animation;
+		auto it_text = text_animation.find(id);
+		if (it_text == text_animation.end())
+		{
+			text_animation.insert({ id, text_dis });
+			it_text = text_animation.find(id);
+		}
+		if (selected)
+		{
+			ImVec4 to = hovered ? text_dis : text_act;
+			if (it_text->second.x != to.x)
+			{
+				if (it_text->second.x < to.x)
+					it_text->second.x = ImMin(it_text->second.x + deltatime, to.x);
+				else if (it_text->second.x > to.x)
+					it_text->second.x = ImMax(to.x, it_text->second.x - deltatime);
+			}
+
+			if (it_text->second.y != to.y)
+			{
+				if (it_text->second.y < to.y)
+					it_text->second.y = ImMin(it_text->second.y + deltatime, to.y);
+				else if (it_text->second.y > to.y)
+					it_text->second.y = ImMax(to.y, it_text->second.y - deltatime);
+			}
+
+			if (it_text->second.z != to.z)
+			{
+				if (it_text->second.z < to.z)
+					it_text->second.z = ImMin(it_text->second.z + deltatime, to.z);
+				else if (it_text->second.z > to.z)
+					it_text->second.z = ImMax(to.z, it_text->second.z - deltatime);
 			}
 		}
 		else
-			Cont.Set = false;
-
-		Cont.Center = ImVec2(Cont.Position.x + Cont.Size.x / 2, Cont.Position.y + Cont.Size.y / 2);
-		if (!IsText)
 		{
-			if (Cont.Side == DOWN_S || Cont.Side == TOP_S)
-				Cont.Size = Cont.SizeH;
-
-			if (Cont.Side == LEFT_S || Cont.Side == RIGHT_S)
-				Cont.Size = Cont.SizeV;
-
-			if (ChangeSide)
+			ImVec4 to = text_dis;
+			if (it_text->second.x != to.x)
 			{
-				Cont.Center = MouseP;
+				if (it_text->second.x < to.x)
+					it_text->second.x = ImMin(it_text->second.x + deltatime, to.x);
+				else if (it_text->second.x > to.x)
+					it_text->second.x = ImMax(to.x, it_text->second.x - deltatime);
+			}
 
-				Cont.Offset.x = StartP.x - (MouseP.x - Cont.Size.x / 2);
-				Cont.Offset.y = StartP.y - (MouseP.y - Cont.Size.y / 2);
+			if (it_text->second.y != to.y)
+			{
+				if (it_text->second.y < to.y)
+					it_text->second.y = ImMin(it_text->second.y + deltatime, to.y);
+				else if (it_text->second.y > to.y)
+					it_text->second.y = ImMax(to.y, it_text->second.y - deltatime);
+			}
 
-				Cont.Position = ImVec2(StartP.x - Cont.Offset.x, StartP.y - Cont.Offset.y);
-
-				Cont.Correct.x = MouseP.x - Cont.Position.x;
-				Cont.Correct.y = MouseP.y - Cont.Position.y;
+			if (it_text->second.z != to.z)
+			{
+				if (it_text->second.z < to.z)
+					it_text->second.z = ImMin(it_text->second.z + deltatime, to.z);
+				else if (it_text->second.z > to.z)
+					it_text->second.z = ImMax(to.z, it_text->second.z - deltatime);
 			}
 		}
+
+		static std::map<ImGuiID, float> filled_animation;
+		auto it_filled = filled_animation.find(id);
+		if (it_filled == filled_animation.end())
+		{
+			filled_animation.insert({ id, 0.f });
+			it_filled = filled_animation.find(id);
+		}
+		if (hovered && selected && it_filled->second >= 0.5f)
+			it_filled->second = ilsuckit(it_filled->second - 2.2f * ImGui::GetIO().DeltaTime, 0.5f, 1.f);
+		else
+			it_filled->second = ilsuckit(it_filled->second + (2.2f * ImGui::GetIO().DeltaTime * ((selected) ? 1.f : -1.f)), 0.0f, 1.f);
+
+
+
+
+
+
+		//if (selected)
+		//	window->DrawList->AddRectFilled(bb.Min, bb.Max, ImColor(g_cfg.esp.Menucolor.r() - 25, g_cfg.esp.Menucolor.g() - 25, g_cfg.esp.Menucolor.b() - 25, 255));
+		//if (selected)
+		//	window->DrawList->AddRectFilled({ bb.Max.x,bb.Max.y }, { bb.Min.x,bb.Max.y - 3 }, ImColor(g_cfg.esp.textcolor.r() / 255.f, g_cfg.esp.textcolor.g() / 255.f, g_cfg.esp.textcolor.b() / 255.f, 255.f / 255.f));
+
+		PushStyleColor(ImGuiCol_Text, color.Value);
+		window->DrawList->AddText(ImVec2(bb.Min.x + 35, bb.Min.y + 18), ImColor(255, 255, 255), label);
+		PopStyleColor();
+
+
+		if (hovered)
+		{
+			window->DrawList->AddRectFilledMultiColor(ImVec2(bb.Min.x, bb.Min.y), bb.Max, ImColor(25, 25, 30, 0), ImColor(25, 25, 30, 0), ImColor(122, 114, 230, 50), ImColor(122, 114, 230, 50));
+
+		}
+
+
+		if (selected) {
+			color = ImVec4(1.f, 1.f, 1.f, 1.f);
+
+			window->DrawList->AddRectFilledMultiColor(ImVec2(bb.Min.x, bb.Min.y), bb.Max, ImColor(25, 25, 30, 0), ImColor(25, 25, 30, 0), ImColor(122, 114, 230, 50), ImColor(122, 114, 230, 50));
+
+			window->DrawList->AddRectFilled({ bb.Max.x,bb.Max.y }, { bb.Min.x,bb.Max.y - 3 }, ImColor(255, 255, 255, 255), 0.f, ImDrawCornerFlags_All);
+
+		}
+
+		//window->DrawList->AddText(ImVec2(bb.Min.x + 35, bb.Min.y + 26), ImColor(100 / 255.f, 100 / 255.f, 100 / 255.f, 255.f / 255.f), desc);
+
+		ImGui::PushFont(f);
+		//RenderTextClipped(bb.Min + style.FramePadding, bb.Max - style.FramePadding, label, NULL, &label_size, style.ButtonTextAlign, &bb);
+		window->DrawList->AddText(ImVec2(bb.Min.x + 5, bb.Min.y + size_arg.y / 2 - ImGui::CalcTextSize(icon).y / 2), ImColor(255, 255, 255, 255), icon);
+		ImGui::PopFont();
+
+		return pressed;
+	}
+
+
+	bool SubTabEx(const char* label, const char* idz, const bool active, const ImVec2& size_arg)
+	{
+		ImGuiWindow* window = ImGui::GetCurrentWindow();
+		if (window->SkipItems)
+			return false;
+
+		static float sizeplus = 0.f;
+
+		ImGuiContext& g = *GImGui;
+		const ImGuiStyle& style = g.Style;
+		const ImGuiID id = window->GetID(label);
+		const ImVec2 label_size = ImGui::CalcTextSize(label, NULL, true);
+
+		ImVec2 pos = window->DC.CursorPos;
+
+		ImVec2 size = ImGui::CalcItemSize(size_arg, label_size.x + style.FramePadding.x * 2.0f, label_size.y + style.FramePadding.y * 2.0f);
+
+		const ImRect bb(pos, ImVec2(pos.x + size.x, pos.y + size.y));
+		ImGui::ItemSize(size, style.FramePadding.y);
+		if (!ImGui::ItemAdd(bb, id))
+			return false;
+
+		bool hovered, held;
+		bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, 0);
+		static float sizes = 0.0f;
+		static float sizing = 4.f;
+		if (active && sizes < 0.95f && sizing == 4.f)
+		{
+			sizes += 0.08f;
+		}
+		const char* idzs;
+
+		if (pressed && sizing == 4.f)
+			sizes = 0.f;
+
+		static float alpha = 0.0f;
+
+		if (hovered && !active && alpha < 0.95f && sizing == 4.f)
+		{
+			alpha += 0.02f;
+		}
+
+		if (pressed && sizing == 4.f)
+			alpha = 0.f;
+		//window->DrawList->AddRect(bb.Min, bb.Max, ImColor(255, 23, 23), 0.f, 15, 1.f);
+		// window->DrawList->AddRectFilledMultiColor(bb.Min, bb.Max, ImColor(24, 22, 29, 155), ImColor(24, 22, 29, 155), ImColor(24, 22, 29, 255), ImColor(24, 22, 29, 255));
+		if (active)
+		{
+			window->DrawList->AddText(ImVec2(bb.Min.x + 5, bb.Min.y + size_arg.y / 2 - ImGui::CalcTextSize(label).y / 2), ImColor(255 / 255.f, 255 / 255.f, 255 / 255.f, 255.f / 255.f), label);
+			//	window->DrawList->AddRectFilledMultiColor(ImVec2(bb.Min.x, bb.Max.y - 3), ImVec2(bb.Min.x + (size_arg.x), bb.Max.y), ImColor(g_cfg.menu.menu_theme.r(), g_cfg.menu.menu_theme.g(), g_cfg.menu.menu_theme.b(), 15), ImColor(g_cfg.menu.menu_theme.r(), g_cfg.menu.menu_theme.g(), g_cfg.menu.menu_theme.b(), 15), ImColor(g_cfg.menu.menu_theme.r(), g_cfg.menu.menu_theme.g(), g_cfg.menu.menu_theme.b(), 125), ImColor(g_cfg.menu.menu_theme.r(), g_cfg.menu.menu_theme.g(), g_cfg.menu.menu_theme.b(), 125));
+			//	window->DrawList->AddRectFilled(ImVec2(bb.Min.x, bb.Max.y - 1), ImVec2(bb.Max.x, bb.Max.y), ImColor(g_cfg.menu.menu_theme.r() / 255.f, g_cfg.menu.menu_theme.g() / 255.f, g_cfg.menu.menu_theme.b() / 255.f, alpha));
+		}
+		else if (hovered)
+		{
+			window->DrawList->AddText(ImVec2(bb.Min.x + 5, bb.Min.y + size_arg.y / 2 - ImGui::CalcTextSize(label).y / 2), ImColor(255 / 255.f, 255 / 255.f, 255 / 255.f, alpha), label);
+
+			//	window->DrawList->AddRectFilled(ImVec2(bb.Min.x, bb.Max.y - 1), ImVec2(bb.Max.x, bb.Max.y), ImColor(g_cfg.menu.menu_theme.r() / 255.f, g_cfg.menu.menu_theme.g() / 255.f, g_cfg.menu.menu_theme.b() / 255.f, alpha));
+		}
+		else if (active && pressed)
+		{
+			window->DrawList->AddText(ImVec2(bb.Min.x + 5, bb.Min.y + size_arg.y / 2 - ImGui::CalcTextSize(label).y / 2), ImColor(255 / 255.f, 255 / 255.f, 255 / 255.f, 255.f / 255.f), label);
+
+			//	window->DrawList->AddRectFilled(ImVec2(bb.Min.x, bb.Max.y - 1), ImVec2(bb.Max.x, bb.Max.y), ImColor(g_cfg.menu.menu_theme.r() / 255.f, g_cfg.menu.menu_theme.g() / 255.f, g_cfg.menu.menu_theme.b() / 255.f, alpha));
+		}
+		else
+		{
+			window->DrawList->AddText(ImVec2(bb.Min.x + 5, bb.Min.y + size_arg.y / 2 - ImGui::CalcTextSize(label).y / 2), ImColor(80 / 255.f, 80 / 255.f, 80 / 255.f, 255.f / 255.f), label);
+
+		}
+
+
+
+		// ImGui::PushFont(esp_font);
+	   // window->DrawList->AddText(ImVec2(bb.Min.x + 5, bb.Min.y + size_arg.y / 2 - ImGui::CalcTextSize(label).y / 2), ImColor(255 / 255.f, 255 / 255.f, 255 / 255.f, 255.f / 255.f), label);
+		//ImGui::PopFont();
+
+
+		return pressed;
+	}
+	bool SubTab(const char* label, const ImVec2& size_arg, const bool selected)
+	{
+		ImGuiWindow* window = ImGui::GetCurrentWindow();
+		if (window->SkipItems)
+			return false;
+
+		static float sizeplus = 0.f;
+
+		ImGuiContext& g = *GImGui;
+		const ImGuiStyle& style = g.Style;
+		const ImGuiID id = window->GetID(label);
+		const ImVec2 label_size = ImGui::CalcTextSize(label, NULL, true);
+
+		ImVec2 pos = window->DC.CursorPos;
+
+		ImVec2 size = ImGui::CalcItemSize(size_arg, label_size.x + style.FramePadding.x * 2.0f, label_size.y + style.FramePadding.y * 2.0f);
+
+		const ImRect bb(pos, ImVec2(pos.x + size.x, pos.y + size.y));
+		ImGui::ItemSize(size, style.FramePadding.y);
+		if (!ImGui::ItemAdd(bb, id))
+			return false;
+
+		bool hovered, held;
+		bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, 0);
+
+
+
+
+
+		ImColor color = ImColor(92, 92, 95, 255);
+
+
+
+		float deltatime = 1.5f * ImGui::GetIO().DeltaTime;
+		static std::map<ImGuiID, float> hover_animation;
+		auto it_hover = hover_animation.find(id);
+		if (it_hover == hover_animation.end())
+		{
+			hover_animation.insert({ id, 0.f });
+			it_hover = hover_animation.find(id);
+		}
+		if (selected)
+			it_hover->second = ilsuckit(it_hover->second + (3.f * ImGui::GetIO().DeltaTime * (hovered ? 1.f : -1.f)), 0.0f, 1.f);
+		else
+			it_hover->second = ilsuckit(it_hover->second + (3.f * ImGui::GetIO().DeltaTime), 0.0f, 1.f);
+
+		const ImVec4 text_dis = style.Colors[ImGuiCol_Text];
+		const ImVec4 text_act = ImVec4(244 / 255.f, 244 / 255.f, 244 / 255.f, 1.f);
+
+		const ImVec4 hover_act = ImVec4(30 / 255.f, 30 / 255.f, 30 / 255.f, 0.f);
+		const ImVec4 hover_dis = ImVec4(30 / 255.f, 30 / 255.f, 30 / 255.f, 1.f);
+
+		static std::map<ImGuiID, ImVec4> hover_color;
+		auto it_hcolor = hover_color.find(id);
+		if (it_hcolor == hover_color.end())
+		{
+			hover_color.insert({ id, hover_dis });
+			it_hcolor = hover_color.find(id);
+		}
+		if (selected)
+		{
+			ImVec4 to = hover_dis;
+			if (it_hcolor->second.x != to.x)
+			{
+				if (it_hcolor->second.x < to.x)
+					it_hcolor->second.x = ImMin(it_hcolor->second.x + deltatime, to.x);
+				else if (it_hcolor->second.x > to.x)
+					it_hcolor->second.x = ImMax(to.x, it_hcolor->second.x - deltatime);
+			}
+
+			if (it_hcolor->second.y != to.y)
+			{
+				if (it_hcolor->second.y < to.y)
+					it_hcolor->second.y = ImMin(it_hcolor->second.y + deltatime, to.y);
+				else if (it_hcolor->second.y > to.y)
+					it_hcolor->second.y = ImMax(to.y, it_hcolor->second.y - deltatime);
+			}
+
+			if (it_hcolor->second.z != to.z)
+			{
+				if (it_hcolor->second.z < to.z)
+					it_hcolor->second.z = ImMin(it_hcolor->second.z + deltatime, to.z);
+				else if (it_hcolor->second.z > to.z)
+					it_hcolor->second.z = ImMax(to.z, it_hcolor->second.z - deltatime);
+			}
+		}
+		else
+		{
+			ImVec4 to = hovered ? hover_dis : hover_act;
+			if (it_hcolor->second.x != to.x)
+			{
+				if (it_hcolor->second.x < to.x)
+					it_hcolor->second.x = ImMin(it_hcolor->second.x + deltatime, to.x);
+				else if (it_hcolor->second.x > to.x)
+					it_hcolor->second.x = ImMax(to.x, it_hcolor->second.x - deltatime);
+			}
+
+			if (it_hcolor->second.y != to.y)
+			{
+				if (it_hcolor->second.y < to.y)
+					it_hcolor->second.y = ImMin(it_hcolor->second.y + deltatime, to.y);
+				else if (it_hcolor->second.y > to.y)
+					it_hcolor->second.y = ImMax(to.y, it_hcolor->second.y - deltatime);
+			}
+
+			if (it_hcolor->second.z != to.z)
+			{
+				if (it_hcolor->second.z < to.z)
+					it_hcolor->second.z = ImMin(it_hcolor->second.z + deltatime, to.z);
+				else if (it_hcolor->second.z > to.z)
+					it_hcolor->second.z = ImMax(to.z, it_hcolor->second.z - deltatime);
+			}
+		}
+
+		static std::map<ImGuiID, ImVec4> text_animation;
+		auto it_text = text_animation.find(id);
+		if (it_text == text_animation.end())
+		{
+			text_animation.insert({ id, text_dis });
+			it_text = text_animation.find(id);
+		}
+		if (selected)
+		{
+			ImVec4 to = hovered ? text_dis : text_act;
+			if (it_text->second.x != to.x)
+			{
+				if (it_text->second.x < to.x)
+					it_text->second.x = ImMin(it_text->second.x + deltatime, to.x);
+				else if (it_text->second.x > to.x)
+					it_text->second.x = ImMax(to.x, it_text->second.x - deltatime);
+			}
+
+			if (it_text->second.y != to.y)
+			{
+				if (it_text->second.y < to.y)
+					it_text->second.y = ImMin(it_text->second.y + deltatime, to.y);
+				else if (it_text->second.y > to.y)
+					it_text->second.y = ImMax(to.y, it_text->second.y - deltatime);
+			}
+
+			if (it_text->second.z != to.z)
+			{
+				if (it_text->second.z < to.z)
+					it_text->second.z = ImMin(it_text->second.z + deltatime, to.z);
+				else if (it_text->second.z > to.z)
+					it_text->second.z = ImMax(to.z, it_text->second.z - deltatime);
+			}
+		}
+		else
+		{
+			ImVec4 to = text_dis;
+			if (it_text->second.x != to.x)
+			{
+				if (it_text->second.x < to.x)
+					it_text->second.x = ImMin(it_text->second.x + deltatime, to.x);
+				else if (it_text->second.x > to.x)
+					it_text->second.x = ImMax(to.x, it_text->second.x - deltatime);
+			}
+
+			if (it_text->second.y != to.y)
+			{
+				if (it_text->second.y < to.y)
+					it_text->second.y = ImMin(it_text->second.y + deltatime, to.y);
+				else if (it_text->second.y > to.y)
+					it_text->second.y = ImMax(to.y, it_text->second.y - deltatime);
+			}
+
+			if (it_text->second.z != to.z)
+			{
+				if (it_text->second.z < to.z)
+					it_text->second.z = ImMin(it_text->second.z + deltatime, to.z);
+				else if (it_text->second.z > to.z)
+					it_text->second.z = ImMax(to.z, it_text->second.z - deltatime);
+			}
+		}
+
+		static std::map<ImGuiID, float> filled_animation;
+		auto it_filled = filled_animation.find(id);
+		if (it_filled == filled_animation.end())
+		{
+			filled_animation.insert({ id, 0.f });
+			it_filled = filled_animation.find(id);
+		}
+		if (hovered && selected && it_filled->second >= 0.5f)
+			it_filled->second = ilsuckit(it_filled->second - 2.2f * ImGui::GetIO().DeltaTime, 0.5f, 1.f);
+		else
+			it_filled->second = ilsuckit(it_filled->second + (2.2f * ImGui::GetIO().DeltaTime * ((selected) ? 1.f : -1.f)), 0.0f, 1.f);
+
+		//if (selected)
+		//	window->DrawList->AddRectFilled({ bb.Min.x,bb.Min.y }, { bb.Max.x,bb.Max.y }, ImColor(32.f / 255.f, 32.f / 255.f, 32.f / 255.f, 255.f / 255.f));
+		//
+		//if (selected)
+		//	window->DrawList->AddRectFilled({ bb.Max.x,bb.Max.y }, { bb.Min.x ,bb.Max.y - 2 }, ImColor(g_cfg.esp.Menucolor.r() / 255.f, g_cfg.esp.Menucolor.g() / 255.f, g_cfg.esp.Menucolor.b() / 255.f, 255.f / 255.f));
+
+		if (hovered)
+		{
+			//window->DrawList->AddRectFilledMultiColor(ImVec2(bb.Min.x, bb.Min.y), bb.Max, ImColor(25, 25, 30, 0), ImColor(25, 25, 30, 0), ImGui::GetColorU32(it_hcolor->second), ImGui::GetColorU32(it_hcolor->second)); color = ImGui::GetColorU32(it_text->second);
+		}
+
+		if (selected) {
+			color = ImVec4(1.f, 1.f, 1.f, 1.f);
+
+			//window->DrawList->AddRectFilledMultiColor(ImVec2(bb.Min.x, bb.Min.y), bb.Max, ImColor(25, 25, 30, 0), ImColor(25, 25, 30, 0), ImColor(122, 114, 230, 50), ImColor(122, 114, 230, 50));
+
+			//window->DrawList->AddRectFilled({ bb.Max.x,bb.Max.y }, { bb.Min.x ,bb.Max.y - 2 }, ImColor(255, 255, 255), 0.f, ImDrawCornerFlags_All);
+		}
+		PushStyleColor(ImGuiCol_Text, color.Value);
+		RenderTextClipped(bb.Min + style.FramePadding, bb.Max - style.FramePadding, label, NULL, &label_size, style.ButtonTextAlign, &bb);
+		PopStyleColor();
+
+		//window->DrawList->AddText(ImVec2(bb.Min.x + 5, bb.Min.y + size_arg.y / 2 - ImGui::CalcTextSize(label).y / 2), ImColor(255 / 255.f, 255 / 255.f, 255 / 255.f, 255.f / 255.f), label);
+
+		return pressed;
 	}
 }
-void c_menu::InitVisuals()
-{
-	auto LInitVisuals = [&]()->void
-	{
-
-		static MoveStruct* MV_Hp = &MVItemList[MI_HEALTH_BAR];
-		static MoveStruct* MV_Armor = &MVItemList[MI_ARMOR_BAR];
-
-		static MoveStruct* MV_Hp_Text = &MVItemList[MI_HEALTH_TEXT];
-		static MoveStruct* MV_Armor_Text = &MVItemList[MI_ARMOR_TEXT];
-
-		static MoveStruct* MV_Name = &MVItemList[MI_NAME_TEXT];
-		static MoveStruct* MV_Weapon = &MVItemList[MI_WEAPON_TEXT];
-		static MoveStruct* MV_Ammo = &MVItemList[MI_AMMO_TEXT];
-		static MoveStruct* MV_Distance = &MVItemList[MI_DISTANCE_TEXT];
-		static MoveStruct* MV_Money = &MVItemList[MI_MONEY_TEXT];
-		static MoveStruct* MV_Scope = &MVItemList[MI_SCOPE_TEXT];
-		static MoveStruct* MV_Flashed = &MVItemList[MI_FLASHED_TEXT];
-		static MoveStruct* MV_Defusing = &MVItemList[MI_DEFUSING_TEXT];
-
-		if (!MoveStruct::InitMItems)
-		{
-			MoveStruct::InitMItems = true;
-			MoveStruct::LastActive = MI_MAX;
-
-			/*=====================================================================================*/
-			MV_Hp_Text->StartPos = MV_Hp_Text->Position;
-			MV_Hp_Text->Id = MI_HEALTH_TEXT;
-			MV_Hp_Text->Side = LEFT_S;
-			MV_Hp_Text->TextSize = 17;
-			MV_Hp_Text->Offset = ImVec2(5, 0);
-			MV_Hp_Text->IsText = true;
-			MV_Hp_Text->Name = crypt_str("MV_HP_Text");
-			MV_Hp_Text->Color1[0] = 1.0f;
-			MV_Hp_Text->Color1[1] = 1.0f;
-			MV_Hp_Text->Color1[2] = 1.0f;
-
-			/*=====================================================================================*/
-			MV_Armor_Text->StartPos = MV_Armor_Text->Position;
-			MV_Armor_Text->Id = MI_ARMOR_TEXT;
-			MV_Armor_Text->Side = LEFT_S;
-			MV_Armor_Text->TextSize = 17;
-			MV_Armor_Text->Offset = ImVec2(5, -10);
-			MV_Armor_Text->IsText = true;
-			MV_Armor_Text->Name = crypt_str("MV_Arm_Text");
-			MV_Armor_Text->Color1[0] = 1.0f;
-			MV_Armor_Text->Color1[1] = 1.0f;
-			MV_Armor_Text->Color1[2] = 1.0f;
-
-			/*=====================================================================================*/
-			MV_Hp->StartPos = MV_Hp->Position;
-			MV_Hp->Id = MI_HEALTH_BAR;
-			MV_Hp->Side = LEFT_S;
-			MV_Hp->Offset = ImVec2(5, 0);
-
-			MV_Hp->Color1[0] = 0.1f;
-			MV_Hp->Color1[1] = 1.0f;
-			MV_Hp->Color1[2] = 0.1f;
-
-			MV_Hp->Color2[0] = 1.0f;
-			MV_Hp->Color2[1] = 0.0f;
-			MV_Hp->Color2[2] = 0.0f;
-
-			MV_Hp->Color3[0] = 0.0f;
-			MV_Hp->Color3[1] = 0.0f;
-			MV_Hp->Color3[2] = 0.0f;
-
-			MV_Hp->NumParam1 = 4;
-			MV_Hp->NumParam2 = 5;
-			MV_Hp->Name = crypt_str("MV_HPBar");
-			MV_Hp->boolParam1 = true;
-			MV_Hp->boolParam2 = true;
-			MV_Hp->boolParam3 = false;
-
-			/*=====================================================================================*/
-			MV_Armor->StartPos = MV_Armor->Position;
-			MV_Armor->Id = MI_ARMOR_BAR;
-			MV_Armor->Side = RIGHT_S;
-			MV_Armor->Offset = ImVec2(-5, 0);
-
-			MV_Armor->Color1[0] = 1.0f;
-			MV_Armor->Color1[1] = 1.0f;
-			MV_Armor->Color1[2] = 1.0f;
-
-			MV_Armor->Color2[0] = 1.0f;
-			MV_Armor->Color2[1] = 0.0f;
-			MV_Armor->Color2[2] = 0.0f;
-
-			MV_Armor->Color3[0] = 0.0f;
-			MV_Armor->Color3[1] = 0.0f;
-			MV_Armor->Color3[2] = 0.0f;
-
-			MV_Armor->NumParam1 = 4;
-			MV_Armor->NumParam2 = 5;
-			MV_Armor->Name = crypt_str("MV_ArmorBar");
-			MV_Armor->boolParam1 = true;
-			MV_Armor->boolParam2 = true;
-			MV_Armor->boolParam3 = false;
-
-			/*=====================================================================================*/
-			MV_Name->StartPos = MV_Name->Position;
-			MV_Name->Id = MI_NAME_TEXT;
-			MV_Name->Side = TOP_S;
-			MV_Name->TextSize = 17;
-			MV_Name->Offset = ImVec2(0, 4);
-			MV_Name->IsText = true;
-			MV_Name->Name = crypt_str("MV_Name");
-			MV_Name->boolParam1 = false;
-			MV_Name->Color2[0] = 0.09f;
-			MV_Name->Color2[1] = 0.09f;
-			MV_Name->Color2[2] = 0.09f;
-
-			/*=====================================================================================*/
-			MV_Weapon->StartPos = MV_Weapon->Position;
-			MV_Weapon->Id = MI_WEAPON_TEXT;
-			MV_Weapon->Side = DOWN_S;
-			MV_Weapon->TextSize = 17;
-			MV_Weapon->Offset = ImVec2(0, -1);
-			MV_Weapon->IsText = true;
-			MV_Weapon->Name = crypt_str("MV_Weapon");
-
-			/*=====================================================================================*/
-			MV_Ammo->StartPos = MV_Ammo->Position;
-			MV_Ammo->Id = MI_AMMO_TEXT;
-			MV_Ammo->Side = DOWN_S;
-			MV_Ammo->TextSize = 17;
-			MV_Ammo->Offset = ImVec2(0, -10);
-			MV_Ammo->IsText = true;
-			MV_Ammo->Name = crypt_str("MV_Ammo");
-			MV_Ammo->Color1[0] = 1.0f;
-			MV_Ammo->Color1[1] = 1.0f;
-			MV_Ammo->Color1[2] = 1.0f;
-
-			/*=====================================================================================*/
-			MV_Distance->StartPos = MV_Distance->Position;
-			MV_Distance->Id = MI_DISTANCE_TEXT;
-			MV_Distance->Side = DOWN_RIGHT_DOWN_S;
-			MV_Distance->TextSize = 17;
-			MV_Distance->Offset = ImVec2(-7, 0);
-			MV_Distance->IsText = true;
-			MV_Distance->Name = crypt_str("MV_Distance");
-
-			/*=====================================================================================*/
-			MV_Money->StartPos = MV_Money->Position;
-			MV_Money->Id = MI_MONEY_TEXT;
-			MV_Money->Side = RIGHT_S;
-			MV_Money->TextSize = 17;
-			MV_Money->Color1[0] = 1.0f;
-			MV_Money->Color1[1] = 1.0f;
-			MV_Money->Color1[2] = 1.0f;
-			MV_Money->Offset = ImVec2(-7, 0);
-			MV_Money->IsText = true;
-			MV_Money->Name = crypt_str("MV_Money");
-
-			/*=====================================================================================*/
-			MV_Scope->StartPos = MV_Scope->Position;
-			MV_Scope->Id = MI_SCOPE_TEXT;
-			MV_Scope->Side = RIGHT_S;
-			MV_Scope->TextSize = 17;
-			MV_Scope->Color1[0] = 1.0f;
-			MV_Scope->Color1[1] = 1.0f;
-			MV_Scope->Color1[2] = 1.0f;
-			MV_Scope->Offset = ImVec2(-7, -7);
-			MV_Scope->IsText = true;
-			MV_Scope->Name = crypt_str("MV_Scope");
-
-			/*=====================================================================================*/
-			MV_Flashed->StartPos = MV_Flashed->Position;
-			MV_Flashed->Id = MI_FLASHED_TEXT;
-			MV_Flashed->Side = CENTER_RIGHT_S;
-			MV_Flashed->TextSize = 17;
-			MV_Flashed->Color1[0] = 1.0f;
-			MV_Flashed->Color1[1] = 1.0f;
-			MV_Flashed->Color1[2] = 1.0f;
-			MV_Flashed->Offset = ImVec2(-7, 0);
-			MV_Flashed->IsText = true;
-			MV_Flashed->Name = crypt_str("MV_Flashed");
-
-			/*=====================================================================================*/
-			MV_Defusing->StartPos = MV_Defusing->Position;
-			MV_Defusing->Id = MI_DEFUSING_TEXT;
-			MV_Defusing->Side = CENTER_RIGHT_S;
-			MV_Defusing->TextSize = 17;
-			MV_Defusing->Color1[0] = 1.0f;
-			MV_Defusing->Color1[1] = 1.0f;
-			MV_Defusing->Color1[2] = 1.0f;
-			MV_Defusing->Offset = ImVec2(-7, -7);
-			MV_Defusing->IsText = true;
-			MV_Defusing->Name = crypt_str("MV_Defusing");
-		}
-	};
-	LInitVisuals();
-}
-
-void c_menu::VisualPreview()
-{
-	static MoveStruct* MV_Hp = &MVItemList[MI_HEALTH_BAR];
-	static MoveStruct* MV_Armor = &MVItemList[MI_ARMOR_BAR];
-	static MoveStruct* MV_Hp_Text = &MVItemList[MI_HEALTH_TEXT];
-	static MoveStruct* MV_Armor_Text = &MVItemList[MI_ARMOR_TEXT];
-	static MoveStruct* MV_Name = &MVItemList[MI_NAME_TEXT];
-	static MoveStruct* MV_Weapon = &MVItemList[MI_WEAPON_TEXT];
-	static MoveStruct* MV_Ammo = &MVItemList[MI_AMMO_TEXT];
-	static MoveStruct* MV_Distance = &MVItemList[MI_DISTANCE_TEXT];
-	static MoveStruct* MV_Money = &MVItemList[MI_MONEY_TEXT];
-	static MoveStruct* MV_Scope = &MVItemList[MI_SCOPE_TEXT];
-	static MoveStruct* MV_Flashed = &MVItemList[MI_FLASHED_TEXT];
-	static MoveStruct* MV_Defusing = &MVItemList[MI_DEFUSING_TEXT];
-
-	auto cur_window = ImGui::GetCurrentWindow();
-	ImVec2 ZoneStartPos = ImGui::GetWindowPos();
-	ImGui::SetCursorPos(ZoneStartPos);
-	CustomVisuals(ZoneStartPos);
-	ImGui::BeginChild("ttt", ImVec2(250 * dpi_scale, 550 * dpi_scale));
-	{
-		if ((MITypes)MoveStruct::LastActive == MI_AMMO_TEXT)
-		{
-			ImGui::Text("Selected: Ammo");
-
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-			//	VectorEx<const char*>itemsGS = { lolc("Type 1") ,lolc("Type 2"), lolc("Type 3") };
-			//	DComboBox("Style", AmmoStyle, itemsGS);
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-			//	SliderInts("Text size", TextAmmoSize, 9, MAX_FONT_SIZE);
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-			//	DColorEdit("Color", AmmoColor);
-		}
-		else if ((MITypes)MoveStruct::LastActive == MI_ARMOR_TEXT)
-		{
-			ImGui::Text("Selected: Armor");
-
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-
-			//	int OldStyle = ArmorStyle;
-
-				//VectorEx<const char*>NumStyle = { lolc("Line") , lolc("Text") };
-
-			//	DComboBox("Style", ArmorStyle, NumStyle);
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-			//	SliderInts("Text size", TextArmorSize, 9, MAX_FONT_SIZE);
-
-			//	if (OldStyle != ArmorStyle)
-			MoveStruct::LastActive = MI_ARMOR_BAR;
-
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-			//	DColorEdit("Color", ArmorColor);
-		}
-		else if ((MITypes)MoveStruct::LastActive == MI_ARMOR_BAR)
-		{
-			ImGui::Text("Selected: Armor");
-
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-
-			//	int OldStyle = ArmorStyle;
-
-			//	VectorEx<const char*>NumStyle = { lolc("Line") , lolc("Text") };
-
-			//	DComboBox("Style", ArmorStyle, NumStyle);
-
-
-			//	if (OldStyle != ArmorStyle)
-			MoveStruct::LastActive = MI_ARMOR_TEXT;
-
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-
-			//	DColorEdit("Main color", ArmorColor);
-			//	DColorEdit("Background color", ArmorColor2);
-			//	DColorEdit("Outline color", ArmorColor3);
-
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-
-			//	SliderInts("Separators", MV_Armor->NumParam1, 0, 10);
-			//	SliderInts("Tickness", MV_Armor->NumParam2, 0, 20);
-
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-			//DCheckBox("Background", MV_Armor->boolParam1);
-			ImGui::SameLine();
-			//	DCheckBox("Outline", MV_Armor->boolParam2);
-			ImGui::SameLine();
-			//	DCheckBox("Inverse", MV_Armor->boolParam3);
-		}
-		else if ((MITypes)MoveStruct::LastActive == MI_DISTANCE_TEXT)
-		{
-			ImGui::Text("Selected: Selected");
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-
-			//SliderInts("Text size", TextDistanceSize, 9, MAX_FONT_SIZE);
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-			//	DColorEdit("Color", DistanceColor);
-		}
-		else if ((MITypes)MoveStruct::LastActive == MI_HEALTH_TEXT)
-		{
-			ImGui::Text("Selected: Health");
-
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-
-			//	VectorEx<const char*>NumStyle = { lolc("Line"), lolc("Text") };
-
-			//	int OldStyle = HealthStyle;
-
-			//	DComboBox("Style", HealthStyle, NumStyle);
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-			//	SliderInts("Text size", TextHealthSize, 9, MAX_FONT_SIZE);
-
-			//	if (OldStyle != HealthStyle)
-			MoveStruct::LastActive = MI_HEALTH_BAR;
-
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-			//	DColorEdit("Color", HealthColor);
-		}
-		else if ((MITypes)MoveStruct::LastActive == MI_HEALTH_BAR)
-		{
-			ImGui::Text("Selected: Health");
-
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-
-			//	VectorEx<const char*>NumStyle = { lolc("Line"), lolc("Text") };
-
-			//	int OldStyle = HealthStyle;
-
-			//	DComboBox("Style", HealthStyle, NumStyle);
-
-				//if (OldStyle != HealthStyle)
-			MoveStruct::LastActive = MI_HEALTH_TEXT;
-
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-
-			//	DColorEdit("Main Color", HealthColor);
-			//	DColorEdit("Background Color", HealthColor2);
-			//	DColorEdit("Outline Color", HealthColor3);
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-
-			ImGui::SliderInt("Separators", &MV_Hp->NumParam1, 0, 10);
-			ImGui::SliderInt("Tickness", &MV_Hp->NumParam2, 0, 20);
-
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-			//	DCheckBox("Background", MV_Hp->boolParam1);
-			ImGui::SameLine();
-			//	DCheckBox("Outline", MV_Hp->boolParam2);
-			ImGui::SameLine();
-			//	DCheckBox("Inverse", MV_Hp->boolParam3);
-		}
-		else if ((MITypes)MoveStruct::LastActive == MI_NAME_TEXT)
-		{
-			ImGui::Text("Selected: Name");
-
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-
-			//	SliderInts("Text size", TextNameSize, 9, MAX_FONT_SIZE);
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-			//	DColorEdit("Color", NameColor);
-
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-
-			//	DCheckBox("Background", NameBackground);
-
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-
-			//	if (NameBackground)
-			//	{
-			ImGui::Spacing();
-			//	DColorEdit("Background color", NameColorBack);
-			//}
-		}
-		else if ((MITypes)MoveStruct::LastActive == MI_WEAPON_TEXT)
-		{
-			ImGui::Text("Selected: Weapon");
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-			//	VectorEx<const char*>itemsGS = { lolc("Text"), lolc("Icon") };
-			//	DComboBox("Style", WeaponStyle, itemsGS);
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-			//	SliderInts("Text size", TextWeaponSize, 9, MAX_FONT_SIZE);
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-			//	DColorEdit("Color", WeaponColor);
-		}
-		else if ((MITypes)MoveStruct::LastActive == MI_MONEY_TEXT)
-		{
-			ImGui::Text("Selected: Money");
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-
-			//		SliderInts("Text size", TextMoneySize, 9, MAX_FONT_SIZE);
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-			//	DColorEdit("Color", MoneyColor);
-		}
-		else if ((MITypes)MoveStruct::LastActive == MI_SCOPE_TEXT)
-		{
-			ImGui::Text("Selected: Scoped");
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-
-			//		SliderInts("Text size", TextScopedSize, 9, MAX_FONT_SIZE);
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-			//	DColorEdit("Color", ScopeColor);
-		}
-		else if ((MITypes)MoveStruct::LastActive == MI_FLASHED_TEXT)
-		{
-			ImGui::Text("Selected: Flashed");
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-
-			//	SliderInts("Text size", TextFlashedSize, 9, MAX_FONT_SIZE);
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-			//		DColorEdit("Color", FlashingColor);
-
-		}
-		else if ((MITypes)MoveStruct::LastActive == MI_DEFUSING_TEXT)
-		{
-			ImGui::Text("Selected: Defusing");
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-
-			//	SliderInts("Text size", TextDefusingSize, 9, MAX_FONT_SIZE);
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-			//	DColorEdit("Color", DefusingColor);
-		}
-
-		//	float long_item_w = ImGui::GetThis()->Info.Size.x - (ImGui::GetStyle().wndPadding.x * 2);
-		ImGui::SetCursorPos(ImVec2(ImGui::GetStyle().WindowPadding.x, 638));
-		if (ImGui::Button(crypt_str("Reset"), ImVec2(100, 22)))
-			MoveStruct::InitMItems = false;
-	}
-	ImGui::EndChild();
-
-}
-
 
 std::string zGetTimeString()
 {
@@ -684,7 +598,6 @@ int zgettickrate()
 {
 	return static_cast<int>(1.f / m_globals()->m_intervalpertick);
 }
-
 
 void CopyConvert(const uint8_t* rgba, uint8_t* out, const size_t size)
 {
@@ -949,8 +862,8 @@ IDirect3DTexture9* get_skin_preview(const char* weapon_name, const std::string& 
 void c_menu::menu_setup(ImGuiStyle& style) //-V688
 {
 	ImGui::StyleColorsClassic(); // colors setup
-	ImGui::SetNextWindowSize(ImVec2(815, 550), ImGuiCond_Once); // window pos setup
-	ImGui::SetNextWindowBgAlpha(0.1f); // window bg alpha setup
+	ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Once); // window pos setup
+	ImGui::SetNextWindowBgAlpha(min(style.Alpha, 0.94f)); // window bg alpha setup
 
 	styles.WindowPadding = style.WindowPadding;
 	styles.WindowRounding = style.WindowRounding;
@@ -974,11 +887,10 @@ void c_menu::menu_setup(ImGuiStyle& style) //-V688
 	styles.DisplaySafeAreaPadding = style.DisplaySafeAreaPadding;
 	styles.MouseCursorScale = style.MouseCursorScale;
 
-
 	// setup skins preview
-	for (auto i = 0; i < config_system.g_cfg.skins.skinChanger.size(); i++)
+	for (auto i = 0; i < g_cfg.skins.skinChanger.size(); i++)
 		if (!all_skins[i])
-			all_skins[i] = get_skin_preview(get_wep(i, (i == 0 || i == 1) ? config_system.g_cfg.skins.skinChanger.at(i).definition_override_vector_index : -1, i == 0).c_str(), config_system.g_cfg.skins.skinChanger.at(i).skin_name, device); //-V810
+			all_skins[i] = get_skin_preview(get_wep(i, (i == 0 || i == 1) ? g_cfg.skins.skinChanger.at(i).definition_override_vector_index : -1, i == 0).c_str(), g_cfg.skins.skinChanger.at(i).skin_name, device); //-V810
 
 	menu_setupped = true; // we dont want to setup menu again
 }
@@ -1017,7 +929,7 @@ std::string get_config_dir()
 	static TCHAR path[MAX_PATH];
 
 	if (SUCCEEDED(SHGetFolderPath(NULL, 0x001a, NULL, NULL, path)))
-		folder = std::string(path) + crypt_str("\\Qwerty.xyz\\Configs\\");
+		folder = std::string(path) + crypt_str("\\LWK\\CFG\\");
 
 	CreateDirectory(folder.c_str(), NULL);
 	return folder;
@@ -1028,10 +940,10 @@ void load_config()
 	if (cfg_manager->files.empty())
 		return;
 
-	cfg_manager->load(cfg_manager->files.at(config_system.g_cfg.selected_config), false);
+	cfg_manager->load(cfg_manager->files.at(g_cfg.selected_config), false);
 	c_lua::get().unload_all_scripts();
 
-	for (auto& script : config_system.g_cfg.scripts.scripts)
+	for (auto& script : g_cfg.scripts.scripts)
 		c_lua::get().load_script(c_lua::get().get_script_id(script));
 
 	scripts = c_lua::get().scripts;
@@ -1047,15 +959,15 @@ void load_config()
 			current.erase(current.size() - 4, 4);
 	}
 
-	for (auto i = 0; i < config_system.g_cfg.skins.skinChanger.size(); ++i)
+	for (auto i = 0; i < g_cfg.skins.skinChanger.size(); ++i)
 		all_skins[i] = nullptr;
 
-	config_system.g_cfg.scripts.scripts.clear();
+	g_cfg.scripts.scripts.clear();
 
-	cfg_manager->load(cfg_manager->files.at(config_system.g_cfg.selected_config), true);
+	cfg_manager->load(cfg_manager->files.at(g_cfg.selected_config), true);
 	cfg_manager->config_files();
 
-	eventlogs::get().addnew(crypt_str("Loaded ") + files.at(config_system.g_cfg.selected_config) + crypt_str(" config"), Color::Yellow, false);
+	eventlogs::get().add(crypt_str("Loaded ") + files.at(g_cfg.selected_config) + crypt_str(" config"), false);
 }
 
 void save_config()
@@ -1063,20 +975,20 @@ void save_config()
 	if (cfg_manager->files.empty())
 		return;
 
-	config_system.g_cfg.scripts.scripts.clear();
+	g_cfg.scripts.scripts.clear();
 
 	for (auto i = 0; i < c_lua::get().scripts.size(); ++i)
 	{
 		auto script = c_lua::get().scripts.at(i);
 
 		if (c_lua::get().loaded.at(i))
-			config_system.g_cfg.scripts.scripts.emplace_back(script);
+			g_cfg.scripts.scripts.emplace_back(script);
 	}
 
-	cfg_manager->save(cfg_manager->files.at(config_system.g_cfg.selected_config));
+	cfg_manager->save(cfg_manager->files.at(g_cfg.selected_config));
 	cfg_manager->config_files();
 
-	eventlogs::get().addnew(crypt_str("Saved ") + files.at(config_system.g_cfg.selected_config) + crypt_str(" config"), Color::Yellow, false);
+	eventlogs::get().add(crypt_str("Saved ") + files.at(g_cfg.selected_config) + crypt_str(" config"), false);
 }
 
 void remove_config()
@@ -1084,15 +996,15 @@ void remove_config()
 	if (cfg_manager->files.empty())
 		return;
 
-	eventlogs::get().addnew(crypt_str("Removed ") + files.at(config_system.g_cfg.selected_config) + crypt_str(" config"), Color::Yellow, false);
+	eventlogs::get().add(crypt_str("Removed ") + files.at(g_cfg.selected_config) + crypt_str(" config"), false);
 
-	cfg_manager->remove(cfg_manager->files.at(config_system.g_cfg.selected_config));
+	cfg_manager->remove(cfg_manager->files.at(g_cfg.selected_config));
 	cfg_manager->config_files();
 
 	files = cfg_manager->files;
 
-	if (config_system.g_cfg.selected_config >= files.size())
-		config_system.g_cfg.selected_config = files.size() - 1; //-V103
+	if (g_cfg.selected_config >= files.size())
+		g_cfg.selected_config = files.size() - 1; //-V103
 
 	for (auto& current : files)
 		if (current.size() > 2)
@@ -1103,7 +1015,7 @@ void add_config()
 {
 	auto empty = true;
 
-	for (auto current : config_system.g_cfg.new_config_name)
+	for (auto current : g_cfg.new_config_name)
 	{
 		if (current != ' ')
 		{
@@ -1113,17 +1025,17 @@ void add_config()
 	}
 
 	if (empty)
-		config_system.g_cfg.new_config_name = crypt_str("config");
+		g_cfg.new_config_name = crypt_str("config");
 
-	eventlogs::get().addnew(crypt_str("Added ") + config_system.g_cfg.new_config_name + crypt_str(" config"), Color::Yellow, false);
+	eventlogs::get().add(crypt_str("Added ") + g_cfg.new_config_name + crypt_str(" config"), false);
 
-	if (config_system.g_cfg.new_config_name.find(crypt_str(".qwerty")) == std::string::npos)
-		config_system.g_cfg.new_config_name += crypt_str(".qwerty");
+	if (g_cfg.new_config_name.find(crypt_str(".ob")) == std::string::npos)
+		g_cfg.new_config_name += crypt_str(".ob");
 
-	cfg_manager->save(config_system.g_cfg.new_config_name);
+	cfg_manager->save(g_cfg.new_config_name);
 	cfg_manager->config_files();
 
-	config_system.g_cfg.selected_config = cfg_manager->files.size() - 1; //-V103
+	g_cfg.selected_config = cfg_manager->files.size() - 1; //-V103
 	files = cfg_manager->files;
 
 	for (auto& current : files)
@@ -1141,10 +1053,10 @@ __forceinline void padding(float x, float y)
 // title of content child
 void child_title(const char* label)
 {
-	ImGui::PushFont(c_menu::get().futura_large);
+	ImGui::PushFont(c_menu::get().whitney);
 	ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
 
-	ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (10 * c_menu::get().dpi_scale));
+	ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (12 * c_menu::get().dpi_scale));
 	ImGui::Text(label);
 
 	ImGui::PopStyleColor();
@@ -1249,7 +1161,7 @@ bool LabelClick(const char* label, bool* v, const char* unique_id)
 		*v = !(*v);
 
 	if (*v)
-		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.f, 143.f, 255.f, 1.f));
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(126 / 255.f, 131 / 255.f, 219 / 255.f, 1.f));
 	if (label_size.x > 0.0f)
 		ImGui::RenderText(ImVec2(check_bb.GetTL().x + 12, check_bb.GetTL().y), Buf);
 	if (*v)
@@ -1298,17 +1210,24 @@ void draw_keybind(const char* label, key_bind* key_bind, const char* unique_id)
 		hooks::input_receivedKeyval = &key_bind->key;
 	}
 
-	static auto hold = false, toggle = false;
+	static auto hold = false, toggle = false, always = false;
 
 	switch (key_bind->mode)
 	{
 	case HOLD:
 		hold = true;
 		toggle = false;
+		always = false;
 		break;
 	case TOGGLE:
 		toggle = true;
 		hold = false;
+		always = false;
+		break;
+	case ALWAYS:
+		always = true;
+		hold = false;
+		toggle = false;
 		break;
 	}
 
@@ -1330,6 +1249,11 @@ void draw_keybind(const char* label, key_bind* key_bind, const char* unique_id)
 				hold = false;
 				key_bind->mode = TOGGLE;
 			}
+			else if (always)
+			{
+				always = false;
+				key_bind->mode = ALWAYS;
+			}
 			else
 			{
 				toggle = false;
@@ -1339,9 +1263,10 @@ void draw_keybind(const char* label, key_bind* key_bind, const char* unique_id)
 			ImGui::CloseCurrentPopup();
 		}
 
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 9 * c_menu::get().dpi_scale);
 		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ((ImGui::GetCurrentWindow()->Size.x / 2) - (ImGui::CalcTextSize(crypt_str("Toggle")).x / 2)));
 		ImGui::SetCursorPosX(ImGui::GetCursorPosX() - 11);
-		ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 9 * c_menu::get().dpi_scale);
+
 
 		if (LabelClick(crypt_str("Toggle"), &toggle, unique_id))
 		{
@@ -1355,9 +1280,44 @@ void draw_keybind(const char* label, key_bind* key_bind, const char* unique_id)
 				toggle = false;
 				key_bind->mode = HOLD;
 			}
+			else if (always)
+			{
+				always = false;
+				key_bind->mode = ALWAYS;
+			}
 			else
 			{
 				hold = false;
+				key_bind->mode = TOGGLE;
+			}
+
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 12 * c_menu::get().dpi_scale);
+		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ((ImGui::GetCurrentWindow()->Size.x / 2) - (ImGui::CalcTextSize(crypt_str("Always")).x / 2)));
+		ImGui::SetCursorPosX(ImGui::GetCursorPosX() - 11);
+
+		if (LabelClick(crypt_str("Always"), &always, unique_id))
+		{
+			if (always)
+			{
+				always = false;
+				key_bind->mode = TOGGLE;
+			}
+			else if (hold)
+			{
+				toggle = false;
+				key_bind->mode = HOLD;
+			}
+			else if (toggle)
+			{
+				hold = false;
+				key_bind->mode = TOGGLE;
+			}
+			else
+			{
+				always = false;
 				key_bind->mode = TOGGLE;
 			}
 
@@ -1420,7 +1380,7 @@ void lua_edit(std::string window_name)
 		static TCHAR path[MAX_PATH];
 
 		if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, NULL, path)))
-			file_path = std::string(path) + crypt_str("\\Qwerty.xyz\\Scripts\\");
+			file_path = std::string(path) + crypt_str("\\LWK\\LUA\\");
 
 		CreateDirectory(file_path.c_str(), NULL);
 		file_path += window_name + crypt_str(".lua");
@@ -1493,1185 +1453,2132 @@ void lua_edit(std::string window_name)
 	ImGui::End();
 }
 
-void c_menu::CustomVisuals(ImVec2 Start)
+const char* fov = u8"%.1f\u00B0";
+
+void c_menu::draw_ragebot(int child)
 {
-	auto player = c_menu::get().players_section;
-	auto Draw = ImGui::GetWindowDrawList();
-	//CGui* Draw = &X1Gui();
-//	ImDrawCmd* Draw = ImGui::GetWindowDrawList();
-	ImGuiIO& g = ImGui::GetIO();
-
-	std::string MV_AMMO_TEXT = "";
-
-	/*if (AmmoStyle == 0)
+	if (Active_Rage_Tab == 1) 
 	{
-		MV_AMMO_TEXT = crypt_str("[30]");
-	}
-	else if (AmmoStyle == 1)
-	{
-		MV_AMMO_TEXT = crypt_str("[30\\90]");
-	}
-	else if (AmmoStyle == 2)
-	{
-		MV_AMMO_TEXT = crypt_str("[120]");
-	}*/
-	static MoveStruct* MV_Hp = &MVItemList[MI_HEALTH_BAR];
-	static MoveStruct* MV_Armor = &MVItemList[MI_ARMOR_BAR];
-
-	static MoveStruct* MV_Hp_Text = &MVItemList[MI_HEALTH_TEXT];
-	static MoveStruct* MV_Armor_Text = &MVItemList[MI_ARMOR_TEXT];
-
-	static MoveStruct* MV_Name = &MVItemList[MI_NAME_TEXT];
-	static MoveStruct* MV_Weapon = &MVItemList[MI_WEAPON_TEXT];
-	static MoveStruct* MV_Ammo = &MVItemList[MI_AMMO_TEXT];
-	static MoveStruct* MV_Distance = &MVItemList[MI_DISTANCE_TEXT];
-	static MoveStruct* MV_Money = &MVItemList[MI_MONEY_TEXT];
-	static MoveStruct* MV_Scope = &MVItemList[MI_SCOPE_TEXT];
-	static MoveStruct* MV_Flashed = &MVItemList[MI_FLASHED_TEXT];
-	static MoveStruct* MV_Defusing = &MVItemList[MI_DEFUSING_TEXT];
-
-
-	MV_Name->Size = ImGui::CalcTextSize(MV_NAME_TEXT, NULL, true);
-	MV_Weapon->Size = ImGui::CalcTextSize(MV_WEAPON_TEXT, NULL, true);
-	/*MV_Hp_Text->Size = GP_Render->CalcTextSize(MV_HEALTH_TEXT, GP_Render->SzFonts[TextHealthSize]);
-	MV_Armor_Text->Size = GP_Render->CalcTextSize(MV_ARMOR_TEXT, GP_Render->SzFonts[TextArmorSize]);
-	MV_Name->Size = GP_Render->CalcTextSize(MV_NAME_TEXT, GP_Render->SzFonts[TextNameSize]);
-	MV_Ammo->Size = GP_Render->CalcTextSize(MV_AMMO_TEXT.c_str(), GP_Render->SzFonts[TextAmmoSize]);
-	MV_Distance->Size = GP_Render->CalcTextSize(MV_DISTANCE_TEXT, GP_Render->SzFonts[TextDistanceSize]);
-	MV_Money->Size = GP_Render->CalcTextSize(MV_MONEY_TEXT, GP_Render->SzFonts[TextMoneySize]);
-	MV_Flashed->Size = GP_Render->CalcTextSize(MV_FLASHED_TEXT, GP_Render->SzFonts[TextFlashedSize]);
-	MV_Scope->Size = GP_Render->CalcTextSize(MV_SCOPE_TEXT, GP_Render->SzFonts[TextScopedSize]);
-	MV_Defusing->Size = GP_Render->CalcTextSize(MV_DEFUSING_TEXT, GP_Render->SzFonts[TextDefusingSize]);*/
-
-	//	if (WeaponStyle == 0)
-		//	MV_Weapon->Size = GP_Render->CalcTextSize(MV_WEAPON_TEXT, GP_Render->SzFonts[TextWeaponSize]);
-	//	else if (WeaponStyle == 1)
-		//	MV_Weapon->Size = GP_Render->CalcTextSize(MV_WEAPON_TEXT_ICO, GP_Render->SzFontsIcon[TextWeaponSize]);
-
-	MV_Hp->IsEnabled = config_system.g_cfg.player.type[player].health;
-	//	MV_Armor->IsEnabled = Armor && ArmorStyle == 0;
-
-		////MV_Hp_Text->IsEnabled = Health && HealthStyle == 1;
-		//MV_Armor_Text->IsEnabled = Armor && ArmorStyle == 1;
-
-	MV_Name->IsEnabled = config_system.g_cfg.player.type[player].name;
-	MV_Weapon->IsEnabled = &config_system.g_cfg.player.type[player].weapon;
-	//MV_Ammo->IsEnabled = Ammo;
-//	MV_Distance->IsEnabled = Distance;
-//	MV_Money->IsEnabled = Money;
-//	MV_Scope->IsEnabled = Scope;
-//	MV_Flashed->IsEnabled = Flashing;
-//	MV_Defusing->IsEnabled = Defusing;
-
-	//ImU32 LinesColor = Color(ImVec4(1.f * 255.f, 1.f * 255.f, 1.f * 255.f, 0.1f * 255.f));
-	//ImU32 OutLineColor = ImVec4(1.f * 255.f, 1.f * 255.f, 1.f * 255.f, 0.3f * 255.f);
-	//ImU32 BackColor = ImVec4(0.5f * 255.f, 0.5f * 255.f, 0.5f * 255.f, 0.5f * 255.f);
-
-	ImU32 LinesColor = ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 0.1f));
-	ImU32 OutLineColor = ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 0.3f));
-	ImU32 BackColor = ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 0.5f));
-
-	//auto LinesColor = Color(255 / 255.f, 255 / 255.f, 255 / 255.f, 0.1f / 255.f);
-	//auto OutLineColor = Color(255 / 255.f, 255 / 255.f, 255 / 255.f, 0.3f / 255.f);
-	//auto BackColor = Color(255/ 255.f, 255 / 255.f, 255 / 255.f, 0.5f / 255.f);
-
-	IsMousPress = g.MouseDownDuration[0] > 0.0f;
-	IsMousClick = g.MouseClicked[0];
-
-	ImVec2 MousePos = g.MousePos;
-
-	auto FixPos = [](ImVec2 Max, ImVec2 Min, ImVec2& Cur)
-	{
-		if (Cur.x > Max.x - 5) { Cur.x = Max.x - 5; }
-		if (Cur.y > Max.y - 5) { Cur.y = Max.y - 5; }
-		if (Cur.x < Min.x + 5) { Cur.x = Min.x + 5; }
-		if (Cur.y < Min.y + 5) { Cur.y = Min.y + 5; }
-	};
-
-	auto DrawVBox = [Draw](ImVec2 Pos, ImVec2 Size, ImU32 Color)
-	{
-		Pos = ImVec2(int(Pos.x), int(Pos.y));
-		Draw->AddLine(ImVec2(Pos.x - 0.5f, Pos.y), ImVec2(Pos.x + Size.x, Pos.y), Color);
-		Draw->AddLine(ImVec2(Pos.x, Pos.y - 0.5f), ImVec2(Pos.x, Pos.y + Size.y), Color);
-		Draw->AddLine(ImVec2(Pos.x, Pos.y + Size.y), ImVec2(Pos.x + Size.x + 0.5f, Pos.y + Size.y), Color);
-		Draw->AddLine(ImVec2(Pos.x + Size.x, Pos.y), ImVec2(Pos.x + Size.x, Pos.y + Size.y + 0.5f), Color);
-	};
-
-	auto DrawVBoxCorner = [Draw](ImVec2 Pos, ImVec2 Size, ImU32 Color)
-	{
-		Pos = ImVec2(int(Pos.x), int(Pos.y));
-		/*
-
-		01-----------11
-		2             2
-		|             |
-		|             |
-		1             1
-		22-----------23
-		*/
-
-		int LSize_X = Size.x / 4;
-		int LSize_Y = Size.y / 4;
-
-		/*01*/
-		Draw->AddLine(
-			ImVec2(Pos.x, Pos.y),
-			ImVec2(Pos.x + LSize_X, Pos.y),
-			Color);
-
-		/*02*/
-		Draw->AddLine(
-			ImVec2(Pos.x, Pos.y),
-			ImVec2(Pos.x, Pos.y + LSize_Y),
-			Color);
-
-		/*11*/
-		Draw->AddLine(
-			ImVec2(Pos.x + Size.x - LSize_X, Pos.y),
-			ImVec2(Pos.x + Size.x, Pos.y),
-			Color);
-
-		/*12*/
-		Draw->AddLine(
-			ImVec2(Pos.x + Size.x, Pos.y),
-			ImVec2(Pos.x + Size.x, Pos.y + LSize_Y),
-			Color);
-
-
-		/*21*/
-		Draw->AddLine(
-			ImVec2(Pos.x, Pos.y + Size.y - LSize_Y),
-			ImVec2(Pos.x, Pos.y + Size.y),
-			Color);
-
-		/*22*/
-		Draw->AddLine(
-			ImVec2(Pos.x, Pos.y + Size.y),
-			ImVec2(Pos.x + LSize_X, Pos.y + Size.y),
-			Color);
-
-		/*31*/
-		Draw->AddLine(
-			ImVec2(Pos.x + Size.x, Pos.y + Size.y - LSize_Y),
-			ImVec2(Pos.x + Size.x, Pos.y + Size.y),
-			Color);
-
-		/*32*/
-		Draw->AddLine(
-			ImVec2(Pos.x + Size.x - LSize_X, Pos.y + Size.y),
-			ImVec2(Pos.x + Size.x, Pos.y + Size.y),
-			Color);
-	};
-
-	auto Background = [Draw, DrawVBox, LinesColor, OutLineColor, BackColor](ImVec2 Min, ImVec2 Max, ImVec2 MenuPos)
-	{
-
-		//Draw->AddRectFilled(ImVec2(Min.x, Min.y + (VIS_PREW_ZONE_Y / LINES_Y)), ImVec2(VIS_PREW_ZONE_X, VIS_PREW_ZONE_Y), BackColor);
-
-	//	for (int i(1); i <= LINES_Y; i++)
-	//		Draw->AddLine(ImVec2(Min.x, Min.y + (VIS_PREW_ZONE_Y / LINES_Y) * i), ImVec2(Min.x + VIS_PREW_ZONE_X, Min.y + (VIS_PREW_ZONE_Y / LINES_Y) * i), LinesColor);
-	//	for (int i(1); i <= LINES_X; i++)
-	//		Draw->AddLine(ImVec2(Min.x + (VIS_PREW_ZONE_X / LINES_X) * i, Min.y), ImVec2(Min.x + (VIS_PREW_ZONE_X / LINES_X) * i, Min.y + VIS_PREW_ZONE_Y), LinesColor);
-
-		DrawVBox(ImVec2(Min.x, Min.y + (VIS_PREW_ZONE_Y / LINES_Y)), ImVec2(VIS_PREW_ZONE_X, VIS_PREW_ZONE_Y), OutLineColor);
-	};
-
-	auto DrawBarVertical = [Draw, DrawVBox](ImVec2 Pos, ImVec2 Size, ImU32 MainColor, ImU32 BackColor, ImU32 OutLineColor, int Lines, MoveStruct* Curt)
-	{
-
-		//	Pos = ImVec2(int(Pos.x), int(Pos.y));
-
-			/*if (Curt->boolParam1)
-				Draw->AddRectFilled(ImVec2(Pos.x, Pos.y),
-					ImVec2(Size.x, Size.y),
-					BackColor);
-
-			if (!Curt->boolParam3)
-				Draw->AddRectFilled(ImVec2(Pos.x, Pos.y + (Size.y / 10)),
-					ImVec2(Size.x, Size.y - (Size.y / 10)),
-					MainColor);*/
-
-
-		if (Lines != 0)
+		ImGui::SetCursorPos(ImVec2{ 10, 90 });
+		ImGui::BeginChild("it3ems", { 365, 470 });
 		{
-			//	Lines += 1;
-			//	int DistL = Size.y / Lines;
 
-			//	if (Lines == 1)
-			//		DistL = Size.y / 2;
-
-			//	for (int i(1); i < Lines; i++)
-			//	{
-			//		Draw->AddLine(ImVec2(Pos.x, Pos.y + DistL * i), ImVec2(Pos.x + Size.x, Pos.y + DistL * i), OutLineColor);
-			//	}
-		}
-		Draw->AddRectFilled(ImVec2(Pos.x, Pos.y + Size.y / 2),
-			ImVec2(Pos.x + Size.x, Pos.y + Size.y),
-			MainColor);
-
-		if (Curt->boolParam2)
-			DrawVBox(Pos, Size, OutLineColor);
-	};
-
-	auto DrawBarHorizontal = [Draw, DrawVBox](ImVec2 Pos, ImVec2 Size, ImU32 MainColor, ImU32 BackColor, ImU32 OutLineColor, int Lines, MoveStruct* Curt)
-	{
-		//Pos = ImVec2(int(Pos.x), int(Pos.y));
-	//	if (Curt->boolParam1)
-		//	Draw->AddRectFilled(ImVec2(Pos.x, Pos.y),
-		//		ImVec2(Size.x, Size.y),
-		//		BackColor);
-
-	//	if (Curt->boolParam3)
-	////		Draw->AddRectFilled(ImVec2(Pos.x, Pos.y),
-	//			ImVec2(Size.x - (Size.x / 10), Size.y),
-	//			MainColor);
-	//	else
-	//		Draw->AddRectFilled(ImVec2(Pos.x + (Size.x / 10), Pos.y),
-		//		ImVec2(Size.x - (Size.x / 10), Size.y),
-		//		MainColor);
-
-	//	if (Lines != 0)
-	//	{
-		//	Lines += 1;
-		//	int DistL = Size.x / Lines;
-		//
-		//	if (Lines == 1)
-		//		DistL = Size.x / 2;
-		//
-		//	for (int i(1); i < Lines; i++)
-		//		Draw->AddLine(ImVec2(Pos.x + DistL * i, Pos.y), ImVec2(Pos.x + DistL * i, Pos.y + Size.y), OutLineColor);
-		//}
-		Draw->AddRectFilled(ImVec2(Pos.x, Pos.y),
-			ImVec2(Pos.x + Size.x / 2, Pos.y + Size.y),
-			MainColor);
-		if (Curt->boolParam2)
-			DrawVBox(Pos, Size, OutLineColor);
-
-	};
-	//ImGui::SetCursorPos(ImVec2(ImGui::GetWindowPos()));
-	ImVec2 StartPos = ImGui::GetCursorPos();
-
-	ImVec2 StartPosScreen = ImGui::GetWindowPos();
-
-	ImVec2 TextOffset = ImVec2(StartPosScreen.x - StartPos.x, StartPosScreen.y - StartPos.y);
-	auto _DrawText = [Draw, TextOffset](std::string text, MoveStruct* Curt/*, CFont* font*/)
-	{
-		ImVec2 Pos = ImVec2(Curt->Position.x - TextOffset.x, Curt->Position.y - TextOffset.y);
-		ImU32 background = ImGui::GetColorU32(ImVec4(255 / 255.f, 255 / 255.f, 255 / 255.f, 20 / 255.f));
-		ImU32 texts = ImGui::GetColorU32(ImVec4(255 / 255.f, 255 / 255.f, 255 / 255.f, 255 / 255.f));
-		if (Curt->boolParam3)
-		{
-			ImVec2 NSize = Curt->Size;
-			ImVec2 NPos = Curt->Position;
-
-			NSize.x += 30;
-			NPos.x -= 15;
-			NPos.y += 1.5f;
-
-			float max = NSize.x / 3.f;
-
-			for (int i(0); i < max; i++)
-				Draw->AddRectFilled(ImVec2(NPos.x + i, NPos.y),
-					ImVec2(NPos.x + i + 1, NPos.y + NSize.y),
-					background);
-
-			Draw->AddRectFilled(ImVec2(NPos.x + max, NPos.y),
-				ImVec2(NPos.x + (max * 2), NPos.y + NSize.y),
-				background);
-
-			for (int i(0); i < max; i++)
-				Draw->AddRectFilled(ImVec2(NPos.x + i + (max * 2), NPos.y),
-					ImVec2(NPos.x + i + 1 + (max * 2), NPos.y + NSize.y),
-					background);
-
-
-		}
-		if (true)
-		{
-			Draw->AddText(ImVec2(Pos.x + 1, Pos.y + 1), texts, text.c_str());
-			//	Draw->AddText(ImVec2(Pos.x + 1, Pos.y + 1), texts, text.c_str());
-			//	RenderTextClipped(frame_bb.Min + style.FramePadding, ImVec2(value_x2, frame_bb.Max.y), preview_value, NULL, NULL, ImVec2(0.0f, 0.0f));
-			//	ImGui::RenderTextClipped(ImVec2(Pos.x,Pos.y),ImVec2(Pos.x, Pos.y), text.c_str(),NULL, NULL, ImVec2(0.0f, 0.0f));
-
-			//	Draw->Text
-		}
-
-		Draw->AddText(ImVec2(Pos.x + 1, Pos.y + 1), texts, text.c_str());
-
-	};
-
-	ImVec2 EndPosScreen = ImVec2(StartPosScreen.x + VIS_PREW_ZONE_X, StartPosScreen.y + VIS_PREW_ZONE_Y);
-
-	if ((MousePos.x > StartPosScreen.x && MousePos.x < EndPosScreen.x) &&
-		(MousePos.y > StartPosScreen.y && MousePos.y < EndPosScreen.y))
-	{
-
-	}
-
-	int FixImgPos_X = ((VIS_PREW_ZONE_X - IMAGE_X) / 2);
-	int FixImgPos_Y = ((VIS_PREW_ZONE_Y - IMAGE_Y) / 2);
-
-	ImVec2 ImgePos = ImVec2(StartPos.x + FixImgPos_X, StartPos.y + FixImgPos_Y);
-
-	ImVec2 ScreenImgePos = ImgePos;
-
-	Background(StartPosScreen, EndPosScreen, StartPos);
-
-	//	if (!VisualBodyImage)
-		//	D3DXCreateTextureFromFileEx(GP_Render->m_pDevice, (CGlobal::SystemDisk + XorStr("X1N3\\Resources\\Images\\Body.png")).c_str(), 222, 579,
-		//		D3DX_DEFAULT, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_DEFAULT, D3DX_DEFAULT, 0, NULL, NULL, &VisualBodyImage);
-
-	//	if (VisualBodyImage)
-		//	Draw->DrawImage(VisualBodyImage, ImgePos, ImgePos + ImVec2(IMAGE_X, IMAGE_Y));
-
-	Draw->AddLine(ImVec2(StartPosScreen.x + (VIS_PREW_ZONE_X / 2), StartPosScreen.y), ImVec2(StartPosScreen.x + (VIS_PREW_ZONE_X / 2), StartPosScreen.y + VIS_PREW_ZONE_Y), OutLineColor);
-	Draw->AddLine(ImVec2(StartPosScreen.x, StartPosScreen.y + (VIS_PREW_ZONE_Y / 2)), ImVec2(StartPosScreen.x + VIS_PREW_ZONE_X, StartPosScreen.y + (VIS_PREW_ZONE_Y / 2)), OutLineColor);
-	ImU32 skeleton = ImGui::GetColorU32(ImVec4(config_system.g_cfg.player.type[player].skeleton_color.r(), config_system.g_cfg.player.type[player].skeleton_color.g(), config_system.g_cfg.player.type[player].skeleton_color.b(), config_system.g_cfg.player.type[player].skeleton_color.a()));
-	auto SkeletonColor = skeleton;
-
-	if (config_system.g_cfg.player.type[player].skeleton)
-	{
-		Draw->AddLine(ImVec2(StartPosScreen.x + 152 + 20, StartPosScreen.y + 122), ImVec2(StartPosScreen.x + 150 + 20, StartPosScreen.y + 103), SkeletonColor);
-		Draw->AddLine(ImVec2(StartPosScreen.x + 152 + 20, StartPosScreen.y + 122), ImVec2(StartPosScreen.x + 157 + 20, StartPosScreen.y + 129), SkeletonColor);
-		Draw->AddLine(ImVec2(StartPosScreen.x + 157 + 20, StartPosScreen.y + 129), ImVec2(StartPosScreen.x + 158 + 20, StartPosScreen.y + 163), SkeletonColor);
-		Draw->AddLine(ImVec2(StartPosScreen.x + 158 + 20, StartPosScreen.y + 163), ImVec2(StartPosScreen.x + 159 + 20, StartPosScreen.y + 194), SkeletonColor);
-		Draw->AddLine(ImVec2(StartPosScreen.x + 159 + 20, StartPosScreen.y + 194), ImVec2(StartPosScreen.x + 180 + 20, StartPosScreen.y + 219), SkeletonColor);
-		Draw->AddLine(ImVec2(StartPosScreen.x + 180 + 20, StartPosScreen.y + 219), ImVec2(StartPosScreen.x + 195 + 20, StartPosScreen.y + 273), SkeletonColor);
-		Draw->AddLine(ImVec2(StartPosScreen.x + 195 + 20, StartPosScreen.y + 273), ImVec2(StartPosScreen.x + 196 + 20, StartPosScreen.y + 306), SkeletonColor);
-		Draw->AddLine(ImVec2(StartPosScreen.x + 159 + 20, StartPosScreen.y + 194), ImVec2(StartPosScreen.x + 139 + 20, StartPosScreen.y + 218), SkeletonColor);
-		Draw->AddLine(ImVec2(StartPosScreen.x + 139 + 20, StartPosScreen.y + 216), ImVec2(StartPosScreen.x + 131 + 20, StartPosScreen.y + 267), SkeletonColor);
-		Draw->AddLine(ImVec2(StartPosScreen.x + 131 + 20, StartPosScreen.y + 267), ImVec2(StartPosScreen.x + 134 + 20, StartPosScreen.y + 286), SkeletonColor);
-		Draw->AddLine(ImVec2(StartPosScreen.x + 157 + 20, StartPosScreen.y + 132), ImVec2(StartPosScreen.x + 121 + 20, StartPosScreen.y + 142), SkeletonColor);
-		Draw->AddLine(ImVec2(StartPosScreen.x + 121 + 20, StartPosScreen.y + 142), ImVec2(StartPosScreen.x + 126 + 20, StartPosScreen.y + 146), SkeletonColor);
-		Draw->AddLine(ImVec2(StartPosScreen.x + 125 + 20, StartPosScreen.y + 145), ImVec2(StartPosScreen.x + 141 + 20, StartPosScreen.y + 134), SkeletonColor);
-		Draw->AddLine(ImVec2(StartPosScreen.x + 157 + 20, StartPosScreen.y + 132), ImVec2(StartPosScreen.x + 183 + 20, StartPosScreen.y + 135), SkeletonColor);
-		Draw->AddLine(ImVec2(StartPosScreen.x + 181 + 20, StartPosScreen.y + 135), ImVec2(StartPosScreen.x + 174 + 20, StartPosScreen.y + 141), SkeletonColor);
-		Draw->AddLine(ImVec2(StartPosScreen.x + 161 + 20, StartPosScreen.y + 122), ImVec2(StartPosScreen.x + 174 + 20, StartPosScreen.y + 141), SkeletonColor);
-	}
-
-	ImVec2 StartBoxPos = ImVec2(int(ScreenImgePos.x + IMAGE_X / 2), int(ScreenImgePos.y + (IMAGE_Y / 13) - ((int)10 * 2.9)));
-
-	ImVec2 CLines = ImVec2(StartPosScreen.x + (VIS_PREW_ZONE_X / 2), StartBoxPos.y);
-
-	BoxSize_Y = int(IMAGE_Y - (IMAGE_Y / 13) + ((int)10 * 4));
-	BoxSize_X = int(BoxSize_Y / 2);
-	StartBoxPos.x -= int(BoxSize_X / 2.f);
-
-	int HPTol = MV_Hp->NumParam2;
-	int ATol = MV_Armor->NumParam2;
-
-	for (int i(0); (MITypes)i < MI_MAX; i++)
-		MVItemList[i].Position = ImVec2(int(StartPosScreen.x + MVItemList[i].ZonePos.x), int(StartPosScreen.y + MVItemList[i].ZonePos.y));
-
-	if (!MoveStruct::InitMItems)
-	{
-		MoveStruct::InitMItems = true;
-		MoveStruct::LastActive = MI_MAX;
-
-		/*=====================================================================================*/
-		MV_Hp_Text->Position = ImVec2(StartBoxPos.x - MV_Hp_Text->Size.x, StartBoxPos.y);
-		MV_Hp_Text->StartPos = MV_Hp_Text->Position;
-		MV_Hp_Text->Id = MI_HEALTH_TEXT;
-		MV_Hp_Text->Side = LEFT_S;
-		MV_Hp_Text->TextSize = 17;
-		MV_Hp_Text->Offset = ImVec2(5, 0);
-		MV_Hp_Text->IsText = true;
-		MV_Hp_Text->Name = crypt_str("MV_HP_Text");
-		MV_Hp_Text->Color1 = Color(255, 255, 255, 255);
-
-		/*=====================================================================================*/
-		MV_Armor_Text->Position = ImVec2(StartBoxPos.x - MV_Armor_Text->Size.x, StartBoxPos.y);
-		MV_Armor_Text->StartPos = MV_Armor_Text->Position;
-		MV_Armor_Text->Id = MI_ARMOR_TEXT;
-		MV_Armor_Text->Side = LEFT_S;
-		MV_Armor_Text->TextSize = 17;
-		MV_Armor_Text->Offset = ImVec2(5, -10);
-		MV_Armor_Text->IsText = true;
-		MV_Armor_Text->Name = crypt_str("MV_Arm_Text");
-		MV_Hp_Text->Color1 = Color(255, 255, 255, 255);
-
-		/*=====================================================================================*/
-		MV_Hp->Position = ImVec2(StartBoxPos.x - HPTol, StartBoxPos.y);
-		MV_Hp->StartPos = MV_Hp->Position;
-		MV_Hp->Id = MI_HEALTH_BAR;
-		MV_Hp->Side = LEFT_S;
-		MV_Hp->Size = ImVec2(HPTol, BoxSize_Y);
-		MV_Hp->Offset = ImVec2(5, 0);
-
-		MV_Hp->Color1 = Color(10, 255, 10, 255);
-		MV_Hp->Color2 = Color(255, 0, 0, 255);
-		MV_Hp->Color3 = Color(0, 0, 0, 255);
-
-		MV_Hp->NumParam1 = 4;
-		MV_Hp->NumParam2 = 5;
-		MV_Hp->Name = crypt_str("MV_HPBar");
-		MV_Hp->boolParam1 = true;
-		MV_Hp->boolParam2 = true;
-		MV_Hp->boolParam3 = false;
-
-		/*=====================================================================================*/
-		MV_Armor->Position = ImVec2(StartBoxPos.x + BoxSize_X, StartBoxPos.y);
-		MV_Armor->StartPos = MV_Armor->Position;
-		MV_Armor->Id = MI_ARMOR_BAR;
-		MV_Armor->Side = RIGHT_S;
-		MV_Armor->Size = ImVec2(ATol, BoxSize_Y);
-		MV_Armor->Offset = ImVec2(-5, 0);
-
-		MV_Armor->Color1 = Color(255, 255, 255, 255);
-		MV_Armor->Color2 = Color(255, 0, 0, 255);
-		MV_Armor->Color3 = Color(0, 0, 0, 255);
-
-		MV_Armor->NumParam1 = 4;
-		MV_Armor->NumParam2 = 5;
-		MV_Armor->Name = crypt_str("MV_ArmorBar");
-		MV_Armor->boolParam1 = true;
-		MV_Armor->boolParam2 = true;
-		MV_Armor->boolParam3 = false;
-
-		/*=====================================================================================*/
-		MV_Name->Position = ImVec2(StartBoxPos.x + (BoxSize_X / 2) - (MV_Name->Size.x / 2), StartBoxPos.y - MV_Name->Size.y);
-		MV_Name->StartPos = MV_Name->Position;
-		MV_Name->Id = MI_NAME_TEXT;
-		MV_Name->Side = TOP_S;
-		MV_Name->TextSize = 17;
-		MV_Name->Offset = ImVec2(0, 4);
-		MV_Name->IsText = true;
-		MV_Name->Name = crypt_str("MV_Name");
-		MV_Name->boolParam1 = false;
-
-		MV_Name->Color1 = Color(255, 255, 255, 255);
-
-		/*=====================================================================================*/
-		MV_Weapon->Position = ImVec2(StartBoxPos.x + (BoxSize_X / 2) - (MV_Weapon->Size.x / 2), StartBoxPos.y + BoxSize_Y);
-		MV_Weapon->StartPos = MV_Weapon->Position;
-		MV_Weapon->Id = MI_WEAPON_TEXT;
-		MV_Weapon->Side = DOWN_S;
-		MV_Weapon->TextSize = 17;
-		MV_Weapon->Offset = ImVec2(0, -1);
-		MV_Weapon->IsText = true;
-		MV_Weapon->Name = crypt_str("MV_Weapon");
-		MV_Weapon->Color1 = Color(255, 255, 255, 255);
-
-		/*=====================================================================================*/
-		MV_Ammo->Position = ImVec2(StartBoxPos.x + (BoxSize_X / 2) - (MV_Ammo->Size.x / 2), StartBoxPos.y + BoxSize_Y);
-		MV_Ammo->StartPos = MV_Ammo->Position;
-		MV_Ammo->Id = MI_AMMO_TEXT;
-		MV_Ammo->Side = DOWN_S;
-		MV_Ammo->TextSize = 17;
-		MV_Ammo->Offset = ImVec2(0, -10);
-		MV_Ammo->IsText = true;
-		MV_Ammo->Color1 = Color(255, 255, 255, 255);
-
-		/*=====================================================================================*/
-		MV_Distance->Position = ImVec2(StartBoxPos.x + BoxSize_X, StartBoxPos.y + BoxSize_Y - MV_Distance->Size.y);
-		MV_Distance->StartPos = MV_Distance->Position;
-		MV_Distance->Id = MI_DISTANCE_TEXT;
-		MV_Distance->Side = DOWN_RIGHT_DOWN_S;
-		MV_Distance->TextSize = 17;
-		MV_Distance->Offset = ImVec2(-7, 0);
-		MV_Distance->IsText = true;
-		MV_Distance->Name = crypt_str("MV_Distance");
-		MV_Distance->Color1 = Color(255, 255, 255, 255);
-
-		/*=====================================================================================*/
-		MV_Money->Position = ImVec2(StartBoxPos.x + BoxSize_X, StartBoxPos.y);
-		MV_Money->StartPos = MV_Money->Position;
-		MV_Money->Id = MI_MONEY_TEXT;
-		MV_Money->Side = RIGHT_S;
-		MV_Money->TextSize = 17;
-		MV_Money->Offset = ImVec2(-7, 0);
-		MV_Money->IsText = true;
-		MV_Money->Name = crypt_str("MV_Money");
-		MV_Money->Color1 = Color(255, 255, 255, 255);
-
-		/*=====================================================================================*/
-		MV_Scope->Position = ImVec2(StartBoxPos.x + BoxSize_X, StartBoxPos.y);
-		MV_Scope->StartPos = MV_Scope->Position;
-		MV_Scope->Id = MI_SCOPE_TEXT;
-		MV_Scope->Side = RIGHT_S;
-		MV_Scope->TextSize = 17;
-		MV_Scope->Offset = ImVec2(-7, -7);
-		MV_Scope->IsText = true;
-		MV_Scope->Name = crypt_str("MV_Scope");
-		MV_Scope->Color1 = Color(255, 255, 255, 255);
-
-		/*=====================================================================================*/
-		MV_Flashed->Position = ImVec2(StartBoxPos.x + BoxSize_X, StartBoxPos.y + BoxSize_Y / 2);
-		MV_Flashed->StartPos = MV_Flashed->Position;
-		MV_Flashed->Id = MI_FLASHED_TEXT;
-		MV_Flashed->Side = CENTER_RIGHT_S;
-		MV_Flashed->TextSize = 17;
-		MV_Flashed->Color1 = Color(255, 255, 255, 255);
-		MV_Flashed->Offset = ImVec2(-7, 0);
-		MV_Flashed->IsText = true;
-		MV_Flashed->Name = crypt_str("MV_Flashed");
-
-		/*=====================================================================================*/
-		MV_Defusing->Position = ImVec2(StartBoxPos.x + BoxSize_X, StartBoxPos.y + BoxSize_Y / 2);
-		MV_Defusing->StartPos = MV_Defusing->Position;
-		MV_Defusing->Id = MI_DEFUSING_TEXT;
-		MV_Defusing->Side = CENTER_RIGHT_S;
-		MV_Defusing->TextSize = 17;
-		MV_Defusing->Color1 = Color(255, 255, 255, 255);
-		MV_Defusing->Offset = ImVec2(-7, -7);
-		MV_Defusing->IsText = true;
-		MV_Defusing->Name = crypt_str("MV_Defusing");
-	}
-
-	//if (FillBox)
-	//	Draw->DrawFilledBox(StartBoxPos, ImVec2(BoxSize_X, BoxSize_Y), FillBoxColor, BoxStyle == 3 ? BoxSize_X / 5.f : 0.0f);
-
-	if (config_system.g_cfg.player.type[player].box)
-	{
-		ImU32 box = ImGui::GetColorU32(ImVec4(config_system.g_cfg.player.type[player].box_color.r(), config_system.g_cfg.player.type[player].box_color.g(), config_system.g_cfg.player.type[player].box_color.b(), config_system.g_cfg.player.type[player].box_color.a()));
-		auto BoxOutLineColor = box;
-
-		//color_t BoxOutLineColor = color_t(0.f, 0.f, 0.f, 255.f);
-
-		DrawVBoxCorner(StartBoxPos, ImVec2(BoxSize_X, BoxSize_Y), BoxOutLineColor);
-		//	if (BoxOutline)
-		//	{
-		DrawVBoxCorner(ImVec2(StartBoxPos.x + 1, StartBoxPos.y + 1), ImVec2(BoxSize_X - 2, BoxSize_Y - 2), BoxOutLineColor);
-		DrawVBoxCorner(ImVec2(StartBoxPos.x - 1, StartBoxPos.y - 1), ImVec2(BoxSize_X + 2, BoxSize_Y + 2), BoxOutLineColor);
-
-		int LSize_X = BoxSize_X / 4;
-		int LSize_Y = BoxSize_Y / 4;
-
-		Draw->AddLine(ImVec2(StartBoxPos.x + LSize_X + 0.5f, StartBoxPos.y - 1), ImVec2(StartBoxPos.x + LSize_X + 0.5f, StartBoxPos.y + 1), BoxOutLineColor);
-		Draw->AddLine(ImVec2(StartBoxPos.x - 1, StartBoxPos.y + LSize_Y + 0.5f), ImVec2(StartBoxPos.x + 1, StartBoxPos.y + LSize_Y + 0.5f), BoxOutLineColor);
-
-		Draw->AddLine(ImVec2(StartBoxPos.x + BoxSize_X - LSize_X - 0.5f, StartBoxPos.y - 1), ImVec2(StartBoxPos.x + BoxSize_X - LSize_X - 0.5f, StartBoxPos.y + 1), BoxOutLineColor);
-		Draw->AddLine(ImVec2(StartBoxPos.x + BoxSize_X - 1, StartBoxPos.y + LSize_Y + 0.5f), ImVec2(StartBoxPos.x + BoxSize_X + 1, StartBoxPos.y + LSize_Y + 0.5f), BoxOutLineColor);
-
-		Draw->AddLine(ImVec2(StartBoxPos.x + LSize_X + 0.5f, StartBoxPos.y + BoxSize_Y - 1), ImVec2(StartBoxPos.x + LSize_X + 0.5f, StartBoxPos.y + BoxSize_Y + 1), BoxOutLineColor);
-		Draw->AddLine(ImVec2(StartBoxPos.x - 1, StartBoxPos.y + BoxSize_Y - LSize_Y - 0.5f), ImVec2(StartBoxPos.x + 1, StartBoxPos.y + BoxSize_Y - LSize_Y - 0.5f), BoxOutLineColor);
-
-		Draw->AddLine(ImVec2(StartBoxPos.x + BoxSize_X - LSize_X - 0.5f, StartBoxPos.y + BoxSize_Y - 1), ImVec2(StartBoxPos.x + BoxSize_X - LSize_X - 0.5f, StartBoxPos.y + BoxSize_Y + 1), BoxOutLineColor);
-		Draw->AddLine(ImVec2(StartBoxPos.x + BoxSize_X - 1, StartBoxPos.y + BoxSize_Y - LSize_Y - 0.5f), ImVec2(StartBoxPos.x + BoxSize_X + 1, StartBoxPos.y + BoxSize_Y - LSize_Y - 0.5f), BoxOutLineColor);
-
-	}
-
-	//	if (HeadEsp)
-		//{
-		//	ImVec2 HeadCenterPos = ImVec2(ScreenImgePos.x + 51, ScreenImgePos.y + 20);
-	//
-		//	Draw->DrawRing(HeadCenterPos.x, HeadCenterPos.y, 20, 64, HeadEspColor, 1);
-	//	}
-
-	auto ChangeSidePos = [StartBoxPos](MoveStruct* Curt, int fix) -> ImVec2
-	{
-		switch (Curt->Side)
-		{
-		case LEFT_S:  return ImVec2(StartBoxPos.x - fix - Curt->CorrectPadding.x, StartBoxPos.y);
-		case RIGHT_S: return ImVec2(StartBoxPos.x + BoxSize_X + Curt->CorrectPadding.x, StartBoxPos.y);
-		case TOP_S:   return ImVec2(StartBoxPos.x, StartBoxPos.y - fix - Curt->CorrectPadding.y);
-		case DOWN_S:  return ImVec2(StartBoxPos.x, StartBoxPos.y + BoxSize_Y + Curt->CorrectPadding.y);
-		default: return ImVec2(0, 0);
-		}
-	};
-
-	auto ChangeSidePosText = [StartBoxPos](MoveStruct* Curt, ImVec2 Size) -> ImVec2
-	{
-		switch (Curt->Side)
-		{
-		case LEFT_S: return ImVec2(StartBoxPos.x - Size.x - Curt->CorrectPadding.x, StartBoxPos.y + Curt->CorrectPadding.y);
-		case RIGHT_S:return ImVec2(StartBoxPos.x + BoxSize_X + Curt->CorrectPadding.x, StartBoxPos.y + Curt->CorrectPadding.y);
-		case TOP_S:  return ImVec2(StartBoxPos.x + (BoxSize_X / 2) - (Size.x / 2), StartBoxPos.y - Size.y - Curt->CorrectPadding.y);
-		case DOWN_S: return ImVec2(StartBoxPos.x + (BoxSize_X / 2) - (Size.x / 2), StartBoxPos.y + BoxSize_Y + Curt->CorrectPadding.y);
-		case LEFT_TOP_S:  return ImVec2(StartBoxPos.x, StartBoxPos.y - Size.y - Curt->CorrectPadding.y);
-		case RIGHT_TOP_S: return ImVec2(StartBoxPos.x + BoxSize_X - Size.x, StartBoxPos.y - Size.y - Curt->CorrectPadding.y);
-		case LEFT_DOWN_S: return ImVec2(StartBoxPos.x, StartBoxPos.y + BoxSize_Y + Curt->CorrectPadding.y);
-		case RIGHT_DOWN_S:return ImVec2(StartBoxPos.x + BoxSize_X - Size.x, StartBoxPos.y + BoxSize_Y + Curt->CorrectPadding.y);
-		case CENTER_LEFT_S:    return ImVec2(StartBoxPos.x - Size.x - Curt->CorrectPadding.x, StartBoxPos.y + (BoxSize_Y / 2) + Curt->CorrectPadding.y);
-		case CENTER_RIGHT_S:   return ImVec2(StartBoxPos.x + BoxSize_X + Curt->CorrectPadding.x, StartBoxPos.y + (BoxSize_Y / 2) + Curt->CorrectPadding.y);
-		case DOWN_LEFT_DOWN_S: return ImVec2(StartBoxPos.x - Size.x - Curt->CorrectPadding.x, StartBoxPos.y + BoxSize_Y - Size.y + Curt->CorrectPadding.y);
-		case DOWN_RIGHT_DOWN_S:return ImVec2(StartBoxPos.x + BoxSize_X + Curt->CorrectPadding.x, StartBoxPos.y + BoxSize_Y - Size.y + Curt->CorrectPadding.y);
-		default: return ImVec2(0, 0);
-		}
-	};
-
-	ImVec2 HPStartPos = ChangeSidePos(MV_Hp, HPTol);
-	ImVec2 ArmorStartPos = ChangeSidePos(MV_Armor, ATol);
-
-	ImVec2 HPTextStartPos = ChangeSidePosText(MV_Hp_Text, MV_Hp_Text->Size);
-	ImVec2 ArmorTextStartPos = ChangeSidePosText(MV_Armor_Text, MV_Armor_Text->Size);
-
-	ImVec2 NameStartPos = ChangeSidePosText(MV_Name, MV_Name->Size);
-	ImVec2 WeaponStartPos = ChangeSidePosText(MV_Weapon, MV_Weapon->Size);
-	ImVec2 AmmoStartPos = ChangeSidePosText(MV_Ammo, MV_Ammo->Size);
-	ImVec2 DistanceStartPos = ChangeSidePosText(MV_Distance, MV_Distance->Size);
-	ImVec2 MoneyStartPos = ChangeSidePosText(MV_Money, MV_Money->Size);
-	ImVec2 DefusingStartPos = ChangeSidePosText(MV_Defusing, MV_Defusing->Size);
-	ImVec2 ScopeStartPos = ChangeSidePosText(MV_Scope, MV_Scope->Size);
-	ImVec2 FlashedStartPos = ChangeSidePosText(MV_Flashed, MV_Flashed->Size);
-
-	MV_Hp->SizeV = ImVec2(HPTol, BoxSize_Y);
-	MV_Armor->SizeV = ImVec2(ATol, BoxSize_Y);
-
-	MV_Hp->SizeH = ImVec2(BoxSize_X, HPTol);
-	MV_Armor->SizeH = ImVec2(BoxSize_X, ATol);
-
-	auto IsPosTouch = [](MoveStruct& Curt, ImVec2 Pos) -> bool
-	{
-		if ((Pos.x > Curt.Position.x && Pos.x < Curt.Position.x + Curt.Size.x) &&
-			(Pos.y > Curt.Position.y && Pos.y < Curt.Position.y + Curt.Size.y))
-		{
-			return true;
-		}
-		return false;
-	};
-
-	auto CalcPadding = [&](MoveStruct& Curt) -> void
-	{
-		bool CheckVert = true;
-		bool CheckHor = true;
-
-		Curt.CorrectPadding = ImVec2(0, 0);
-
-		int TraceLenX = 25;
-		int TraceLenY = 30;
-
-		if (Curt.Side == RIGHT_S || Curt.Side == CENTER_RIGHT_S || Curt.Side == DOWN_RIGHT_DOWN_S)
-		{
-			for (MoveStruct MV : MVItemList)
+			ImGui::SetCursorPos({ 10,0 });
+			ImGui::BeginGroup();
 			{
-				if (MV.IsEnabled && Curt.IsEnabled && MV.Id != Curt.Id && (CheckHor || CheckVert) &&
-					(MoveStruct::LastActive == Curt.Id || MoveStruct::LastActive == MV.Id ? !IsPosTouch(MV, Curt.Center) : true) &&
-					(MV.Side != TOP_S && MV.Side != LEFT_TOP_S && MV.Side != RIGHT_TOP_S))
-				{
-					if (CheckVert)
-					{
-						for (int i(-3); i < TraceLenY; i++)
-						{
-							if (IsPosTouch(MV, ImVec2(Curt.Center.x, Curt.Center.y - (Curt.Size.y / 2) - i)))
-							{
-								Curt.CorrectPadding.y = MV.CorrectPadding.y + MV.Size.y;
-								CheckVert = false;
-							}
-						}
-					}
 
-					if (CheckHor && (!MV.IsText ? true : Curt.Center.y > MV.Center.y))
+				ImGui::Checkbox(crypt_str("Enable"), &g_cfg.ragebot.enable);
+
+				if (g_cfg.ragebot.enable)
+					g_cfg.legitbot.enabled = false;
+
+				ImGui::SliderInt(crypt_str("Field of view"), &g_cfg.ragebot.field_of_view, 1, 180, false, crypt_str(fov));
+				ImGui::Checkbox(crypt_str("Silent aim"), &g_cfg.ragebot.silent_aim);
+				ImGui::Checkbox(crypt_str("Automatic wall"), &g_cfg.ragebot.autowall);
+				ImGui::Checkbox(crypt_str("Aimbot with zeus"), &g_cfg.ragebot.zeus_bot);
+				ImGui::Checkbox(crypt_str("Aimbot with knife"), &g_cfg.ragebot.knife_bot);
+				ImGui::Checkbox(crypt_str("Automatic fire"), &g_cfg.ragebot.autoshoot);
+				ImGui::Checkbox(crypt_str("Automatic scope"), &g_cfg.ragebot.autoscope);
+				ImGui::Checkbox(crypt_str("Pitch desync correction"), &g_cfg.ragebot.pitch_antiaim_correction);
+
+				ImGui::Spacing();
+				ImGui::Checkbox(crypt_str("Double tap"), &g_cfg.ragebot.double_tap);
+
+				if (g_cfg.ragebot.double_tap)
+				{
+					ImGui::SameLine();
+					draw_keybind(crypt_str(""), &g_cfg.ragebot.double_tap_key, crypt_str("##HOTKEY_DT"));
+					ImGui::Checkbox(crypt_str("Disable teleport"), &g_cfg.ragebot.slow_teleport);
+				}
+
+				ImGui::Checkbox(crypt_str("Hide shots"), &g_cfg.antiaim.hide_shots);
+
+				if (g_cfg.antiaim.hide_shots)
+				{
+					ImGui::SameLine();
+					draw_keybind(crypt_str(""), &g_cfg.antiaim.hide_shots_key, crypt_str("##HOTKEY_HIDESHOTS"));
+				}
+			}
+			ImGui::EndGroup();
+		}
+		ImGui::EndChild();
+		ImGui::SetCursorPos(ImVec2{ 370, 90 });
+		ImGui::BeginChild("item6s2", { 365, 470 });
+		{
+
+			ImGui::SetCursorPos({ 10,0 });
+			ImGui::BeginGroup();
+			{
+				static auto type = 0;
+
+				ImGui::Checkbox(crypt_str("Enable"), &g_cfg.antiaim.enable);
+				draw_combo(crypt_str("Anti-aim type"), g_cfg.antiaim.antiaim_type, antiaim_type, ARRAYSIZE(antiaim_type));
+
+				if (g_cfg.antiaim.antiaim_type)
+				{
+					padding(0, 3);
+					draw_combo(crypt_str("Desync"), g_cfg.antiaim.desync, desync, ARRAYSIZE(desync));
+
+					if (g_cfg.antiaim.desync)
 					{
-						for (int i(CheckVert ? -3 : 1); i < TraceLenX; i++)
+						padding(0, 3);
+						draw_combo(crypt_str("LBY type"), g_cfg.antiaim.legit_lby_type, lby_type, ARRAYSIZE(lby_type));
+
+						if (g_cfg.antiaim.desync == 1)
 						{
-							if (IsPosTouch(MV, ImVec2(Curt.Center.x - (Curt.Size.x / 2) - i, Curt.Center.y)))
-							{
-								Curt.CorrectPadding.x = MV.CorrectPadding.x + MV.Size.x;
-								CheckHor = false;
-							}
+							draw_keybind(crypt_str("Invert desync"), &g_cfg.antiaim.flip_desync, crypt_str("##HOTKEY_INVERT_DESYNC"));
 						}
 					}
 				}
-			}
-		}
-
-		if (Curt.Side == LEFT_S || Curt.Side == CENTER_LEFT_S || Curt.Side == DOWN_LEFT_DOWN_S)
-		{
-			for (MoveStruct MV : MVItemList)
-			{
-				if (MV.IsEnabled && Curt.IsEnabled && MV.Id != Curt.Id && (CheckHor || CheckVert) &&
-					(MoveStruct::LastActive == Curt.Id || MoveStruct::LastActive == MV.Id ? !IsPosTouch(MV, Curt.Center) : true) &&
-					(MV.Side != TOP_S && MV.Side != LEFT_TOP_S && MV.Side != RIGHT_TOP_S))
-				{
-					if (CheckVert)
-					{
-						for (int i(-3); i < TraceLenY; i++)
-						{
-							if (IsPosTouch(MV, ImVec2(Curt.Center.x, Curt.Center.y - (Curt.Size.y / 2) - i)))
-							{
-								Curt.CorrectPadding.y = MV.CorrectPadding.y + MV.Size.y;
-								CheckVert = false;
-							}
-						}
-					}
-
-					if (CheckHor && (!MV.IsText ? true : Curt.Center.y > MV.Center.y))
-					{
-						for (int i(CheckVert ? -3 : 1); i < TraceLenX; i++)
-						{
-							if (IsPosTouch(MV, ImVec2(Curt.Center.x + (Curt.Size.x / 2) + i, Curt.Center.y)))
-							{
-								Curt.CorrectPadding.x = MV.CorrectPadding.x + MV.Size.x;
-								CheckHor = false;
-							}
-						}
-					}
-				}
-			}
-		}
-
-		if (Curt.Side == TOP_S || Curt.Side == LEFT_TOP_S || Curt.Side == RIGHT_TOP_S)
-		{
-			for (MoveStruct MV : MVItemList)
-			{
-				if (MV.IsEnabled && Curt.IsEnabled && MV.Id != Curt.Id && !IsPosTouch(MV, Curt.Center) &&
-					(MV.Side != LEFT_S && MV.Side != CENTER_LEFT_S && MV.Side != DOWN_LEFT_DOWN_S && MV.Side != RIGHT_S && MV.Side != CENTER_RIGHT_S && MV.Side != DOWN_RIGHT_DOWN_S))
-				{
-					for (int i(-3); i < TraceLenY; i++)
-					{
-						if (IsPosTouch(MV, ImVec2(Curt.Center.x, Curt.Center.y + (Curt.Size.y / 2) + i)))
-						{
-							Curt.CorrectPadding.y = MV.CorrectPadding.y + MV.Size.y;
-							return;
-						}
-					}
-				}
-			}
-		}
-
-		if (Curt.Side == DOWN_S || Curt.Side == LEFT_DOWN_S || Curt.Side == RIGHT_DOWN_S)
-		{
-			for (MoveStruct MV : MVItemList)
-			{
-				if (MV.IsEnabled && Curt.IsEnabled && MV.Id != Curt.Id && !IsPosTouch(MV, Curt.Center) &&
-					(MV.Side != LEFT_S && MV.Side != CENTER_LEFT_S && MV.Side != DOWN_LEFT_DOWN_S && MV.Side != RIGHT_S && MV.Side != CENTER_RIGHT_S && MV.Side != DOWN_RIGHT_DOWN_S))
-				{
-					for (int i(-3); i < TraceLenY; i++)
-					{
-						if (IsPosTouch(MV, ImVec2(Curt.Center.x, Curt.Center.y - (Curt.Size.y / 2) - i)))
-						{
-							Curt.CorrectPadding.y = MV.Size.y;
-							return;
-						}
-					}
-				}
-			}
-		}
-	};
-
-	if (config_system.g_cfg.player.type[player].health)
-	{
-		ImU32 color1 = ImGui::GetColorU32(ImVec4(config_system.g_cfg.player.type[player].health_color.r() / 255.f, config_system.g_cfg.player.type[player].health_color.g() / 255.f, config_system.g_cfg.player.type[player].health_color.b() / 255.f, config_system.g_cfg.player.type[player].health_color.a() / 255.f));
-		ImU32 color2 = ImGui::GetColorU32(ImVec4(0.0f, 0.0f, 0.0f, 0.3f));
-		ImU32 color3 = ImGui::GetColorU32(ImVec4(0.0f, 0.0f, 0.0f, 0.5f));
-
-		//		MV_Hp->Color1 = HealthColor;
-			//	MV_Hp_Text->Color1 = HealthColor;
-			//	MV_Hp->Color2 = HealthColor2;
-			//	MV_Hp->Color3 = HealthColor3;
-				//if (HealthStyle == 0)
-			//	{
-		Move(*MV_Hp, IsMousPress, MousePos, HPStartPos, CLines);
-		if (MV_Hp->Side == LEFT_S || MV_Hp->Side == RIGHT_S)
-			DrawBarVertical(MV_Hp->Position, MV_Hp->Size, color1, color2, color3, MV_Hp->NumParam1, MV_Hp);
-		else
-			DrawBarHorizontal(MV_Hp->Position, MV_Hp->Size, color1, color2, color3, MV_Hp->NumParam1, MV_Hp);
-		//	}
-		//	else if (HealthStyle == 1)
-		//	{
-		//		Move(*MV_Hp_Text, IsMousPress, MousePos, HPTextStartPos, CLines, true);
-		//		_DrawText(MV_HEALTH_TEXT, MV_Hp_Text, GP_Render->SzFonts[TextHealthSize]);
-		//	}
-	}
-
-	/*	if (Armor)
-		{
-			MV_Armor->Color1 = ArmorColor;
-			MV_Armor_Text->Color1 = ArmorColor;
-			MV_Armor->Color2 = ArmorColor2;
-			MV_Armor->Color3 = ArmorColor3;
-
-			if (ArmorStyle == 0)
-			{
-				Move(*MV_Armor, IsMousPress, MousePos, ArmorStartPos, CLines);
-				if (MV_Armor->Side == LEFT_S || MV_Armor->Side == RIGHT_S)
-					DrawBarVertical(MV_Armor->Position, MV_Armor->Size, MV_Armor->Color1, MV_Armor->Color2, MV_Armor->Color3, MV_Armor->NumParam1, MV_Armor);
 				else
-					DrawBarHorizontal(MV_Armor->Position, MV_Armor->Size, MV_Armor->Color1, MV_Armor->Color2, MV_Armor->Color3, MV_Armor->NumParam1, MV_Armor);
+				{
+					draw_combo(crypt_str("Movement type"), type, movement_type, ARRAYSIZE(movement_type));
+					padding(0, 3);
+					draw_combo(crypt_str("Pitch"), g_cfg.antiaim.type[type].pitch, pitch, ARRAYSIZE(pitch));
+					padding(0, 3);
+					draw_combo(crypt_str("Yaw"), g_cfg.antiaim.type[type].yaw, yaw, ARRAYSIZE(yaw));
+					padding(0, 3);
+					draw_combo(crypt_str("Base angle"), g_cfg.antiaim.type[type].base_angle, baseangle, ARRAYSIZE(baseangle));
+
+					if (g_cfg.antiaim.type[type].yaw)
+					{
+						ImGui::SliderInt(g_cfg.antiaim.type[type].yaw == 1 ? crypt_str("Jitter range") : crypt_str("Spin range"), &g_cfg.antiaim.type[type].range, 1, 180);
+
+						if (g_cfg.antiaim.type[type].yaw == 2)
+							ImGui::SliderInt(crypt_str("Spin speed"), &g_cfg.antiaim.type[type].speed, 1, 15);
+
+						padding(0, 3);
+					}
+
+					draw_combo(crypt_str("Desync"), g_cfg.antiaim.type[type].desync, desync, ARRAYSIZE(desync));
+
+					if (g_cfg.antiaim.type[type].desync)
+					{
+						if (type == ANTIAIM_STAND)
+						{
+							padding(0, 3);
+							draw_combo(crypt_str("LBY type"), g_cfg.antiaim.lby_type, lby_type, ARRAYSIZE(lby_type));
+						}
+
+						if (type != ANTIAIM_STAND || !g_cfg.antiaim.lby_type)
+						{
+							ImGui::SliderInt(crypt_str("Desync range"), &g_cfg.antiaim.type[type].desync_range, 1, 60);
+							ImGui::SliderInt(crypt_str("Inverted desync range"), &g_cfg.antiaim.type[type].inverted_desync_range, 1, 60);
+							ImGui::SliderInt(crypt_str("Body lean"), &g_cfg.antiaim.type[type].body_lean, 0, 100);
+							ImGui::SliderInt(crypt_str("Inverted body lean"), &g_cfg.antiaim.type[type].inverted_body_lean, 0, 100);
+						}
+
+						if (g_cfg.antiaim.type[type].desync == 1)
+						{
+							draw_keybind(crypt_str("Invert desync"), &g_cfg.antiaim.flip_desync, crypt_str("##HOTKEY_INVERT_DESYNC"));
+						}
+					}
+
+					draw_keybind(crypt_str("Manual back"), &g_cfg.antiaim.manual_back, crypt_str("##HOTKEY_INVERT_BACK"));
+
+					draw_keybind(crypt_str("Manual left"), &g_cfg.antiaim.manual_left, crypt_str("##HOTKEY_INVERT_LEFT"));
+
+					draw_keybind(crypt_str("Manual right"), &g_cfg.antiaim.manual_right, crypt_str("##HOTKEY_INVERT_RIGHT"));
+
+					if (g_cfg.antiaim.manual_back.key > KEY_NONE && g_cfg.antiaim.manual_back.key < KEY_MAX || g_cfg.antiaim.manual_left.key > KEY_NONE && g_cfg.antiaim.manual_left.key < KEY_MAX || g_cfg.antiaim.manual_right.key > KEY_NONE && g_cfg.antiaim.manual_right.key < KEY_MAX)
+					{
+						ImGui::Checkbox(crypt_str("Manuals indicator"), &g_cfg.antiaim.flip_indicator);
+						ImGui::SameLine();
+						ImGui::ColorEdit(crypt_str("##invc"), &g_cfg.antiaim.flip_indicator_color, ALPHA);
+					}
+				}
+
 			}
-			else if (ArmorStyle == 1)
-			{
-				Move(*MV_Armor_Text, IsMousPress, MousePos, ArmorTextStartPos, CLines, true);
-				_DrawText(MV_ARMOR_TEXT, MV_Armor_Text, GP_Render->SzFonts[TextArmorSize]);
-			}
+			ImGui::EndGroup();
 		}
-	*/
-	if (config_system.g_cfg.player.type[player].name)
-	{
-		Move(*MV_Name, IsMousPress, MousePos, NameStartPos, CLines, true);
-
-		/*	if (NameBackground)
-			{
-				ImVec2 NSize = MV_Name->Size;
-				ImVec2 NPos = MV_Name->Position;
-
-				NSize.x += 30;
-				NPos.x -= 15;
-				NPos.y += 1.5f;
-
-				float max = NSize.x / 3.f;
-
-				for (int i(0); i < max; i++)
-					Draw->DrawFilledBoxEx(ImVec2(NPos.x + i, NPos.y),
-						ImVec2(NPos.x + i + 1, NPos.y + NSize.y),
-						color_t(NameColorBack.r(), NameColorBack.g(), NameColorBack.b(), (((float)i / max) * 255)));
-
-				Draw->DrawFilledBoxEx(ImVec2(NPos.x + max, NPos.y),
-					ImVec2(NPos.x + (max * 2), NPos.y + NSize.y),
-					color_t(NameColorBack.r(), NameColorBack.g(), NameColorBack.b(), 255));
-
-				for (int i(0); i < max; i++)
-					Draw->DrawFilledBoxEx(ImVec2(NPos.x + i + (max * 2), NPos.y),
-						ImVec2(NPos.x + i + 1 + (max * 2), NPos.y + NSize.y),
-						color_t(NameColorBack.r(), NameColorBack.g(), NameColorBack.b(), (255 - (((float)i / max) * 255))));
-	/		}*/
-	//	MV_Name->Color1 = NameColor;
-
-		_DrawText(MV_NAME_TEXT, MV_Name);
+		ImGui::EndChild();
 	}
-
-	if (config_system.g_cfg.player.type[player].snap_lines)
+	else 
 	{
-		//	CFont* wep_fnt = nullptr;
+		const char* rage_weapons[8] = { crypt_str("Revolver / Deagle"), crypt_str("Pistols"), crypt_str("SMGs"), crypt_str("Rifles"), crypt_str("Auto"), crypt_str("Scout"), crypt_str("AWP"), crypt_str("Heavy") };
 
-		//	if (WeaponStyle == 0)
-			//	wep_fnt = GP_Render->SzFonts[TextWeaponSize];
-		//	else if (WeaponStyle == 1)
-			//	wep_fnt = GP_Render->SzFontsIcon[TextWeaponSize];
-
-		Move(*MV_Weapon, IsMousPress, MousePos, WeaponStartPos, CLines, true);
-
-		//	MV_Weapon->Color1 = WeaponColor;
-
-			//if (WeaponStyle == 0)
-		_DrawText(MV_WEAPON_TEXT, MV_Weapon);
-		//	else if (WeaponStyle == 1)
-			//	_DrawText(MV_WEAPON_TEXT_ICO, MV_Weapon);
-	}
-
-	/*	if (Ammo)
+		ImGui::PushFont(c_menu::get().astrium);
 		{
-			Move(*MV_Ammo, IsMousPress, MousePos, AmmoStartPos, CLines, true);
-			MV_Ammo->Color1 = AmmoColor;
-			_DrawText(MV_AMMO_TEXT, MV_Ammo, GP_Render->SzFonts[TextAmmoSize]);
+			ImGui::SetCursorPos(ImVec2(40, 520));
+			if (ImGui::SubTabEx("  A", "1", hooks::rage_weapon == 0 ? true : false, ImVec2(73, 37))) hooks::rage_weapon = 0;
+			ImGui::SetCursorPos(ImVec2(40 + 73 * 1, 520));
+			if (ImGui::SubTabEx("  D", "2", hooks::rage_weapon == 1 ? true : false, ImVec2(73, 37))) hooks::rage_weapon = 1;
+			ImGui::SetCursorPos(ImVec2(40 + 73 * 2, 520));
+			if (ImGui::SubTabEx("M", "3", hooks::rage_weapon == 2 ? true : false, ImVec2(73, 37))) hooks::rage_weapon = 2;
+			ImGui::SetCursorPos(ImVec2(40 + 73 * 3, 520));
+			if (ImGui::SubTabEx("S", "4", hooks::rage_weapon == 3 ? true : false, ImVec2(73, 37))) hooks::rage_weapon = 3;
+			ImGui::SetCursorPos(ImVec2(40 + 73 * 4, 520));
+			if (ImGui::SubTabEx("Y", "5", hooks::rage_weapon == 4 ? true : false, ImVec2(73, 37))) hooks::rage_weapon = 4;
+			ImGui::SetCursorPos(ImVec2(40 + 73 * 5, 520));
+			if (ImGui::SubTabEx("a", "6", hooks::rage_weapon == 5 ? true : false, ImVec2(73, 37))) hooks::rage_weapon = 5;
+			ImGui::SetCursorPos(ImVec2(40 + 73 * 6, 520));
+			if (ImGui::SubTabEx("Z", "7", hooks::rage_weapon == 6 ? true : false, ImVec2(73, 37))) hooks::rage_weapon = 6;
+			ImGui::SetCursorPos(ImVec2(40 + 73 * 7, 520));
+			if (ImGui::SubTabEx(" f", "8", hooks::rage_weapon == 7 ? true : false, ImVec2(73, 37))) hooks::rage_weapon = 7;
 		}
-
-		if (Distance)
-		{
-			Move(*MV_Distance, IsMousPress, MousePos, DistanceStartPos, CLines, true);
-			MV_Distance->Color1 = DistanceColor;
-			_DrawText(MV_DISTANCE_TEXT, MV_Distance, GP_Render->SzFonts[TextDistanceSize]);
-		}
-
-		if (Money)
-		{
-			Move(*MV_Money, IsMousPress, MousePos, MoneyStartPos, CLines, true);
-			MV_Money->Color1 = MoneyColor;
-			_DrawText(MV_MONEY_TEXT, MV_Money, GP_Render->SzFonts[TextMoneySize]);
-		}
-
-		if (Defusing)
-		{
-			Move(*MV_Defusing, IsMousPress, MousePos, DefusingStartPos, CLines, true);
-			MV_Defusing->Color1 = DefusingColor;
-			_DrawText(MV_DEFUSING_TEXT, MV_Defusing, GP_Render->SzFonts[TextDefusingSize]);
-		}
-
-		if (Scope)
-		{
-			Move(*MV_Scope, IsMousPress, MousePos, ScopeStartPos, CLines, true);
-			MV_Scope->Color1 = ScopeColor;
-			_DrawText(MV_SCOPE_TEXT, MV_Scope, GP_Render->SzFonts[TextScopedSize]);
-		}
-
-		if (Flashing)
-		{
-			Move(*MV_Flashed, IsMousPress, MousePos, FlashedStartPos, CLines, true);
-			MV_Flashed->Color1 = FlashingColor;
-			_DrawText(MV_FLASHED_TEXT, MV_Flashed, GP_Render->SzFonts[TextFlashedSize]);
-		}
-		*/
-	if (MoveStruct::LastActive != -1 && (MITypes)MoveStruct::LastActive <= MI_MAX && MoveStruct::ActiveIdx != -1)
-	{
-		MoveStruct* Selected = &MVItemList[MoveStruct::LastActive];
-		ImU32 SelColor = ImGui::GetColorU32(ImVec4(0.0f, 1.0f, 1.0f, 0.5f));
-		//	color_t SelColor = color_t(0, 255, 255, 102);
-		ImVec2 SP = Selected->Position;
-
-		int Correct = 0;
-
-		if (!Selected->IsText)
-			Correct = 1;
-
-		Draw->AddLine(ImVec2(int(StartPosScreen.x), int(SP.y - Correct)), ImVec2(int(StartPosScreen.x + VIS_PREW_ZONE_X), int(SP.y - Correct)), SelColor);
-		Draw->AddLine(ImVec2(int(SP.x - Correct), int(StartPosScreen.y)), ImVec2(int(SP.x - Correct), int(StartPosScreen.y + VIS_PREW_ZONE_Y)), SelColor);
-		Draw->AddLine(ImVec2(int(StartPosScreen.x), int(SP.y + Selected->Size.y + Correct)), ImVec2(int(StartPosScreen.x + VIS_PREW_ZONE_X), SP.y + int(Selected->Size.y + Correct)), SelColor);
-		Draw->AddLine(ImVec2(int(SP.x + Selected->Size.x + Correct), int(StartPosScreen.y)), ImVec2(int(SP.x + Selected->Size.x + Correct), int(StartPosScreen.y + VIS_PREW_ZONE_Y)), SelColor);
-	}
-
-	auto CalcVisOffset = [StartBoxPos](MoveStruct& Curt, bool IsText = false)
-	{
-		float DisttX = 0.000000001;
-		float DisttY = 0.000000001;
-
-		if (!IsText)
-		{
-			if (Curt.Side == LEFT_S)
-			{
-				DisttX = ((StartBoxPos.x - Curt.CorrectPadding.x) - (Curt.Position.x + Curt.Size.x));
-				DisttY = (StartBoxPos.y - Curt.Position.y);
-			}
-			else if (Curt.Side == RIGHT_S)
-			{
-				DisttX = ((StartBoxPos.x + Curt.CorrectPadding.x) - Curt.Position.x);
-				DisttY = (StartBoxPos.y - Curt.Position.y);
-			}
-			else if (Curt.Side == TOP_S)
-			{
-				DisttX = (StartBoxPos.x - Curt.Position.x);
-				DisttY = ((StartBoxPos.y - Curt.CorrectPadding.y) - Curt.Position.y - Curt.Size.y);
-			}
-			else if (Curt.Side == DOWN_S)
-			{
-				DisttX = (StartBoxPos.x - Curt.Position.x);
-				DisttY = ((StartBoxPos.y + BoxSize_Y + Curt.CorrectPadding.y) - Curt.Position.y);
-			}
-		}
-		else
-		{
-			if (Curt.Side == LEFT_S)
-			{
-				DisttX = ((StartBoxPos.x - Curt.CorrectPadding.x - Curt.Size.x) - (Curt.Position.x));
-				DisttY = ((StartBoxPos.y + Curt.CorrectPadding.y) - Curt.Position.y);
-			}
-			else if (Curt.Side == RIGHT_S)
-			{
-				DisttX = ((StartBoxPos.x + BoxSize_X + Curt.CorrectPadding.x) - Curt.Position.x);
-				DisttY = ((StartBoxPos.y + Curt.CorrectPadding.y) - Curt.Position.y);
-			}
-			else if (Curt.Side == TOP_S)
-			{
-				DisttX = (StartBoxPos.x - Curt.Position.x + (BoxSize_X / 2) - (Curt.Size.x / 2));
-				DisttY = ((StartBoxPos.y - Curt.CorrectPadding.y) - Curt.Position.y - Curt.Size.y);
-			}
-			else if (Curt.Side == DOWN_S)
-			{
-				DisttX = (StartBoxPos.x - Curt.Position.x + (BoxSize_X / 2) - (Curt.Size.x / 2));
-				DisttY = ((StartBoxPos.y + BoxSize_Y + Curt.CorrectPadding.y) - Curt.Position.y);
-			}
-		}
-
-		if (Curt.Side == LEFT_TOP_S)
-		{
-			DisttX = (StartBoxPos.x - Curt.Position.x);
-			DisttY = ((StartBoxPos.y - Curt.Size.y - Curt.CorrectPadding.y) - Curt.Position.y);
-		}
-		else if (Curt.Side == RIGHT_TOP_S)
-		{
-			DisttX = ((StartBoxPos.x + BoxSize_X) - (Curt.Position.x + Curt.Size.x));
-			DisttY = ((StartBoxPos.y - Curt.Size.y - Curt.CorrectPadding.y) - Curt.Position.y);
-		}
-		else if (Curt.Side == LEFT_DOWN_S)
-		{
-			DisttX = (StartBoxPos.x - Curt.Position.x);
-			DisttY = ((StartBoxPos.y + BoxSize_Y + Curt.CorrectPadding.y) - Curt.Position.y);
-		}
-		else if (Curt.Side == RIGHT_DOWN_S)
-		{
-			DisttX = ((StartBoxPos.x + BoxSize_X - Curt.Size.x) - Curt.Position.x);
-			DisttY = ((StartBoxPos.y + BoxSize_Y + Curt.CorrectPadding.y) - Curt.Position.y);
-		}
-		else if (Curt.Side == CENTER_LEFT_S)
-		{
-			DisttX = ((StartBoxPos.x - Curt.CorrectPadding.x - Curt.Size.x) - (Curt.Position.x));
-			DisttY = ((StartBoxPos.y + (BoxSize_Y / 2) + Curt.CorrectPadding.y) - Curt.Position.y);
-		}
-		else if (Curt.Side == CENTER_RIGHT_S)
-		{
-			DisttX = ((StartBoxPos.x + BoxSize_X + Curt.CorrectPadding.y) - Curt.Position.x);
-			DisttY = ((StartBoxPos.y + (BoxSize_Y / 2) + Curt.CorrectPadding.y) - Curt.Position.y);
-		}
-		else if (Curt.Side == DOWN_LEFT_DOWN_S)
-		{
-			DisttX = ((StartBoxPos.x - Curt.CorrectPadding.x - Curt.Size.x) - (Curt.Position.x));
-			DisttY = ((StartBoxPos.y + BoxSize_Y - Curt.Size.y + Curt.CorrectPadding.y) - (Curt.Position.y));
-		}
-		else if (Curt.Side == DOWN_RIGHT_DOWN_S)
-		{
-			DisttX = ((StartBoxPos.x + BoxSize_X + Curt.CorrectPadding.x) - Curt.Position.x);
-			DisttY = ((StartBoxPos.y + BoxSize_Y - Curt.Size.y + Curt.CorrectPadding.y) - (Curt.Position.y));
-		}
-
-		if (DisttX == 0)
-			DisttX = 0.000000001;
-
-		if (DisttY == 0)
-			DisttY = 0.000000001;
-
-		Curt.CorrectOfst.x = (BoxSize_X / DisttX);
-		Curt.CorrectOfst.y = (BoxSize_Y / DisttY);
-	};
-
-	CalcPadding(*MV_Hp);
-	CalcPadding(*MV_Armor);
-
-	CalcPadding(*MV_Hp_Text);
-	CalcPadding(*MV_Armor_Text);
-
-	CalcPadding(*MV_Name);
-	CalcPadding(*MV_Weapon);
-	CalcPadding(*MV_Ammo);
-	CalcPadding(*MV_Distance);
-	CalcPadding(*MV_Money);
-	CalcPadding(*MV_Scope);
-	CalcPadding(*MV_Flashed);
-	CalcPadding(*MV_Defusing);
-
-	CalcVisOffset(*MV_Hp);
-	CalcVisOffset(*MV_Armor);
-
-	CalcVisOffset(*MV_Hp_Text, true);
-	CalcVisOffset(*MV_Armor_Text, true);
-
-	CalcVisOffset(*MV_Name, true);
-	CalcVisOffset(*MV_Weapon, true);
-	CalcVisOffset(*MV_Ammo, true);
-	CalcVisOffset(*MV_Distance, true);
-	CalcVisOffset(*MV_Money, true);
-	CalcVisOffset(*MV_Scope, true);
-	CalcVisOffset(*MV_Flashed, true);
-	CalcVisOffset(*MV_Defusing, true);
-
-	for (int i(0); (MITypes)i < MI_MAX; i++)
-		MVItemList[i].ZonePos = ImVec2(MVItemList[i].Position.x - StartPosScreen.x, MVItemList[i].Position.y - StartPosScreen.y);
-
-	ImGui::SetCursorPos(ImVec2(StartPos.x, StartPos.y + VIS_PREW_ZONE_Y + 3));
-}
-
-
-
-
-
-namespace ImGui
-{
-
-	bool ColorEdit4(const char* label, Color* v, bool show_alpha = true, bool is_solo = false)
-	{
-		auto clr = ImVec4{
-			v->r() / 255.f,
-			v->g() / 255.f,
-			v->b() / 255.f,
-			v->a() / 255.f
-
-		};
-
-		if (ImGui::ColorEdit4(label, &clr.x, show_alpha, is_solo)) {
-			v->SetColor(clr.x, clr.y, clr.z, clr.w);
-			return true;
-		}
-		return false;
-	}
-
-	bool ColorEdit3(const char* label, Color* v)
-	{
-		return ColorEdit4(label, v, true);
-	}
-
-
-	bool Tab(const char* icon, const char* label, const char* desc, const ImVec2& size_arg, const bool selected)
-	{
-		ImGuiWindow* window = ImGui::GetCurrentWindow();
-		if (window->SkipItems)
-			return false;
-
-		static float sizeplus = 0.f;
-
-		ImGuiContext& g = *GImGui;
-		const ImGuiStyle& style = g.Style;
-		const ImGuiID id = window->GetID(label);
-		const ImVec2 label_size = ImGui::CalcTextSize(label, NULL, true);
-
-		ImVec2 pos = window->DC.CursorPos;
-
-		ImVec2 size = ImGui::CalcItemSize(size_arg, label_size.x + style.FramePadding.x * 4.0f, label_size.y + style.FramePadding.y * 2.0f);
-
-		const ImRect bb(pos, ImVec2(pos.x + size.x, pos.y + size.y));
-		ImGui::ItemSize(size, style.FramePadding.y);
-		if (!ImGui::ItemAdd(bb, id))
-			return false;
-
-		bool hovered, held;
-		bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, 0);
-
-		if (selected)
-			window->DrawList->AddRectFilled(bb.Min, bb.Max, ImColor(30, 30, 30));
-
-		if (selected)
-			window->DrawList->AddRectFilled({ bb.Max.x,bb.Max.y }, { bb.Max.x - 3,bb.Min.y }, ImColor(0.f, 143.f, 255.f));
-
-		//ImGui::PushFont(c_menu::get().bigxd);
-		//window->DrawList->AddText(ImVec2(bb.Min.x + 35, bb.Min.y + 13), ImColor(32.f / 255.f, 32.f / 255.f, 32.f / 255.f, 255.f / 255.f), label);
-		//ImGui::PopFont();
-
-		window->DrawList->AddText(ImVec2(bb.Min.x + 35, bb.Min.y + 20), ImColor(100 / 255.f, 100 / 255.f, 100 / 255.f, 255.f / 255.f), desc);
-
-		ImGui::PushFont(c_menu::get().icons);
-		window->DrawList->AddText(ImVec2(bb.Min.x + 5, bb.Min.y + size_arg.y / 2 - ImGui::CalcTextSize(icon).y / 2), ImColor(0.f, 143.f, 255.f), icon);
 		ImGui::PopFont();
 
-		return pressed;
-	}
+		ImGui::SetCursorPos(ImVec2{ 10, 90 });
+		ImGui::BeginChild("it3ems", { 365, 415 });
+		{
 
+			ImGui::SetCursorPos({ 10,5 });
+			ImGui::BeginGroup();
+			{
+				//ImGui::Spacing();
+				//draw_combo(crypt_str("Current weapon"), hooks::rage_weapon, rage_weapons, ARRAYSIZE(rage_weapons));
+				//ImGui::Spacing();
 
-	bool SubTab(const char* label, const ImVec2& size_arg, const bool selected)
-	{
-		ImGuiWindow* window = ImGui::GetCurrentWindow();
-		if (window->SkipItems)
-			return false;
+				draw_combo(crypt_str("Target selection"), g_cfg.ragebot.weapon[hooks::rage_weapon].selection_type, selection, ARRAYSIZE(selection));
+				padding(0, 3);
+				draw_multicombo(crypt_str("Hitboxes"), g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes, hitboxes, ARRAYSIZE(hitboxes), preview);
 
-		static float sizeplus = 0.f;
+				ImGui::Checkbox(crypt_str("Static point scale"), &g_cfg.ragebot.weapon[hooks::rage_weapon].static_point_scale);
 
-		ImGuiContext& g = *GImGui;
-		const ImGuiStyle& style = g.Style;
-		const ImGuiID id = window->GetID(label);
-		const ImVec2 label_size = ImGui::CalcTextSize(label, NULL, true);
+				if (g_cfg.ragebot.weapon[hooks::rage_weapon].static_point_scale)
+				{
+					ImGui::SliderFloat(crypt_str("Head scale"), &g_cfg.ragebot.weapon[hooks::rage_weapon].head_scale, 0.0f, 1.0f, g_cfg.ragebot.weapon[hooks::rage_weapon].head_scale ? crypt_str("%.2f") : crypt_str("None"));
+					ImGui::SliderFloat(crypt_str("Body scale"), &g_cfg.ragebot.weapon[hooks::rage_weapon].body_scale, 0.0f, 1.0f, g_cfg.ragebot.weapon[hooks::rage_weapon].body_scale ? crypt_str("%.2f") : crypt_str("None"));
+				}
 
-		ImVec2 pos = window->DC.CursorPos;
+				ImGui::Checkbox(crypt_str("Enable max misses"), &g_cfg.ragebot.weapon[hooks::rage_weapon].max_misses);
 
-		ImVec2 size = ImGui::CalcItemSize(size_arg, label_size.x + style.FramePadding.x * 4.0f, label_size.y + style.FramePadding.y * 4.0f);
+				if (g_cfg.ragebot.weapon[hooks::rage_weapon].max_misses)
+					ImGui::SliderInt(crypt_str("Max misses"), &g_cfg.ragebot.weapon[hooks::rage_weapon].max_misses_amount, 0, 6);
 
-		const ImRect bb(pos, ImVec2(pos.x + size.x, pos.y + size.y));
-		ImGui::ItemSize(size, style.FramePadding.y);
-		if (!ImGui::ItemAdd(bb, id))
-			return false;
+				ImGui::Checkbox(crypt_str("Prefer safe points"), &g_cfg.ragebot.weapon[hooks::rage_weapon].prefer_safe_points);
+				ImGui::Checkbox(crypt_str("Prefer body aim"), &g_cfg.ragebot.weapon[hooks::rage_weapon].prefer_body_aim);
 
-		bool hovered, held;
-		bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, 0);
+				draw_keybind(crypt_str("Force safe points"), &g_cfg.ragebot.safe_point_key, crypt_str("##HOKEY_FORCE_SAFE_POINTS"));
+				draw_keybind(crypt_str("Force body aim"), &g_cfg.ragebot.body_aim_key, crypt_str("##HOKEY_FORCE_BODY_AIM"));
 
-		if (selected)
-			window->DrawList->AddRectFilled({ bb.Min.x,bb.Min.y }, { bb.Max.x,bb.Max.y }, ImColor(30, 30, 30));
-
-		if (selected)
-			window->DrawList->AddRectFilled({ bb.Max.x,bb.Max.y }, { bb.Max.x - 3,bb.Min.y }, ImColor(0.f, 143.f, 255.f));
-
-		//ImGui::PushFont(c_menu::get().bigxd);
-		window->DrawList->AddText(ImVec2(bb.Min.x + 5, bb.Min.y + size_arg.y / 2 - ImGui::CalcTextSize(label).y / 2), ImColor(255 / 255.f, 255 / 255.f, 255 / 255.f, 255.f / 255.f), label);
-		//ImGui::PopFont();
-
-
-		return pressed;
-	}
-
-	/*bool ColorPicker(const char* label, Color* v)
-	{
-		auto clr = ImVec4{
-			v->r() / 255.0f,
-			v->g() / 255.0f,
-			v->b() / 255.0f,
-			v->a() / 255.0f
-		};
-
-		if (ImGui::ColorEdit4(label, &clr.x, ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoOptions | ImGuiColorEditFlags_NoSidePreview)) {
-			v->SetColor(clr.x, clr.y, clr.z, clr.w);
-			return true;
+			}
+			ImGui::EndGroup();
 		}
-		return false;
-	}*/
+		ImGui::EndChild();
+		ImGui::SetCursorPos(ImVec2{ 370, 90 });
+		ImGui::BeginChild("item6s2", { 365, 415 });
+		{
+
+			ImGui::SetCursorPos({ 10,5 });
+			ImGui::BeginGroup();
+			{
+				ImGui::Checkbox(crypt_str("Automatic stop"), &g_cfg.ragebot.weapon[hooks::rage_weapon].autostop);
+
+				if (g_cfg.ragebot.weapon[hooks::rage_weapon].autostop)
+					draw_multicombo(crypt_str("Modifiers"), g_cfg.ragebot.weapon[hooks::rage_weapon].autostop_modifiers, autostop_modifiers, ARRAYSIZE(autostop_modifiers), preview);
+
+				ImGui::Checkbox(crypt_str("Hitchance"), &g_cfg.ragebot.weapon[hooks::rage_weapon].hitchance);
+
+				if (g_cfg.ragebot.weapon[hooks::rage_weapon].hitchance)
+					ImGui::SliderInt(crypt_str("Hitchance amount"), &g_cfg.ragebot.weapon[hooks::rage_weapon].hitchance_amount, 1, 100);
+
+				if (g_cfg.ragebot.double_tap && hooks::rage_weapon <= 4)
+				{
+					ImGui::Checkbox(crypt_str("Double tap hitchance"), &g_cfg.ragebot.weapon[hooks::rage_weapon].double_tap_hitchance);
+
+					if (g_cfg.ragebot.weapon[hooks::rage_weapon].double_tap_hitchance)
+						ImGui::SliderInt(crypt_str("Double tap hitchance amount"), &g_cfg.ragebot.weapon[hooks::rage_weapon].double_tap_hitchance_amount, 1, 100);
+				}
+
+				ImGui::SliderInt(crypt_str("Minimum visible damage"), &g_cfg.ragebot.weapon[hooks::rage_weapon].minimum_visible_damage, 1, 120, true);
+
+				if (g_cfg.ragebot.autowall)
+					ImGui::SliderInt(crypt_str("Minimum wall damage"), &g_cfg.ragebot.weapon[hooks::rage_weapon].minimum_damage, 1, 120, true);
+
+				draw_keybind(crypt_str("Damage override"), &g_cfg.ragebot.weapon[hooks::rage_weapon].damage_override_key, crypt_str("##HOTKEY__DAMAGE_OVERRIDE"));
+
+				if (g_cfg.ragebot.weapon[hooks::rage_weapon].damage_override_key.key > KEY_NONE && g_cfg.ragebot.weapon[hooks::rage_weapon].damage_override_key.key < KEY_MAX)
+					ImGui::SliderInt(crypt_str("Minimum override damage"), &g_cfg.ragebot.weapon[hooks::rage_weapon].minimum_override_damage, 1, 120, true);
+
+			}
+			ImGui::EndGroup();
+		}
+		ImGui::EndChild();
+	}
 }
 
-void c_menu::render2(bool is_open) {
+void c_menu::draw_legit()
+{
+	const char* legit_weapons[6] = { crypt_str("Deagle"), crypt_str("Pistols"), crypt_str("Rifles"), crypt_str("SMGs"), crypt_str("Snipers"), crypt_str("Heavy") };
+	const char* hitbox_legit[3] = { crypt_str("Nearest"), crypt_str("Head"), crypt_str("Body") };
 
+	ImGui::SetCursorPos(ImVec2{ 10, 60 });
+	ImGui::BeginChild("##Main", ImVec2{ 360, 500 }, false, ImGuiWindowFlags_NoMove);
+	{
+		ImGui::BeginGroup();
+		{
+			padding(0, 6);
+			ImGui::Checkbox(crypt_str("Enable"), &g_cfg.legitbot.enabled);
+			ImGui::SameLine();
+			draw_keybind(crypt_str(""), &g_cfg.legitbot.key, crypt_str("##HOTKEY_LGBT_KEY"));
+
+			if (g_cfg.legitbot.enabled)
+				g_cfg.ragebot.enable = false;
+
+			ImGui::Checkbox(crypt_str("Friendly fire"), &g_cfg.legitbot.friendly_fire);
+			ImGui::Checkbox(crypt_str("Automatic pistols"), &g_cfg.legitbot.autopistol);
+
+			ImGui::Checkbox(crypt_str("Automatic scope"), &g_cfg.legitbot.autoscope);
+
+			if (g_cfg.legitbot.autoscope)
+				ImGui::Checkbox(crypt_str("Unscope after shot"), &g_cfg.legitbot.unscope);
+
+			ImGui::Checkbox(crypt_str("Snipers in zoom only"), &g_cfg.legitbot.sniper_in_zoom_only);
+
+			ImGui::Checkbox(crypt_str("Enable in air"), &g_cfg.legitbot.do_if_local_in_air);
+			ImGui::Checkbox(crypt_str("Enable if flashed"), &g_cfg.legitbot.do_if_local_flashed);
+			ImGui::Checkbox(crypt_str("Enable in smoke"), &g_cfg.legitbot.do_if_enemy_in_smoke);
+
+			draw_keybind(crypt_str("Automatic fire key"), &g_cfg.legitbot.autofire_key, crypt_str("##HOTKEY_AUTOFIRE_LGBT_KEY"));
+			ImGui::SliderInt(crypt_str("Automatic fire delay"), &g_cfg.legitbot.autofire_delay, 0, 12, false, (!g_cfg.legitbot.autofire_delay ? crypt_str("None") : (g_cfg.legitbot.autofire_delay == 1 ? crypt_str("%d tick") : crypt_str("%d ticks"))));
+		}
+		ImGui::EndGroup();
+	}
+	ImGui::EndChild();
+	ImGui::SetCursorPos(ImVec2{ 370, 60 });
+	ImGui::BeginChild("##Mai2n", ImVec2{ 360, 500 }, false, ImGuiWindowFlags_NoMove);
+	{
+		ImGui::BeginGroup();
+		{
+			ImGui::Spacing();
+			draw_combo(crypt_str("Current weapon"), hooks::legit_weapon, legit_weapons, ARRAYSIZE(legit_weapons));
+			ImGui::Spacing();
+			draw_combo(crypt_str("Hitbox"), g_cfg.legitbot.weapon[hooks::legit_weapon].priority, hitbox_legit, ARRAYSIZE(hitbox_legit));
+
+			ImGui::Checkbox(crypt_str("Automatic stop"), &g_cfg.legitbot.weapon[hooks::legit_weapon].auto_stop);
+
+			draw_combo(crypt_str("Field of view type"), g_cfg.legitbot.weapon[hooks::legit_weapon].fov_type, LegitFov, ARRAYSIZE(LegitFov));
+			ImGui::SliderFloat(crypt_str("Field of view amount"), &g_cfg.legitbot.weapon[hooks::legit_weapon].fov, 0.f, 30.f, crypt_str(fov));
+
+			ImGui::Spacing();
+
+			ImGui::SliderFloat(crypt_str("Silent field of view"), &g_cfg.legitbot.weapon[hooks::legit_weapon].silent_fov, 0.f, 30.f, (!g_cfg.legitbot.weapon[hooks::legit_weapon].silent_fov ? crypt_str("None") : crypt_str(fov))); //-V550
+
+			ImGui::Spacing();
+
+			draw_combo(crypt_str("Smooth type"), g_cfg.legitbot.weapon[hooks::legit_weapon].smooth_type, LegitSmooth, ARRAYSIZE(LegitSmooth));
+			ImGui::SliderFloat(crypt_str("Smooth amount"), &g_cfg.legitbot.weapon[hooks::legit_weapon].smooth, 1.f, 12.f, crypt_str("%.1f"));
+
+			ImGui::Spacing();
+
+			draw_combo(crypt_str("RCS type"), g_cfg.legitbot.weapon[hooks::legit_weapon].rcs_type, RCSType, ARRAYSIZE(RCSType));
+			ImGui::SliderFloat(crypt_str("RCS amount"), &g_cfg.legitbot.weapon[hooks::legit_weapon].rcs, 0.f, 100.f, crypt_str("%.0f%%"), 1.f);
+
+			if (g_cfg.legitbot.weapon[hooks::legit_weapon].rcs > 0)
+			{
+				ImGui::SliderFloat(crypt_str("RCS custom field of view"), &g_cfg.legitbot.weapon[hooks::legit_weapon].custom_rcs_fov, 0.f, 30.f, (!g_cfg.legitbot.weapon[hooks::legit_weapon].custom_rcs_fov ? crypt_str("None") : crypt_str(fov))); //-V550
+				ImGui::SliderFloat(crypt_str("RCS Custom smooth"), &g_cfg.legitbot.weapon[hooks::legit_weapon].custom_rcs_smooth, 0.f, 12.f, (!g_cfg.legitbot.weapon[hooks::legit_weapon].custom_rcs_smooth ? crypt_str("None") : crypt_str("%.1f"))); //-V550
+			}
+
+			ImGui::Spacing();
+
+			ImGui::SliderInt(crypt_str("Automatic wall damage"), &g_cfg.legitbot.weapon[hooks::legit_weapon].awall_dmg, 0, 100, false, (!g_cfg.legitbot.weapon[hooks::legit_weapon].awall_dmg ? crypt_str("None") : crypt_str("%d")));
+			ImGui::SliderInt(crypt_str("Automatic fire hitchance"), &g_cfg.legitbot.weapon[hooks::legit_weapon].autofire_hitchance, 0, 100, false, (!g_cfg.legitbot.weapon[hooks::legit_weapon].autofire_hitchance ? crypt_str("None") : crypt_str("%d")));
+			ImGui::SliderFloat(crypt_str("Target switch delay"), &g_cfg.legitbot.weapon[hooks::legit_weapon].target_switch_delay, 0.f, 1.f);
+		}
+		ImGui::EndGroup();
+	}
+	ImGui::EndChild();
+}
+
+void c_menu::draw_visuals(int child)
+{
+	if (Active_Visuals_Tab == 1)
+	{
+		ImGui::SetCursorPos(ImVec2{ 10, 90 });
+		ImGui::BeginChild("it12d3ems", { 365, 470 });
+		{
+
+			ImGui::SetCursorPos({ 10,0 });
+			ImGui::BeginGroup();
+			{
+				ImGui::Checkbox(crypt_str("Enable"), &g_cfg.player.enable);
+
+				draw_multicombo(crypt_str("Indicators"), g_cfg.esp.indicators, indicators, ARRAYSIZE(indicators), preview);
+				//padding(0, 3);
+				//ImGui::Checkbox(crypt_str("Indicators"), &g_cfg.misc.indicators);
+				draw_multicombo(crypt_str("Removals"), g_cfg.esp.removals, removals, ARRAYSIZE(removals), preview);
+
+				if (g_cfg.esp.removals[REMOVALS_ZOOM])
+					ImGui::Checkbox(crypt_str("Fix zoom sensivity"), &g_cfg.esp.fix_zoom_sensivity);
+
+				ImGui::Checkbox(crypt_str("Grenade prediction"), &g_cfg.esp.grenade_prediction);
+				ImGui::SameLine();
+				ImGui::ColorEdit(crypt_str("##grenpredcolor"), &g_cfg.esp.grenade_prediction_color, ALPHA);
+
+				if (g_cfg.esp.grenade_prediction)
+				{
+					ImGui::Checkbox(crypt_str("On click"), &g_cfg.esp.on_click);
+					ImGui::Text(crypt_str("Tracer color "));
+					ImGui::SameLine();
+					ImGui::ColorEdit(crypt_str("##tracergrenpredcolor"), &g_cfg.esp.grenade_prediction_tracer_color, ALPHA);
+				}
+
+				ImGui::Checkbox(crypt_str("Grenade projectiles"), &g_cfg.esp.projectiles);
+
+				if (g_cfg.esp.projectiles)
+					draw_multicombo(crypt_str("Grenade ESP"), g_cfg.esp.grenade_esp, proj_combo, ARRAYSIZE(proj_combo), preview);
+
+				if (g_cfg.esp.grenade_esp[GRENADE_ICON] || g_cfg.esp.grenade_esp[GRENADE_TEXT])
+				{
+					ImGui::Text(crypt_str("Color "));
+					ImGui::SameLine();
+					ImGui::ColorEdit(crypt_str("##projectcolor"), &g_cfg.esp.projectiles_color, ALPHA);
+				}
+
+				if (g_cfg.esp.grenade_esp[GRENADE_BOX])
+				{
+					ImGui::Text(crypt_str("Box color "));
+					ImGui::SameLine();
+					ImGui::ColorEdit(crypt_str("##grenade_box_color"), &g_cfg.esp.grenade_box_color, ALPHA);
+				}
+
+				if (g_cfg.esp.grenade_esp[GRENADE_GLOW])
+				{
+					ImGui::Text(crypt_str("Glow color "));
+					ImGui::SameLine();
+					ImGui::ColorEdit(crypt_str("##grenade_glow_color"), &g_cfg.esp.grenade_glow_color, ALPHA);
+				}
+
+				ImGui::Checkbox(crypt_str("Fire timer"), &g_cfg.esp.molotov_timer);
+				ImGui::SameLine();
+				ImGui::ColorEdit(crypt_str("##molotovcolor"), &g_cfg.esp.molotov_timer_color, ALPHA);
+
+				ImGui::Checkbox(crypt_str("Smoke timer"), &g_cfg.esp.smoke_timer);
+				ImGui::SameLine();
+				ImGui::ColorEdit(crypt_str("##smokecolor"), &g_cfg.esp.smoke_timer_color, ALPHA);
+
+				ImGui::Checkbox(crypt_str("Bomb indicator"), &g_cfg.esp.bomb_timer);
+				draw_multicombo(crypt_str("Weapon ESP"), g_cfg.esp.weapon, weaponesp, ARRAYSIZE(weaponesp), preview);
+
+				if (g_cfg.esp.weapon[WEAPON_ICON] || g_cfg.esp.weapon[WEAPON_TEXT] || g_cfg.esp.weapon[WEAPON_DISTANCE])
+				{
+					ImGui::Text(crypt_str("Color "));
+					ImGui::SameLine();
+					ImGui::ColorEdit(crypt_str("##weaponcolor"), &g_cfg.esp.weapon_color, ALPHA);
+				}
+
+				if (g_cfg.esp.weapon[WEAPON_BOX])
+				{
+					ImGui::Text(crypt_str("Box color "));
+					ImGui::SameLine();
+					ImGui::ColorEdit(crypt_str("##weaponboxcolor"), &g_cfg.esp.box_color, ALPHA);
+				}
+
+				if (g_cfg.esp.weapon[WEAPON_GLOW])
+				{
+					ImGui::Text(crypt_str("Glow color "));
+					ImGui::SameLine();
+					ImGui::ColorEdit(crypt_str("##weaponglowcolor"), &g_cfg.esp.weapon_glow_color, ALPHA);
+				}
+
+				if (g_cfg.esp.weapon[WEAPON_AMMO])
+				{
+					ImGui::Text(crypt_str("Ammo bar color "));
+					ImGui::SameLine();
+					ImGui::ColorEdit(crypt_str("##weaponammocolor"), &g_cfg.esp.weapon_ammo_color, ALPHA);
+				}
+
+				ImGui::Checkbox(crypt_str("Client bullet impacts"), &g_cfg.esp.client_bullet_impacts);
+				ImGui::SameLine();
+				ImGui::ColorEdit(crypt_str("##clientbulletimpacts"), &g_cfg.esp.client_bullet_impacts_color, ALPHA);
+
+				ImGui::Checkbox(crypt_str("Server bullet impacts"), &g_cfg.esp.server_bullet_impacts);
+				ImGui::SameLine();
+				ImGui::ColorEdit(crypt_str("##serverbulletimpacts"), &g_cfg.esp.server_bullet_impacts_color, ALPHA);
+
+				ImGui::Checkbox(crypt_str("Local bullet tracers"), &g_cfg.esp.bullet_tracer);
+				ImGui::SameLine();
+				ImGui::ColorEdit(crypt_str("##bulltracecolor"), &g_cfg.esp.bullet_tracer_color, ALPHA);
+
+				ImGui::Checkbox(crypt_str("Enemy bullet tracers"), &g_cfg.esp.enemy_bullet_tracer);
+				ImGui::SameLine();
+
+				ImGui::ColorEdit(crypt_str("##enemybulltracecolor"), &g_cfg.esp.enemy_bullet_tracer_color, ALPHA);
+				draw_multicombo(crypt_str("Hit marker"), g_cfg.esp.hitmarker, hitmarkers, ARRAYSIZE(hitmarkers), preview);
+				ImGui::Checkbox(crypt_str("Damage marker"), &g_cfg.esp.damage_marker);
+				ImGui::Checkbox(crypt_str("Kill effect"), &g_cfg.esp.kill_effect);
+
+				if (g_cfg.esp.kill_effect)
+					ImGui::SliderFloat(crypt_str("Duration"), &g_cfg.esp.kill_effect_duration, 0.01f, 3.0f);
+
+				draw_keybind(crypt_str("Thirdperson"), &g_cfg.misc.thirdperson_toggle, crypt_str("##TPKEY__HOTKEY"));
+
+				ImGui::Checkbox(crypt_str("Thirdperson when spectating"), &g_cfg.misc.thirdperson_when_spectating);
+
+				if (g_cfg.misc.thirdperson_toggle.key > KEY_NONE && g_cfg.misc.thirdperson_toggle.key < KEY_MAX)
+					ImGui::SliderInt(crypt_str("Thirdperson distance"), &g_cfg.misc.thirdperson_distance, 100, 300);
+
+				ImGui::SliderInt(crypt_str("Field of view"), &g_cfg.esp.fov, 0, 89, crypt_str(fov));
+				ImGui::Checkbox(crypt_str("Taser range"), &g_cfg.esp.taser_range);
+				ImGui::Checkbox(crypt_str("Show spread"), &g_cfg.esp.show_spread);
+				ImGui::SameLine();
+				ImGui::ColorEdit(crypt_str("##spredcolor"), &g_cfg.esp.show_spread_color, ALPHA);
+				ImGui::Checkbox(crypt_str("Penetration crosshair"), &g_cfg.esp.penetration_reticle);
+			}
+			ImGui::EndGroup();
+		}
+		ImGui::EndChild();
+		ImGui::SetCursorPos(ImVec2{ 370, 90 });
+		ImGui::BeginChild("item656s2", { 365, 470 });
+		{
+
+			ImGui::SetCursorPos({ 10,0 });
+			ImGui::BeginGroup();
+			{
+				ImGui::Checkbox(crypt_str("Rain"), &g_cfg.esp.rain);
+				ImGui::Checkbox(crypt_str("Full bright"), &g_cfg.esp.bright);
+
+				draw_combo(crypt_str("Skybox"), g_cfg.esp.skybox, skybox, ARRAYSIZE(skybox));
+
+				ImGui::Text(crypt_str("Color "));
+				ImGui::SameLine();
+				ImGui::ColorEdit(crypt_str("##skyboxcolor"), &g_cfg.esp.skybox_color, NOALPHA);
+
+				if (g_cfg.esp.skybox == 21)
+				{
+					static char sky_custom[64] = "\0";
+
+					if (!g_cfg.esp.custom_skybox.empty())
+						strcpy_s(sky_custom, sizeof(sky_custom), g_cfg.esp.custom_skybox.c_str());
+
+					ImGui::Text(crypt_str("Name"));
+					ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.f);
+
+					if (ImGui::InputText(crypt_str("##customsky"), sky_custom, sizeof(sky_custom)))
+						g_cfg.esp.custom_skybox = sky_custom;
+
+					ImGui::PopStyleVar();
+				}
+
+				ImGui::Checkbox(crypt_str("Color modulation"), &g_cfg.esp.nightmode);
+
+				if (g_cfg.esp.nightmode)
+				{
+					ImGui::Text(crypt_str("World color "));
+					ImGui::SameLine();
+					ImGui::ColorEdit(crypt_str("##worldcolor"), &g_cfg.esp.world_color, ALPHA);
+
+					ImGui::Text(crypt_str("Props color "));
+					ImGui::SameLine();
+					ImGui::ColorEdit(crypt_str("##propscolor"), &g_cfg.esp.props_color, ALPHA);
+				}
+
+				ImGui::Checkbox(crypt_str("World modulation"), &g_cfg.esp.world_modulation);
+
+				if (g_cfg.esp.world_modulation)
+				{
+					ImGui::SliderFloat(crypt_str("Bloom"), &g_cfg.esp.bloom, 0.0f, 750.0f);
+					ImGui::SliderFloat(crypt_str("Exposure"), &g_cfg.esp.exposure, 0.0f, 2000.0f);
+					ImGui::SliderFloat(crypt_str("Ambient"), &g_cfg.esp.ambient, 0.0f, 1500.0f);
+				}
+
+				ImGui::Checkbox(crypt_str("Fog modulation"), &g_cfg.esp.fog);
+
+				if (g_cfg.esp.fog)
+				{
+					ImGui::SliderInt(crypt_str("Distance"), &g_cfg.esp.fog_distance, 0, 2500);
+					ImGui::SliderInt(crypt_str("Density"), &g_cfg.esp.fog_density, 0, 100);
+
+					ImGui::Text(crypt_str("Color "));
+					ImGui::SameLine();
+					ImGui::ColorEdit(crypt_str("##fogcolor"), &g_cfg.esp.fog_color, NOALPHA);
+				}
+
+				/*IDirect3DTexture9** friends_images;
+
+				ImGui::BeginChild("FRIENDS STEAM PROFILES", ImVec2(350,100), true);
+				{
+
+
+					enum k_EFriendFlags
+					{
+						k_EFriendFlagNone = 0x00,
+						k_EFriendFlagBlocked = 0x01,
+						k_EFriendFlagFriendshipRequested = 0x02,
+						k_EFriendFlagImmediate = 0x04,			// "regular" friend
+						k_EFriendFlagClanMember = 0x08,
+						k_EFriendFlagOnGameServer = 0x10,
+						//	k_EFriendFlagHasPlayedWith	= 0x20,
+						//	k_EFriendFlagFriendOfFriend	= 0x40,
+						k_EFriendFlagRequestingFriendship = 0x80,
+						k_EFriendFlagRequestingInfo = 0x100,
+						k_EFriendFlagAll = 0xFFFF,
+					};
+					static auto friends = SteamFriends->GetFriendCount(k_EFriendFlagAll);
+
+
+					for (static auto i = 0; i < 1; friends_images = new IDirect3DTexture9 * [friends], i++); //creates
+
+
+					for (static auto i = 0; i < friends; friends_images[i] = steam_image_friends(SteamFriends->GetFriendByIndex(i, k_EFriendFlagAll)), i++);
+
+					for (auto i = 0; i < friends; i++)
+					{
+						ImGui::Image(friends_images[i], ImVec2(25, 25));
+						ImGui::SameLine();
+						ImGui::Text("%s Steam level %d", SteamFriends->GetFriendPersonaName(SteamFriends->GetFriendByIndex(i, k_EFriendFlagAll)),
+							SteamFriends->GetFriendSteamLevel(SteamFriends->GetFriendByIndex(i, k_EFriendFlagAll)));
+					}
+				}
+				ImGui::EndChild();*/
+			}
+			ImGui::EndGroup();
+		}
+		ImGui::EndChild();
+	}
+	if (Active_Visuals_Tab == 2)
+	{
+		ImGui::SetCursorPos(ImVec2{ 10, 90 });
+		ImGui::BeginChild("it3e323ms", { 365, 470 });
+		{
+
+			ImGui::SetCursorPos({ 10,0 });
+			ImGui::BeginGroup();
+			{
+				ImGui::Checkbox(crypt_str("Rare animations"), &g_cfg.skins.rare_animations);
+				ImGui::SliderInt(crypt_str("Viewmodel field of view"), &g_cfg.esp.viewmodel_fov, 0, 89, crypt_str(fov));
+				ImGui::SliderInt(crypt_str("Viewmodel X"), &g_cfg.esp.viewmodel_x, -50, 50);
+				ImGui::SliderInt(crypt_str("Viewmodel Y"), &g_cfg.esp.viewmodel_y, -50, 50);
+				ImGui::SliderInt(crypt_str("Viewmodel Z"), &g_cfg.esp.viewmodel_z, -50, 50);
+				ImGui::SliderInt(crypt_str("Viewmodel roll"), &g_cfg.esp.viewmodel_roll, -180, 180);
+			}
+			ImGui::EndGroup();
+		}
+		ImGui::EndChild();
+		ImGui::SetCursorPos(ImVec2{ 370, 90 });
+		ImGui::BeginChild("ite4m6s2", { 365, 470 });
+		{
+
+			ImGui::SetCursorPos({ 10,0 });
+			ImGui::BeginGroup();
+			{
+				ImGui::Checkbox(crypt_str("Arms chams"), &g_cfg.esp.arms_chams);
+				ImGui::SameLine();
+				ImGui::ColorEdit(crypt_str("##armscolor"), &g_cfg.esp.arms_chams_color, ALPHA);
+
+
+				draw_combo(crypt_str("Arms chams material"), g_cfg.esp.arms_chams_type, chamstype, ARRAYSIZE(chamstype));
+
+				if (g_cfg.esp.arms_chams_type != 6)
+				{
+					ImGui::Checkbox(crypt_str("Arms double material "), &g_cfg.esp.arms_double_material);
+					ImGui::SameLine();
+					ImGui::ColorEdit(crypt_str("##armsdoublematerial"), &g_cfg.esp.arms_double_material_color, ALPHA);
+				}
+
+				ImGui::Checkbox(crypt_str("Arms animated material "), &g_cfg.esp.arms_animated_material);
+				ImGui::SameLine();
+				ImGui::ColorEdit(crypt_str("##armsanimatedmaterial"), &g_cfg.esp.arms_animated_material_color, ALPHA);
+
+				ImGui::Spacing();
+
+				ImGui::Checkbox(crypt_str("Weapon chams"), &g_cfg.esp.weapon_chams);
+				ImGui::SameLine();
+				ImGui::ColorEdit(crypt_str("##weaponchamscolors"), &g_cfg.esp.weapon_chams_color, ALPHA);
+
+				draw_combo(crypt_str("Weapon chams material"), g_cfg.esp.weapon_chams_type, chamstype, ARRAYSIZE(chamstype));
+
+				if (g_cfg.esp.weapon_chams_type != 6)
+				{
+					ImGui::Checkbox(crypt_str("Double material "), &g_cfg.esp.weapon_double_material);
+					ImGui::SameLine();
+					ImGui::ColorEdit(crypt_str("##weapondoublematerial"), &g_cfg.esp.weapon_double_material_color, ALPHA);
+				}
+
+				ImGui::Checkbox(crypt_str("Animated material "), &g_cfg.esp.weapon_animated_material);
+				ImGui::SameLine();
+				ImGui::ColorEdit(crypt_str("##weaponanimatedmaterial"), &g_cfg.esp.weapon_animated_material_color, ALPHA);
+
+			}
+			ImGui::EndGroup();
+		}
+		ImGui::EndChild();
+	}
+	if (Active_Visuals_Tab == 3) {
+		// hey stewen, what r u doing there? he, hm heee, DRUGS
+		static bool drugs = false;
+
+		// some animation logic(switch)
+		static bool active_animation = false;
+		static bool preview_reverse = false;
+		static float switch_alpha = 1.f;
+		static int next_id = -1;
+		if (active_animation)
+		{
+			if (preview_reverse)
+			{
+				if (switch_alpha == 1.f) //-V550
+				{
+					preview_reverse = false;
+					active_animation = false;
+				}
+
+				switch_alpha = math::clamp(switch_alpha + (4.f * ImGui::GetIO().DeltaTime), 0.01f, 1.f);
+			}
+			else
+			{
+				if (switch_alpha == 0.01f) //-V550
+				{
+					preview_reverse = true;
+				}
+
+				switch_alpha = math::clamp(switch_alpha - (4.f * ImGui::GetIO().DeltaTime), 0.01f, 1.f);
+			}
+		}
+		else
+			switch_alpha = math::clamp(switch_alpha + (4.f * ImGui::GetIO().DeltaTime), 0.0f, 1.f);
+
+
+	
+		
+
+
+			ImGui::BeginChild(crypt_str("##SKINCHANGER__CHILD"), ImVec2(686 * dpi_scale, (child_height - 35) * dpi_scale));
+			{
+				// we need to count our items in 1 line
+				auto same_line_counter = 0;
+
+				// if we didnt choose any weapon
+				if (current_profile == -1)
+				{
+					for (auto i = 0; i < g_cfg.skins.skinChanger.size(); i++)
+					{
+						// do we need update our preview for some reasons?
+						if (!all_skins[i])
+						{
+							g_cfg.skins.skinChanger.at(i).update();
+							all_skins[i] = get_skin_preview(get_wep(i, (i == 0 || i == 1) ? g_cfg.skins.skinChanger.at(i).definition_override_vector_index : -1, i == 0).c_str(), g_cfg.skins.skinChanger.at(i).skin_name, device); //-V810
+						}
+
+						// we licked on weapon
+						if (ImGui::ImageButton(all_skins[i], ImVec2(107 * dpi_scale, 76 * dpi_scale)))
+						{
+							next_id = i;
+							active_animation = true;
+						}
+
+						// if our animation step is half from all - switch profile
+						if (active_animation && preview_reverse)
+						{
+							ImGui::SetScrollY(0);
+							current_profile = next_id;
+						}
+
+						if (same_line_counter < 4) { // continue push same-line
+							ImGui::SameLine();
+							same_line_counter++;
+						}
+						else { // we have maximum elements in 1 line
+							same_line_counter = 0;
+						}
+					}
+				}
+				else
+				{
+					// update skin preview bool
+					static bool need_update[36];
+
+					// we pressed crypt_str("Save & Close") button
+					static bool leave;
+
+					// update if we have nullptr texture or if we push force update
+					if (!all_skins[current_profile] || need_update[current_profile])
+					{
+						all_skins[current_profile] = get_skin_preview(get_wep(current_profile, (current_profile == 0 || current_profile == 1) ? g_cfg.skins.skinChanger.at(current_profile).definition_override_vector_index : -1, current_profile == 0).c_str(), g_cfg.skins.skinChanger.at(current_profile).skin_name, device); //-V810
+						need_update[current_profile] = false;
+					}
+
+					// get settings for selected weapon
+					auto& selected_entry = g_cfg.skins.skinChanger[current_profile];
+					selected_entry.itemIdIndex = current_profile;
+
+					ImGui::BeginGroup();
+					ImGui::PushItemWidth(260 * dpi_scale);
+
+					// search input later
+					static char search_skins[64] = "\0";
+					static auto item_index = selected_entry.paint_kit_vector_index;
+
+					if (!current_profile)
+					{
+						ImGui::Text(crypt_str("Knife"));
+						ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 5 * c_menu::get().dpi_scale);
+						if (ImGui::Combo(crypt_str("##Knife_combo"), &selected_entry.definition_override_vector_index, [](void* data, int idx, const char** out_text)
+						{
+							*out_text = game_data::knife_names[idx].name;
+							return true;
+						}, nullptr, IM_ARRAYSIZE(game_data::knife_names)))
+							need_update[current_profile] = true; // push force update
+					}
+					else if (current_profile == 1)
+					{
+						ImGui::Text(crypt_str("Gloves"));
+						ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 5 * c_menu::get().dpi_scale);
+						if (ImGui::Combo(crypt_str("##Glove_combo"), &selected_entry.definition_override_vector_index, [](void* data, int idx, const char** out_text)
+						{
+							*out_text = game_data::glove_names[idx].name;
+							return true;
+						}, nullptr, IM_ARRAYSIZE(game_data::glove_names)))
+						{
+							item_index = 0; // set new generated paintkits element to 0;
+							need_update[current_profile] = true; // push force update
+						}
+					}
+					else
+						selected_entry.definition_override_vector_index = 0;
+
+					if (current_profile != 1)
+					{
+						ImGui::Text(crypt_str("Search"));
+						ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.f);
+
+						if (ImGui::InputText(crypt_str("##search"), search_skins, sizeof(search_skins)))
+							item_index = -1;
+
+						ImGui::PopStyleVar();
+					}
+
+					auto main_kits = current_profile == 1 ? SkinChanger::gloveKits : SkinChanger::skinKits;
+					auto display_index = 0;
+
+					SkinChanger::displayKits = main_kits;
+
+					// we dont need custom gloves
+					if (current_profile == 1)
+					{
+						for (auto i = 0; i < main_kits.size(); i++)
+						{
+							auto main_name = main_kits.at(i).name;
+
+							for (auto i = 0; i < main_name.size(); i++)
+								if (iswalpha((main_name.at(i))))
+									main_name.at(i) = towlower(main_name.at(i));
+
+							char search_name[64];
+
+							if (!strcmp(game_data::glove_names[selected_entry.definition_override_vector_index].name, crypt_str("Hydra")))
+								strcpy_s(search_name, sizeof(search_name), crypt_str("Bloodhound"));
+							else
+								strcpy_s(search_name, sizeof(search_name), game_data::glove_names[selected_entry.definition_override_vector_index].name);
+
+							for (auto i = 0; i < sizeof(search_name); i++)
+								if (iswalpha(search_name[i]))
+									search_name[i] = towlower(search_name[i]);
+
+							if (main_name.find(search_name) != std::string::npos)
+							{
+								SkinChanger::displayKits.at(display_index) = main_kits.at(i);
+								display_index++;
+							}
+						}
+
+						SkinChanger::displayKits.erase(SkinChanger::displayKits.begin() + display_index, SkinChanger::displayKits.end());
+					}
+					else
+					{
+						if (strcmp(search_skins, crypt_str(""))) //-V526
+						{
+							for (auto i = 0; i < main_kits.size(); i++)
+							{
+								auto main_name = main_kits.at(i).name;
+
+								for (auto i = 0; i < main_name.size(); i++)
+									if (iswalpha(main_name.at(i)))
+										main_name.at(i) = towlower(main_name.at(i));
+
+								char search_name[64];
+								strcpy_s(search_name, sizeof(search_name), search_skins);
+
+								for (auto i = 0; i < sizeof(search_name); i++)
+									if (iswalpha(search_name[i]))
+										search_name[i] = towlower(search_name[i]);
+
+								if (main_name.find(search_name) != std::string::npos)
+								{
+									SkinChanger::displayKits.at(display_index) = main_kits.at(i);
+									display_index++;
+								}
+							}
+
+							SkinChanger::displayKits.erase(SkinChanger::displayKits.begin() + display_index, SkinChanger::displayKits.end());
+						}
+						else
+							item_index = selected_entry.paint_kit_vector_index;
+					}
+
+					ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.f);
+					if (!SkinChanger::displayKits.empty())
+					{
+						if (ImGui::ListBox(crypt_str("##PAINTKITS"), &item_index, [](void* data, int idx, const char** out_text) //-V107
+						{
+							while (SkinChanger::displayKits.at(idx).name.find(crypt_str("С‘")) != std::string::npos) //-V807
+								SkinChanger::displayKits.at(idx).name.replace(SkinChanger::displayKits.at(idx).name.find(crypt_str("С‘")), 2, crypt_str("Рµ"));
+
+							*out_text = SkinChanger::displayKits.at(idx).name.c_str();
+							return true;
+						}, nullptr, SkinChanger::displayKits.size(), SkinChanger::displayKits.size() > 9 ? 9 : SkinChanger::displayKits.size()) || !all_skins[current_profile])
+						{
+							SkinChanger::scheduleHudUpdate();
+							need_update[current_profile] = true;
+
+							auto i = 0;
+
+							while (i < main_kits.size())
+							{
+								if (main_kits.at(i).id == SkinChanger::displayKits.at(item_index).id)
+								{
+									selected_entry.paint_kit_vector_index = i;
+									break;
+								}
+
+								i++;
+							}
+
+						}
+					}
+					ImGui::PopStyleVar();
+
+					if (ImGui::InputInt(crypt_str("Seed"), &selected_entry.seed, 1, 100))
+						SkinChanger::scheduleHudUpdate();
+
+					if (ImGui::InputInt(crypt_str("StatTrak"), &selected_entry.stat_trak, 1, 15))
+						SkinChanger::scheduleHudUpdate();
+
+					if (ImGui::SliderFloat(crypt_str("Wear"), &selected_entry.wear, 0.0f, 1.0f))
+						drugs = true;
+					else if (drugs)
+					{
+						SkinChanger::scheduleHudUpdate();
+						drugs = false;
+					}
+
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 6 * c_menu::get().dpi_scale);
+					ImGui::Text(crypt_str("Quality"));
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 5 * c_menu::get().dpi_scale);
+					if (ImGui::Combo(crypt_str("##Quality_combo"), &selected_entry.entity_quality_vector_index, [](void* data, int idx, const char** out_text)
+					{
+						*out_text = game_data::quality_names[idx].name;
+						return true;
+					}, nullptr, IM_ARRAYSIZE(game_data::quality_names)))
+						SkinChanger::scheduleHudUpdate();
+
+					if (current_profile != 1)
+					{
+						if (!g_cfg.skins.custom_name_tag[current_profile].empty())
+							strcpy_s(selected_entry.custom_name, sizeof(selected_entry.custom_name), g_cfg.skins.custom_name_tag[current_profile].c_str());
+
+						ImGui::Text(crypt_str("Name Tag"));
+						ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.f);
+
+						if (ImGui::InputText(crypt_str("##nametag"), selected_entry.custom_name, sizeof(selected_entry.custom_name)))
+						{
+							g_cfg.skins.custom_name_tag[current_profile] = selected_entry.custom_name;
+							SkinChanger::scheduleHudUpdate();
+						}
+
+						ImGui::PopStyleVar();
+					}
+
+					ImGui::PopItemWidth();
+
+					ImGui::EndGroup();
+
+					ImGui::SameLine();
+					ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 286 * dpi_scale - 200 * dpi_scale);
+
+					ImGui::BeginGroup();
+					if (ImGui::ImageButton(all_skins[current_profile], ImVec2(190 * dpi_scale, 155 * dpi_scale)))
+					{
+						// maybe i will do smth later where, who knows :/
+					}
+
+					if (ImGui::CustomButton(crypt_str("Close"), crypt_str("##CLOSE__SKING"), ImVec2(198 * dpi_scale, 26 * dpi_scale)))
+					{
+						// start animation
+						active_animation = true;
+						next_id = -1;
+						leave = true;
+					}
+					ImGui::EndGroup();
+
+					// update element
+					selected_entry.update();
+
+					// we need to reset profile in the end to prevent render images with massive's index == -1
+					if (leave && (preview_reverse || !active_animation))
+					{
+						ImGui::SetScrollY(0);
+						current_profile = next_id;
+						leave = false;
+					}
+
+				}
+			}
+			ImGui::EndChild();
+
+		
+		
+
+	}
+}
+
+void c_menu::draw_players(int child)
+{
+	auto player = players_section;
+
+	switch (Active_Changer_Tab)
+	{
+	case 1: player = ENEMY;
+		break;
+	case 2: player = TEAM;
+		break;
+	case 3: player = LOCAL;
+		break;
+	}
+
+	if (Active_Changer_Tab == 1 || Active_Changer_Tab == 2 || Active_Changer_Tab == 3)
+	{
+		auto player = players_section;
+
+		//Visuals | ESP
+		{
+			ImGui::SetCursorPos(ImVec2{ 10, 90 });
+			ImGui::BeginChild("it3ems", { 365, 470 });
+			{
+
+				ImGui::SetCursorPos({ 10,0 });
+				ImGui::BeginGroup();
+				{
+
+					ImGui::Checkbox(crypt_str("Enable"), &g_cfg.player.enable);
+
+					if (player == ENEMY)
+					{
+						ImGui::Checkbox(crypt_str("OOF arrows"), &g_cfg.player.arrows);
+						ImGui::SameLine();
+						ImGui::ColorEdit(crypt_str("##arrowscolor"), &g_cfg.player.arrows_color, ALPHA);
+
+						if (g_cfg.player.arrows)
+						{
+							ImGui::SliderInt(crypt_str("Arrows distance"), &g_cfg.player.distance, 1, 100);
+							ImGui::SliderInt(crypt_str("Arrows size"), &g_cfg.player.size, 1, 100);
+						}
+					}
+
+					ImGui::Checkbox(crypt_str("Bounding box"), &g_cfg.player.type[player].box);
+					ImGui::SameLine();
+					ImGui::ColorEdit(crypt_str("##boxcolor"), &g_cfg.player.type[player].box_color, ALPHA);
+
+					ImGui::Checkbox(crypt_str("Name"), &g_cfg.player.type[player].name);
+					ImGui::SameLine();
+					ImGui::ColorEdit(crypt_str("##namecolor"), &g_cfg.player.type[player].name_color, ALPHA);
+
+					ImGui::Checkbox(crypt_str("Health bar"), &g_cfg.player.type[player].health);
+					ImGui::Checkbox(crypt_str("Health color"), &g_cfg.player.type[player].custom_health_color);
+					ImGui::SameLine();
+					ImGui::ColorEdit(crypt_str("##healthcolor"), &g_cfg.player.type[player].health_color, ALPHA);
+
+					for (auto i = 0, j = 0; i < ARRAYSIZE(flags); i++)
+					{
+						if (g_cfg.player.type[player].flags[i])
+						{
+							if (j)
+								preview += crypt_str(", ") + (std::string)flags[i];
+							else
+								preview = flags[i];
+
+							j++;
+						}
+					}
+
+					draw_multicombo(crypt_str("Flags"), g_cfg.player.type[player].flags, flags, ARRAYSIZE(flags), preview);
+					draw_multicombo(crypt_str("Weapon"), g_cfg.player.type[player].weapon, weaponplayer, ARRAYSIZE(weaponplayer), preview);
+
+
+					if (g_cfg.player.type[player].weapon[WEAPON_ICON] || g_cfg.player.type[player].weapon[WEAPON_TEXT])
+					{
+						ImGui::Text(crypt_str("Color "));
+						ImGui::SameLine();
+						ImGui::ColorEdit(crypt_str("##weapcolor"), &g_cfg.player.type[player].weapon_color, ALPHA);
+					}
+
+					ImGui::Checkbox(crypt_str("Skeleton"), &g_cfg.player.type[player].skeleton);
+					ImGui::SameLine();
+					ImGui::ColorEdit(crypt_str("##skeletoncolor"), &g_cfg.player.type[player].skeleton_color, ALPHA);
+
+					ImGui::Checkbox(crypt_str("Ammo bar"), &g_cfg.player.type[player].ammo);
+					ImGui::SameLine();
+					ImGui::ColorEdit(crypt_str("##ammocolor"), &g_cfg.player.type[player].ammobar_color, ALPHA);
+
+					ImGui::Checkbox(crypt_str("Footsteps"), &g_cfg.player.type[player].footsteps);
+					ImGui::SameLine();
+					ImGui::ColorEdit(crypt_str("##footstepscolor"), &g_cfg.player.type[player].footsteps_color, ALPHA);
+
+					if (g_cfg.player.type[player].footsteps)
+					{
+						ImGui::SliderInt(crypt_str("Thickness"), &g_cfg.player.type[player].thickness, 1, 10);
+						ImGui::SliderInt(crypt_str("Radius"), &g_cfg.player.type[player].radius, 50, 500);
+					}
+
+					if (player == ENEMY || player == TEAM)
+					{
+						ImGui::Checkbox(crypt_str("Snap lines"), &g_cfg.player.type[player].snap_lines);
+						ImGui::SameLine();
+						ImGui::ColorEdit(crypt_str("##snapcolor"), &g_cfg.player.type[player].snap_lines_color, ALPHA);
+
+						if (player == ENEMY)
+						{
+							if (g_cfg.ragebot.enable)
+							{
+								ImGui::Checkbox(crypt_str("Aimbot points"), &g_cfg.player.show_multi_points);
+								ImGui::SameLine();
+								ImGui::ColorEdit(crypt_str("##showmultipointscolor"), &g_cfg.player.show_multi_points_color, ALPHA);
+							}
+
+							ImGui::Checkbox(crypt_str("Aimbot hitboxes"), &g_cfg.player.lag_hitbox);
+							ImGui::SameLine();
+							ImGui::ColorEdit(crypt_str("##lagcompcolor"), &g_cfg.player.lag_hitbox_color, ALPHA);
+						}
+					}
+					else
+					{
+						draw_combo(crypt_str("Player model T"), g_cfg.player.player_model_t, player_model_t, ARRAYSIZE(player_model_t));
+						padding(0, 3);
+						draw_combo(crypt_str("Player model CT"), g_cfg.player.player_model_ct, player_model_ct, ARRAYSIZE(player_model_ct));
+					}
+
+				}
+				ImGui::EndGroup();
+			}
+			ImGui::EndChild();
+			ImGui::SetCursorPos(ImVec2{ 370, 90 });
+			ImGui::BeginChild("item6s2", { 365, 470 });
+			{
+
+				ImGui::SetCursorPos({ 10,0 });
+				ImGui::BeginGroup();
+				{
+					ImGui::Spacing();
+					if (player == LOCAL)
+						draw_combo(crypt_str("Type"), g_cfg.player.local_chams_type, local_chams_type, ARRAYSIZE(local_chams_type));
+
+					if (player != LOCAL || !g_cfg.player.local_chams_type)
+						draw_multicombo(crypt_str("Chams"), g_cfg.player.type[player].chams, g_cfg.player.type[player].chams[PLAYER_CHAMS_VISIBLE] ? chamsvisact : chamsvis, g_cfg.player.type[player].chams[PLAYER_CHAMS_VISIBLE] ? ARRAYSIZE(chamsvisact) : ARRAYSIZE(chamsvis), preview);
+
+					if (g_cfg.player.type[player].chams[PLAYER_CHAMS_VISIBLE] || player == LOCAL && g_cfg.player.local_chams_type) //-V648
+					{
+						if (player == LOCAL && g_cfg.player.local_chams_type)
+						{
+							ImGui::Checkbox(crypt_str("Enable desync chams"), &g_cfg.player.fake_chams_enable);
+							ImGui::Checkbox(crypt_str("Visualize lag"), &g_cfg.player.visualize_lag);
+							ImGui::Checkbox(crypt_str("Layered"), &g_cfg.player.layered);
+
+							draw_combo(crypt_str("Player chams material"), g_cfg.player.fake_chams_type, chamstype, ARRAYSIZE(chamstype));
+
+							ImGui::Text(crypt_str("Color "));
+							ImGui::SameLine();
+							ImGui::ColorEdit(crypt_str("##fakechamscolor"), &g_cfg.player.fake_chams_color, ALPHA);
+
+							if (g_cfg.player.fake_chams_type != 6)
+							{
+								ImGui::Checkbox(crypt_str("Double material "), &g_cfg.player.fake_double_material);
+								ImGui::SameLine();
+								ImGui::ColorEdit(crypt_str("##doublematerialcolor"), &g_cfg.player.fake_double_material_color, ALPHA);
+							}
+
+							ImGui::Checkbox(crypt_str("Animated material"), &g_cfg.player.fake_animated_material);
+							ImGui::SameLine();
+							ImGui::ColorEdit(crypt_str("##animcolormat"), &g_cfg.player.fake_animated_material_color, ALPHA);
+						}
+						else
+						{
+							draw_combo(crypt_str("Player chams material"), g_cfg.player.type[player].chams_type, chamstype, ARRAYSIZE(chamstype));
+
+							if (g_cfg.player.type[player].chams[PLAYER_CHAMS_VISIBLE])
+							{
+								ImGui::Text(crypt_str("Visible "));
+								ImGui::SameLine();
+								ImGui::ColorEdit(crypt_str("##chamsvisible"), &g_cfg.player.type[player].chams_color, ALPHA);
+							}
+
+							if (g_cfg.player.type[player].chams[PLAYER_CHAMS_VISIBLE] && g_cfg.player.type[player].chams[PLAYER_CHAMS_INVISIBLE])
+							{
+								ImGui::Text(crypt_str("Invisible "));
+								ImGui::SameLine();
+								ImGui::ColorEdit(crypt_str("##chamsinvisible"), &g_cfg.player.type[player].xqz_color, ALPHA);
+							}
+
+							if (g_cfg.player.type[player].chams_type != 6)
+							{
+								ImGui::Checkbox(crypt_str("Double material "), &g_cfg.player.type[player].double_material);
+								ImGui::SameLine();
+								ImGui::ColorEdit(crypt_str("##doublematerialcolor"), &g_cfg.player.type[player].double_material_color, ALPHA);
+							}
+
+							ImGui::Checkbox(crypt_str("Animated material"), &g_cfg.player.type[player].animated_material);
+							ImGui::SameLine();
+							ImGui::ColorEdit(crypt_str("##animcolormat"), &g_cfg.player.type[player].animated_material_color, ALPHA);
+
+							if (player == ENEMY)
+							{
+								ImGui::Checkbox(crypt_str("Backtrack chams"), &g_cfg.player.backtrack_chams);
+
+								if (g_cfg.player.backtrack_chams)
+								{
+									draw_combo(crypt_str("Backtrack chams material"), g_cfg.player.backtrack_chams_material, chamstype, ARRAYSIZE(chamstype));
+
+									ImGui::Text(crypt_str("Color "));
+									ImGui::SameLine();
+									ImGui::ColorEdit(crypt_str("##backtrackcolor"), &g_cfg.player.backtrack_chams_color, ALPHA);
+								}
+							}
+						}
+					}
+
+					if (player == ENEMY || player == TEAM)
+					{
+						ImGui::Checkbox(crypt_str("Ragdoll chams"), &g_cfg.player.type[player].ragdoll_chams);
+
+						if (g_cfg.player.type[player].ragdoll_chams)
+						{
+							draw_combo(crypt_str("Ragdoll chams material"), g_cfg.player.type[player].ragdoll_chams_material, chamstype, ARRAYSIZE(chamstype));
+
+							ImGui::Text(crypt_str("Color "));
+							ImGui::SameLine();
+							ImGui::ColorEdit(crypt_str("##ragdollcolor"), &g_cfg.player.type[player].ragdoll_chams_color, ALPHA);
+						}
+					}
+					else if (!g_cfg.player.local_chams_type)
+					{
+						ImGui::Checkbox(crypt_str("Transparency in scope"), &g_cfg.player.transparency_in_scope);
+
+						if (g_cfg.player.transparency_in_scope)
+							ImGui::SliderFloat(crypt_str("Alpha"), &g_cfg.player.transparency_in_scope_amount, 0.0f, 1.0f);
+					}
+
+					ImGui::Spacing();
+
+					ImGui::Checkbox(crypt_str("Glow"), &g_cfg.player.type[player].glow);
+
+					if (g_cfg.player.type[player].glow)
+					{
+						draw_combo(crypt_str("Glow type"), g_cfg.player.type[player].glow_type, glowtype, ARRAYSIZE(glowtype));
+						ImGui::Text(crypt_str("Color "));
+						ImGui::SameLine();
+						ImGui::ColorEdit(crypt_str("##glowcolor"), &g_cfg.player.type[player].glow_color, ALPHA);
+					}
+
+				}
+				ImGui::EndGroup();
+			}
+			ImGui::EndChild();
+		}
+	}
+}
+
+void c_menu::draw_misc(int child)
+{
+	if (Active_Misc_Tab == 1)
+	{
+		ImGui::SetCursorPos(ImVec2{ 10, 90 });
+		ImGui::BeginChild("it3ems", { 365, 470 });
+		{
+
+			ImGui::SetCursorPos({ 10,0 });
+			ImGui::BeginGroup();
+			{
+				ImGui::Checkbox(crypt_str("Anti-untrusted"), &g_cfg.misc.anti_untrusted);
+				ImGui::Checkbox(crypt_str("Rank reveal"), &g_cfg.misc.rank_reveal);
+				//ImGui::Checkbox(crypt_str("Keybinds"), &g_cfg.menu.keybinds);
+				ImGui::Checkbox(crypt_str("Unlock inventory access"), &g_cfg.misc.inventory_access);
+				ImGui::Checkbox(crypt_str("Gravity ragdolls"), &g_cfg.misc.ragdolls);
+				ImGui::Checkbox(crypt_str("Preserve killfeed"), &g_cfg.esp.preserve_killfeed);
+				ImGui::Checkbox(crypt_str("Aspect ratio"), &g_cfg.misc.aspect_ratio);
+
+				if (g_cfg.misc.aspect_ratio)
+				{
+					padding(0, -5);
+					ImGui::SliderFloat(crypt_str("Amount"), &g_cfg.misc.aspect_ratio_amount, 1.0f, 2.0f);
+				}
+
+				ImGui::Checkbox(crypt_str("Fake lag"), &g_cfg.antiaim.fakelag);
+				if (g_cfg.antiaim.fakelag)
+				{
+					draw_combo(crypt_str("Fake lag type"), g_cfg.antiaim.fakelag_type, fakelags, ARRAYSIZE(fakelags));
+					ImGui::SliderInt(crypt_str("Limit"), &g_cfg.antiaim.fakelag_amount, 1, 15);
+
+					draw_multicombo(crypt_str("Fake lag triggers"), g_cfg.antiaim.fakelag_enablers, lagstrigger, ARRAYSIZE(lagstrigger), preview);
+
+					auto enabled_fakelag_triggers = false;
+
+					for (auto i = 0; i < ARRAYSIZE(lagstrigger); i++)
+						if (g_cfg.antiaim.fakelag_enablers[i])
+							enabled_fakelag_triggers = true;
+
+					if (enabled_fakelag_triggers)
+						ImGui::SliderInt(crypt_str("Triggers limit"), &g_cfg.antiaim.triggers_fakelag_amount, 1, 15);
+				}
+			}
+			ImGui::EndGroup();
+		}
+		ImGui::EndChild();
+		ImGui::SetCursorPos(ImVec2{ 370, 90 });
+		ImGui::BeginChild("item6s2", { 365, 470 });
+		{
+
+			ImGui::SetCursorPos({ 10,0 });
+			ImGui::BeginGroup();
+			{
+
+				ImGui::Checkbox(crypt_str("Watermark"), &g_cfg.menu.watermark);
+				//ImGui::Checkbox(crypt_str("Spectators list"), &g_cfg.misc.spectators_list);
+				draw_combo(crypt_str("Hitsound"), g_cfg.esp.hitsound, sounds, ARRAYSIZE(sounds));
+				ImGui::Checkbox(crypt_str("Killsound"), &g_cfg.esp.killsound);
+				draw_multicombo(crypt_str("Logs"), g_cfg.misc.events_to_log, events, ARRAYSIZE(events), preview);
+				padding(0, 3);
+				draw_multicombo(crypt_str("Logs output"), g_cfg.misc.log_output, events_output, ARRAYSIZE(events_output), preview);
+
+				if (g_cfg.misc.events_to_log[EVENTLOG_HIT] || g_cfg.misc.events_to_log[EVENTLOG_ITEM_PURCHASES] || g_cfg.misc.events_to_log[EVENTLOG_BOMB])
+				{
+					ImGui::Text(crypt_str("Color "));
+					ImGui::SameLine();
+					ImGui::ColorEdit(crypt_str("##logcolor"), &g_cfg.misc.log_color, ALPHA);
+				}
+
+				ImGui::Checkbox(crypt_str("Show CS:GO logs"), &g_cfg.misc.show_default_log);
+
+			}
+			ImGui::EndGroup();
+		}
+		ImGui::EndChild();
+	}
+	else {
+		ImGui::SetCursorPos(ImVec2{ 10, 90 });
+		ImGui::BeginChild("it3ems", { 365, 470 });
+		{
+
+			ImGui::SetCursorPos({ 10,0 });
+			ImGui::BeginGroup();
+			{
+
+				ImGui::Checkbox(crypt_str("Automatic jump"), &g_cfg.misc.bunnyhop);
+				draw_combo(crypt_str("Automatic strafes"), g_cfg.misc.airstrafe, strafes, ARRAYSIZE(strafes));
+				ImGui::Checkbox(crypt_str("Crouch in air"), &g_cfg.misc.crouch_in_air);
+				ImGui::Checkbox(crypt_str("Fast stop"), &g_cfg.misc.fast_stop);
+				ImGui::Checkbox(crypt_str("Slide walk"), &g_cfg.misc.slidewalk);
+				ImGui::Checkbox(crypt_str("No duck cooldown"), &g_cfg.misc.noduck);
+
+				if (g_cfg.misc.noduck)
+					draw_keybind(crypt_str("Fake duck"), &g_cfg.misc.fakeduck_key, crypt_str("##FAKEDUCK__HOTKEY"));
+
+				draw_keybind(crypt_str("Slow walk"), &g_cfg.misc.slowwalk_key, crypt_str("##SLOWWALK__HOTKEY"));
+				draw_keybind(crypt_str("Auto peek"), &g_cfg.misc.automatic_peek, crypt_str("##AUTOPEEK__HOTKEY"));
+				draw_keybind(crypt_str("Edge jump"), &g_cfg.misc.edge_jump, crypt_str("##EDGEJUMP__HOTKEY"));
+
+			}
+			ImGui::EndGroup();
+		}
+		ImGui::EndChild();
+		ImGui::SetCursorPos(ImVec2{ 370, 90 });
+		ImGui::BeginChild("item6s2", { 365, 470 });
+		{
+
+			ImGui::SetCursorPos({ 10,0 });
+			ImGui::BeginGroup();
+			{
+
+				ImGui::Checkbox(crypt_str("Anti-screenshot"), &g_cfg.misc.anti_screenshot);
+				ImGui::Checkbox(crypt_str("Clantag"), &g_cfg.misc.clantag_spammer);
+				ImGui::Checkbox(crypt_str("Chat spam"), &g_cfg.misc.chat);
+				ImGui::Checkbox(crypt_str("Enable buybot"), &g_cfg.misc.buybot_enable);
+
+				if (g_cfg.misc.buybot_enable)
+				{
+					draw_combo(crypt_str("Snipers"), g_cfg.misc.buybot1, mainwep, ARRAYSIZE(mainwep));
+					padding(0, 3);
+					draw_combo(crypt_str("Pistols"), g_cfg.misc.buybot2, secwep, ARRAYSIZE(secwep));
+					padding(0, 3);
+					draw_multicombo(crypt_str("Other"), g_cfg.misc.buybot3, grenades, ARRAYSIZE(grenades), preview);
+				}
+			}
+			ImGui::EndGroup();
+		}
+		ImGui::EndChild();
+	}
+}
+
+void c_menu::draw_settings(int child)
+{
+	ImGuiWindowFlags NoMove = ImGuiWindowFlags_NoMove;
+	ImGui::SetCursorPos(ImVec2{ 10, 60 });
+	ImGui::BeginChild("##Main", ImVec2{ 300, 470 }, false, NoMove);
+	{
+		ImGui::BeginChild(crypt_str("##CONFIGS__FIRST_POSHELNAHUI"), ImVec2(291 * dpi_scale, (child_height - 35) * dpi_scale));
+		ImGui::PushItemWidth(291 * c_menu::get().dpi_scale);
+
+		static auto should_update = true;
+
+		if (should_update)
+		{
+			should_update = false;
+
+			cfg_manager->config_files();
+			files = cfg_manager->files;
+
+			for (auto& current : files)
+				if (current.size() > 2)
+					current.erase(current.size() - 3, 3);
+		}
+
+		if (ImGui::CustomButton(crypt_str("Open configs folder"), crypt_str("##CONFIG__FOLDER"), ImVec2(291 * dpi_scale, 26 * dpi_scale)))
+		{
+			std::string folder;
+
+			auto get_dir = [&folder]() -> void
+			{
+				static TCHAR path[MAX_PATH];
+
+				if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, NULL, path)))
+					folder = std::string(path) + crypt_str("\\LWK\\CFG\\");
+
+				CreateDirectory(folder.c_str(), NULL);
+			};
+
+			get_dir();
+			ShellExecute(NULL, crypt_str("open"), folder.c_str(), NULL, NULL, SW_SHOWNORMAL);
+		}
+
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.f);
+		ImGui::ListBoxConfigArray(crypt_str("##CONFIGS"), &g_cfg.selected_config, files, 7);
+		ImGui::PopStyleVar();
+
+		if (ImGui::CustomButton(crypt_str("Refresh configs"), crypt_str("##CONFIG__REFRESH"), ImVec2(291 * dpi_scale, 26 * dpi_scale)))
+		{
+			cfg_manager->config_files();
+			files = cfg_manager->files;
+
+			for (auto& current : files)
+				if (current.size() > 2)
+					current.erase(current.size() - 3, 3);
+		}
+
+		static char config_name[64] = "\0";
+
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.f);
+		ImGui::InputText(crypt_str("##configname"), config_name, sizeof(config_name));
+		ImGui::PopStyleVar();
+
+		if (ImGui::CustomButton(crypt_str("Create config"), crypt_str("##CONFIG__CREATE"), ImVec2(291 * dpi_scale, 26 * dpi_scale)))
+		{
+			g_cfg.new_config_name = config_name;
+			add_config();
+		}
+
+		static auto next_save = false;
+		static auto prenext_save = false;
+		static auto clicked_sure = false;
+		static auto save_time = m_globals()->m_realtime;
+		static auto save_alpha = 1.0f;
+
+		save_alpha = math::clamp(save_alpha + (4.f * ImGui::GetIO().DeltaTime * (!prenext_save ? 1.f : -1.f)), 0.01f, 1.f);
+		
+		if (!next_save)
+		{
+			clicked_sure = false;
+
+			if (prenext_save && save_alpha <= 0.01f)
+				next_save = true;
+
+			if (ImGui::CustomButton(crypt_str("Save config"), crypt_str("##CONFIG__SAVE"), ImVec2(291 * dpi_scale, 26 * dpi_scale)))
+			{
+				save_time = m_globals()->m_realtime;
+				prenext_save = true;
+			}
+		}
+		else
+		{
+			if (prenext_save && save_alpha <= 0.01f)
+			{
+				prenext_save = false;
+				next_save = !clicked_sure;
+			}
+
+			if (ImGui::CustomButton(crypt_str("Are you sure?"), crypt_str("##AREYOUSURE__SAVE"), ImVec2(291 * dpi_scale, 26 * dpi_scale)))
+			{
+				save_config();
+				prenext_save = true;
+				clicked_sure = true;
+			}
+
+			if (!clicked_sure && m_globals()->m_realtime > save_time + 1.5f)
+			{
+				prenext_save = true;
+				clicked_sure = true;
+			}
+		}
+
+	
+
+		if (ImGui::CustomButton(crypt_str("Load config"), crypt_str("##CONFIG__LOAD"), ImVec2(291 * dpi_scale, 26 * dpi_scale)))
+			load_config();
+
+		static auto next_delete = false;
+		static auto prenext_delete = false;
+		static auto clicked_sure_del = false;
+		static auto delete_time = m_globals()->m_realtime;
+		static auto delete_alpha = 1.0f;
+
+		delete_alpha = math::clamp(delete_alpha + (4.f * ImGui::GetIO().DeltaTime * (!prenext_delete ? 1.f : -1.f)), 0.01f, 1.f);
+		
+
+		if (!next_delete)
+		{
+			clicked_sure_del = false;
+
+			if (prenext_delete && delete_alpha <= 0.01f)
+				next_delete = true;
+
+			if (ImGui::CustomButton(crypt_str("Remove config"), crypt_str("##CONFIG__delete"), ImVec2(291 * dpi_scale, 26 * dpi_scale)))
+			{
+				delete_time = m_globals()->m_realtime;
+				prenext_delete = true;
+			}
+		}
+		else
+		{
+			if (prenext_delete && delete_alpha <= 0.01f)
+			{
+				prenext_delete = false;
+				next_delete = !clicked_sure_del;
+			}
+
+			if (ImGui::CustomButton(crypt_str("Are you sure?"), crypt_str("##AREYOUSURE__delete"), ImVec2(291 * dpi_scale, 26 * dpi_scale)))
+			{
+				remove_config();
+				prenext_delete = true;
+				clicked_sure_del = true;
+			}
+
+			if (!clicked_sure_del && m_globals()->m_realtime > delete_time + 1.5f)
+			{
+				prenext_delete = true;
+				clicked_sure_del = true;
+			}
+		}
+
+
+		ImGui::PopItemWidth();
+
+		ImGui::EndChild();
+		ImGui::SetWindowFontScale(c_menu::get().dpi_scale);
+	}
+	ImGui::EndChild();
+	
+
+	
+	ImGui::SetCursorPos(ImVec2{ 370, 60 });
+	ImGui::BeginChild("##Maein", ImVec2{ 300, 240 }, false, NoMove);
+	{
+
+		IDirect3DTexture9* image;
+		image = steam_image();
+
+		ImGui::Image(image, ImVec2(75, 75));
+		ImGui::Text("Current user: %s\nTime ingame: %f\nTime in real: %s\nTickrate: %d\nFps: %d\nServer time: %f\nSteam level: %d\nPrealpha build", SteamFriends->GetPersonaName(), m_globals()->m_realtime, zGetTimeString().c_str(), zgettickrate(), zgetfps(), m_globals()->m_curtime, SteamUser->GetPlayerSteamLevel());
+
+	}
+	ImGui::EndChild();
+	ImGui::SetCursorPos(ImVec2{ 370, 285 });
+	ImGui::BeginChild("##eMain", ImVec2{ 300, 260 }, false, NoMove);
+	{
+		enum k_EFriendFlags
+		{
+			k_EFriendFlagNone = 0x00,
+			k_EFriendFlagBlocked = 0x01,
+			k_EFriendFlagFriendshipRequested = 0x02,
+			k_EFriendFlagImmediate = 0x04,			// "regular" friend
+			k_EFriendFlagClanMember = 0x08,
+			k_EFriendFlagOnGameServer = 0x10,
+			//	k_EFriendFlagHasPlayedWith	= 0x20,
+			//	k_EFriendFlagFriendOfFriend	= 0x40,
+			k_EFriendFlagRequestingFriendship = 0x80,
+			k_EFriendFlagRequestingInfo = 0x100,
+			k_EFriendFlagAll = 0xFFFF,
+		};
+		static auto friends = SteamFriends->GetFriendCount(k_EFriendFlagAll);
+
+
+		for (static auto i = 0; i < 1; friends_images = new IDirect3DTexture9 * [friends], i++); //creates
+
+
+		for (static auto i = 0; i < friends; friends_images[i] = steam_image_friends(SteamFriends->GetFriendByIndex(i, k_EFriendFlagAll)), i++);
+
+		for (auto i = 0; i < friends; i++)
+		{
+			ImGui::Image(friends_images[i], ImVec2(48, 48));
+			ImGui::SameLine();
+			ImGui::Text("%s Steam level %d", SteamFriends->GetFriendPersonaName(SteamFriends->GetFriendByIndex(i, k_EFriendFlagAll)),
+				SteamFriends->GetFriendSteamLevel(SteamFriends->GetFriendByIndex(i, k_EFriendFlagAll)));
+		}
+	}
+	ImGui::EndChild();
+}
+
+void c_menu::draw_lua(int child)
+{
+	ImGui::SetCursorPos(ImVec2{ 10, 60 });
+	ImGui::BeginChild("it3ems", { 300, 500 });
+	{
+
+		//	ImGui::SetCursorPos({ 1,1 });
+		ImGui::BeginGroup();
+		{
+			ImGui::PushItemWidth(291 * c_menu::get().dpi_scale);
+			static auto should_update = true;
+
+			if (should_update)
+			{
+				should_update = false;
+				scripts = c_lua::get().scripts;
+
+				for (auto& current : scripts)
+				{
+					if (current.size() >= 5 && current.at(current.size() - 1) == 'c')
+						current.erase(current.size() - 5, 5);
+					else if (current.size() >= 4)
+						current.erase(current.size() - 4, 4);
+				}
+			}
+
+			if (ImGui::CustomButton(crypt_str("Open scripts folder"), crypt_str("##LUAS__FOLDER"), ImVec2(291 * dpi_scale, 26 * dpi_scale)))
+			{
+				std::string folder;
+
+				auto get_dir = [&folder]() -> void
+				{
+					static TCHAR path[MAX_PATH];
+
+					if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, NULL, path)))
+						folder = std::string(path) + crypt_str("\\LWK\\LUA\\");
+
+					CreateDirectory(folder.c_str(), NULL);
+				};
+
+				get_dir();
+				ShellExecute(NULL, crypt_str("open"), folder.c_str(), NULL, NULL, SW_SHOWNORMAL);
+			}
+
+			ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.f);
+
+			if (scripts.empty())
+				ImGui::ListBoxConfigArray(crypt_str("##LUAS"), &selected_script, scripts, 7);
+			else
+			{
+				auto backup_scripts = scripts;
+
+				for (auto& script : scripts)
+				{
+					auto script_id = c_lua::get().get_script_id(script + crypt_str(".lua"));
+
+					if (script_id == -1)
+						continue;
+
+					if (c_lua::get().loaded.at(script_id))
+						scripts.at(script_id) += crypt_str(" [loaded]");
+				}
+
+				ImGui::ListBoxConfigArray(crypt_str("##LUAS"), &selected_script, scripts, 7);
+				scripts = std::move(backup_scripts);
+			}
+
+			ImGui::PopStyleVar();
+
+			if (ImGui::CustomButton(crypt_str("Refresh scripts"), crypt_str("##LUA__REFRESH"), ImVec2(291 * dpi_scale, 26 * dpi_scale)))
+			{
+				c_lua::get().refresh_scripts();
+				scripts = c_lua::get().scripts;
+
+				if (selected_script >= scripts.size())
+					selected_script = scripts.size() - 1; //-V103
+
+				for (auto& current : scripts)
+				{
+					if (current.size() >= 5 && current.at(current.size() - 1) == 'c')
+						current.erase(current.size() - 5, 5);
+					else if (current.size() >= 4)
+						current.erase(current.size() - 4, 4);
+				}
+			}
+
+			if (ImGui::CustomButton(crypt_str("Edit script"), crypt_str("##LUA__EDIT"), ImVec2(291 * dpi_scale, 26 * dpi_scale)))
+			{
+				loaded_editing_script = false;
+				editing_script = scripts.at(selected_script);
+			}
+
+			if (ImGui::CustomButton(crypt_str("Load script"), crypt_str("##SCRIPTS__LOAD"), ImVec2(291 * dpi_scale, 26 * dpi_scale)))
+			{
+				c_lua::get().load_script(selected_script);
+				c_lua::get().refresh_scripts();
+
+				scripts = c_lua::get().scripts;
+
+				if (selected_script >= scripts.size())
+					selected_script = scripts.size() - 1; //-V103
+
+				for (auto& current : scripts)
+				{
+					if (current.size() >= 5 && current.at(current.size() - 1) == 'c')
+						current.erase(current.size() - 5, 5);
+					else if (current.size() >= 4)
+						current.erase(current.size() - 4, 4);
+				}
+
+				eventlogs::get().add(crypt_str("Loaded ") + scripts.at(selected_script) + crypt_str(" script"), false); //-V106
+			}
+
+			if (ImGui::CustomButton(crypt_str("Unload script"), crypt_str("##SCRIPTS__UNLOAD"), ImVec2(291 * dpi_scale, 26 * dpi_scale)))
+			{
+				c_lua::get().unload_script(selected_script);
+				c_lua::get().refresh_scripts();
+
+				scripts = c_lua::get().scripts;
+
+				if (selected_script >= scripts.size())
+					selected_script = scripts.size() - 1; //-V103
+
+				for (auto& current : scripts)
+				{
+					if (current.size() >= 5 && current.at(current.size() - 1) == 'c')
+						current.erase(current.size() - 5, 5);
+					else if (current.size() >= 4)
+						current.erase(current.size() - 4, 4);
+				}
+
+				eventlogs::get().add(crypt_str("Unloaded ") + scripts.at(selected_script) + crypt_str(" script"), false); //-V106
+			}
+
+			if (ImGui::CustomButton(crypt_str("Reload all scripts"), crypt_str("##SCRIPTS__RELOAD"), ImVec2(291 * dpi_scale, 26 * dpi_scale)))
+			{
+				c_lua::get().reload_all_scripts();
+				c_lua::get().refresh_scripts();
+
+				scripts = c_lua::get().scripts;
+
+				if (selected_script >= scripts.size())
+					selected_script = scripts.size() - 1; //-V103
+
+				for (auto& current : scripts)
+				{
+					if (current.size() >= 5 && current.at(current.size() - 1) == 'c')
+						current.erase(current.size() - 5, 5);
+					else if (current.size() >= 4)
+						current.erase(current.size() - 4, 4);
+				}
+			}
+
+			if (ImGui::CustomButton(crypt_str("Unload all scripts"), crypt_str("##SCRIPTS__UNLOADALL"), ImVec2(291 * dpi_scale, 26 * dpi_scale)))
+			{
+				c_lua::get().unload_all_scripts();
+				c_lua::get().refresh_scripts();
+
+				scripts = c_lua::get().scripts;
+
+				if (selected_script >= scripts.size())
+					selected_script = scripts.size() - 1; //-V103
+
+				for (auto& current : scripts)
+				{
+					if (current.size() >= 5 && current.at(current.size() - 1) == 'c')
+						current.erase(current.size() - 5, 5);
+					else if (current.size() >= 4)
+						current.erase(current.size() - 4, 4);
+				}
+			}
+
+			ImGui::PopItemWidth();
+			ImGui::Checkbox(crypt_str("Developer mode"), &g_cfg.scripts.developer_mode);
+			ImGui::Checkbox(crypt_str("Allow HTTP requests"), &g_cfg.scripts.allow_http);
+			ImGui::Checkbox(crypt_str("Allow files read or write"), &g_cfg.scripts.allow_file);
+		}
+		ImGui::EndGroup();
+	}
+	ImGui::EndChild();
+	ImGui::SetCursorPos(ImVec2{ 460, 60 });
+	ImGui::BeginChild("it3ems11", { 310, 500 });
+	{
+		ImGui::Spacing();
+		ImGui::Spacing();
+		auto previous_check_box = false;
+
+		for (auto& current : c_lua::get().scripts)
+		{
+			auto& items = c_lua::get().items.at(c_lua::get().get_script_id(current));
+
+			for (auto& item : items)
+			{
+				std::string item_name;
+
+				auto first_point = false;
+				auto item_str = false;
+
+				for (auto& c : item.first)
+				{
+					if (c == '.')
+					{
+						if (first_point)
+						{
+							item_str = true;
+							continue;
+						}
+						else
+							first_point = true;
+					}
+
+					if (item_str)
+						item_name.push_back(c);
+				}
+
+				switch (item.second.type)
+				{
+				case NEXT_LINE:
+					previous_check_box = false;
+					break;
+				case CHECK_BOX:
+					previous_check_box = true;
+					ImGui::Checkbox(item_name.c_str(), &item.second.check_box_value);
+					break;
+				case COMBO_BOX:
+					previous_check_box = false;
+					draw_combo(item_name.c_str(), item.second.combo_box_value, [](void* data, int idx, const char** out_text)
+						{
+							auto labels = (std::vector <std::string>*)data;
+							*out_text = labels->at(idx).c_str(); //-V106
+							return true;
+						}, &item.second.combo_box_labels, item.second.combo_box_labels.size());
+					break;
+				case SLIDER_INT:
+					previous_check_box = false;
+					ImGui::SliderInt(item_name.c_str(), &item.second.slider_int_value, item.second.slider_int_min, item.second.slider_int_max);
+					break;
+				case SLIDER_FLOAT:
+					previous_check_box = false;
+					ImGui::SliderFloat(item_name.c_str(), &item.second.slider_float_value, item.second.slider_float_min, item.second.slider_float_max);
+					break;
+				case COLOR_PICKER:
+					if (previous_check_box)
+						previous_check_box = false;
+					else
+						ImGui::Text((item_name + ' ').c_str());
+
+					ImGui::SameLine();
+					ImGui::ColorEdit((crypt_str("##") + item_name).c_str(), &item.second.color_picker_value, ALPHA, true);
+					break;
+				}
+			}
+		}
+	}
+	ImGui::EndChild();
+	ImGui::Columns(1, nullptr, false);
+	if (!editing_script.empty())
+		lua_edit(editing_script);;
+}
+
+void c_menu::draw_radar(int child)
+{
+	if (!child)
+	{
+		child_title(crypt_str("Radar"));
+		tab_start();
+
+		ImGui::BeginChild(crypt_str("##RADAR_FIRST"), ImVec2(317 * dpi_scale, (child_height - 35) * dpi_scale));
+		{
+			ImGui::Checkbox(crypt_str("Enable radar"), &g_cfg.misc.ingame_radar);
+			ImGui::Checkbox(crypt_str("Render local"), &g_cfg.radar.render_local);
+			ImGui::Checkbox(crypt_str("Render enemy"), &g_cfg.radar.render_enemy);
+			ImGui::Checkbox(crypt_str("Render team"), &g_cfg.radar.render_team);
+			ImGui::Checkbox(crypt_str("Show planted c4"), &g_cfg.radar.render_planted_c4);
+			ImGui::Checkbox(crypt_str("Show dropped c4"), &g_cfg.radar.render_dropped_c4);
+			ImGui::Checkbox(crypt_str("Show health"), &g_cfg.radar.render_health);
+		}
+		ImGui::EndChild();
+
+		tab_end();
+	}
+}
+
+void c_menu::draw_player_list(int child)
+{
+	auto player = players_section;
+
+	static std::vector <Player_list_data> players;
+
+	if (!g_cfg.player_list.refreshing)
+	{
+		players.clear();
+
+		for (auto player : g_cfg.player_list.players)
+			players.emplace_back(player);
+	}
+
+	static auto current_player = 0;
+
+	if (!child)
+	{
+		child_title(crypt_str("Players"));
+		tab_start();
+
+		ImGui::BeginChild(crypt_str("##ESP2_FIRST"), ImVec2(317 * dpi_scale, (child_height - 35) * dpi_scale));
+		{
+
+			if (!players.empty())
+			{
+				std::vector <std::string> player_names;
+
+				for (auto player : players)
+					player_names.emplace_back(player.name);
+
+				ImGui::PushItemWidth(291 * dpi_scale);
+				ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.f);
+				ImGui::ListBoxConfigArray(crypt_str("##PLAYERLIST"), &current_player, player_names, 14);
+				ImGui::PopStyleVar();
+				ImGui::PopItemWidth();
+			}
+
+		}
+		ImGui::EndChild();
+		tab_end();
+	}
+	else
+	{
+		child_title(crypt_str("Settings"));
+
+		tab_start();
+		ImGui::BeginChild(crypt_str("##ESP1_SECOND"), ImVec2(317 * dpi_scale, (child_height - 35) * dpi_scale));
+		{
+
+			if (!players.empty())
+			{
+				if (current_player >= players.size())
+					current_player = players.size() - 1; //-V103
+
+				ImGui::Checkbox(crypt_str("White list"), &g_cfg.player_list.white_list[players.at(current_player).i]); //-V106 //-V807
+
+				if (!g_cfg.player_list.white_list[players.at(current_player).i]) //-V106
+				{
+					ImGui::Checkbox(crypt_str("High priority"), &g_cfg.player_list.high_priority[players.at(current_player).i]); //-V106
+					ImGui::Checkbox(crypt_str("Force safe points"), &g_cfg.player_list.force_safe_points[players.at(current_player).i]); //-V106
+					ImGui::Checkbox(crypt_str("Force body aim"), &g_cfg.player_list.force_body_aim[players.at(current_player).i]); //-V106
+					ImGui::Checkbox(crypt_str("Low delta"), &g_cfg.player_list.low_delta[players.at(current_player).i]); //-V106
+				}
+			}
+
+		}
+		ImGui::EndChild();
+		tab_end();
+	}
+}
+
+void c_menu::draw_indicators()
+{
+	if (!m_engine()->IsInGame() || !m_engine()->IsConnected())
+		return;
+
+	if (!g_cfg.misc.indicators)
+		return;
+
+	// color_mode.m_gradient
+	const auto freq = 1.f; /// Gradient speed (curr: 100%)
+
+	const auto real_time = m_globals()->m_realtime * freq;
+	const int r = std::floor(std::sin(real_time + 0.f) * 127.f + 128.f);
+	const int g = std::floor(std::sin(real_time + 2.f) * 127.f + 128.f);
+	const int b = std::floor(std::sin(real_time + 4.f) * 127.f + 128.f);
+
+	int specs = 0;
+	int modes = 0;
+	std::string spect = "";
+	std::string mode = "";
+
+	// DUCK //
+	spect += "duck";
+	spect += "\n";
+	spect += "\n";
+	specs++;
+
+	float duck = (g_ctx.local()->m_flDuckAmount() * 100);
+
+	mode += "\n";
+	modes++;
+
+
+	// SPEED //
+	spect += "speed";
+	spect += "\n";
+	spect += "\n";
+	specs++;
+
+	float speed = g_ctx.local()->m_vecVelocity().Length2D();
+
+	mode += "\n";
+	modes++;
+
+
+	// TICKBASE //
+	spect += "tickbase";
+	spect += "\n";
+	spect += "\n";
+	specs++;
+
+	float tickbase = g_ctx.globals.backup_tickbase;
+
+	mode += "\n";
+	modes++;
+
+
+	// FAKELAG //
+	spect += "fakelag";
+	spect += "\n";
+	spect += "\n";
+	specs++;
+
+	float fakelag = m_clientstate()->iChokedCommands;
+
+	mode += "\n";
+	modes++;
+
+
+	// DESYNC //
+	spect += "desync";
+	spect += "\n";
+	spect += "\n";
+	specs++;
+
+	float desync = g_ctx.local()->get_max_desync_delta() * 100;
+
+	mode += "\n";
+	modes++;
+
+	// STAMINA //
+	spect += "stamina";
+	spect += "\n";
+	spect += "\n";
+	specs++;
+
+	float stamina = g_ctx.local()->stamina() * 100;
+
+	mode += "\n";
+	modes++;
+
+
+	ImVec2 Pos;
+	ImVec2 size_menu;
+
+	static bool window_set = false;
+	static bool finish = false;
+	static bool other_bind_pressed = false;
+	static int sub_tabs = false;
+
+	if (g_cfg.menu.windowsize_x_saved != g_cfg.menu.oldwindowsize_x_saved)
+	{
+		if (g_cfg.menu.windowsize_x_saved > g_cfg.menu.oldwindowsize_x_saved)
+		{
+			g_cfg.menu.windowsize_x_saved -= g_cfg.menu.speed;
+		}
+		if (g_cfg.menu.windowsize_x_saved < g_cfg.menu.oldwindowsize_x_saved)
+		{
+			g_cfg.menu.windowsize_x_saved += g_cfg.menu.speed;
+		}
+	}
+	if (g_cfg.menu.windowsize_y_saved != g_cfg.menu.oldwindowsize_y_saved)
+	{
+		if (g_cfg.menu.windowsize_y_saved > g_cfg.menu.oldwindowsize_y_saved)
+		{
+			g_cfg.menu.windowsize_y_saved -= g_cfg.menu.speed;
+		}
+		if (g_cfg.menu.windowsize_y_saved < g_cfg.menu.oldwindowsize_y_saved)
+		{
+			g_cfg.menu.windowsize_y_saved += g_cfg.menu.speed;
+		}
+	}
+	if (g_cfg.menu.windowsize_x_saved == g_cfg.menu.oldwindowsize_x_saved && g_cfg.menu.windowsize_y_saved == g_cfg.menu.oldwindowsize_y_saved)
+	{
+		finish = true;
+	}
+	else
+	{
+		finish = false;
+	}
+
+	if (!hooks::menu_open)
+	{
+
+		g_cfg.menu.windowsize_x_saved = 0;
+
+		g_cfg.menu.windowsize_y_saved = 0;
+
+	}
+
+	static float alpha_menu = 0.1f;
+
+	/*ImGuiStyle* Style = &ImGui::GetStyle();
+	Style->WindowRounding = 4;
+	Style->WindowBorderSize = 1;
+	Style->WindowMinSize = { 1,1 };
+	bool theme = true;
+	Style->Colors[ImGuiCol_WindowBg] = ImColor(33, 33, 33, 215);//zochem? ia zhe ubral bg?
+	Style->Colors[ImGuiCol_ChildBg] = ImColor(21, 20, 21, 255);
+	Style->Colors[ImGuiCol_ResizeGrip] = ImColor(42, 40, 43, 0);
+	Style->Colors[ImGuiCol_ResizeGripHovered] = ImColor(42, 40, 43, 0);
+	Style->Colors[ImGuiCol_ResizeGripActive] = ImColor(42, 40, 43, 0);
+	Style->Colors[ImGuiCol_Border] = ImColor(38, 39, 55, 215);
+	Style->Colors[ImGuiCol_Button] = ImColor(29, 125, 229, 5);
+	Style->Colors[ImGuiCol_ButtonHovered] = ImColor(29, 125, 229, 5);
+	Style->Colors[ImGuiCol_ButtonActive] = ImColor(29, 125, 229, 5);
+	Style->Colors[ImGuiCol_PopupBg] = ImColor(18, 17, 18, 255);
+	Style->FramePadding = ImVec2(1, 1);*/
+
+	if (ImGui::Begin("Indicators", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar))
+	{
+		size_menu = ImGui::GetWindowSize();
+		Pos = ImGui::GetWindowPos();
+		auto Render = ImGui::GetWindowDrawList();
+		Render->AddRectFilled({ Pos.x + 0, Pos.y + 0 }, { Pos.x + 220, Pos.y + 23 }, ImColor(15, 15, 62, (int)(155)));
+		Render->AddRectFilled({ Pos.x + 0, Pos.y + 0 }, { Pos.x + 200, Pos.y + 4 }, ImColor(104, 108, 188, (int)(255)));
+		ImGui::PushFont(c_menu::get().ico_keybinds);
+		auto icon = ImGui::CalcTextSize("k");
+		Render->AddText({ Pos.x + 55, Pos.y + 5 }, ImColor(255, 255, 255, (int)(255)), "k");
+		ImGui::PopFont();
+		ImGui::PushFont(c_menu::get().futura_small);
+		Render->AddText({ Pos.x + 55 + icon.x + 2, Pos.y + 8 }, ImColor(255, 255, 255, (int)(255)), "Indicators");
+		Render->AddRectFilled({ Pos.x + 0, Pos.y + 23 }, { Pos.x + 200, Pos.y + ImGui::GetWindowSize().y - 10 }, ImColor(15, 15, 62, (int)(50)), 6);
+
+		ImGui::SetWindowSize(ImVec2(200, 23 + 200));
+		ImGui::SetCursorPosY(24);
+		ImGui::Columns(2, "fart12", false);
+
+		ImGui::SetColumnWidth(0, 75);
+		ImGui::TextColored(ImVec4(1.f, 1.f, 1.f, 1.f), spect.c_str());
+		ImGui::NextColumn();
+
+		//ImGui::TextColored(ImVec4(1.f, 1.f, 1.f, alpha_menu), mode.c_str());
+		ImGui::SliderFloat("##Duck", &duck, 0, 100, "%1.f", 1.f);
+		ImGui::SliderFloat("##Speed", &speed, 0, 300, "%1.f", 1.f);
+		ImGui::SliderFloat("##Tickbase", &duck, 0, 16, "%1.f", 1.f);
+		ImGui::SliderFloat("##Fakelag", &fakelag, 0, 17, "%1.f", 1.f);
+		ImGui::SliderFloat("##Desync", &duck, 0, 116, "%1.f", 1.f);
+		ImGui::SliderFloat("##Stamina", &duck, 0, 40, "%1.f", 1.f);
+		ImGui::Columns(1);
+		// ImGui::Separator();
+		ImGui::PopFont();
+	}
+	ImGui::End();
+}
+
+void c_menu::draw(bool is_open)
+{
 	static auto w = 0, h = 0, current_h = 0;
 	m_engine()->GetScreenSize(w, current_h);
 
@@ -2688,3079 +3595,188 @@ void c_menu::render2(bool is_open) {
 	static float m_alpha = 0.0002f;
 	m_alpha = math::clamp(m_alpha + (3.f * ImGui::GetIO().DeltaTime * (is_open ? 1.f : -1.f)), 0.0001f, 1.f);
 
-	// set alpha in class to use later in widgets
 	public_alpha = m_alpha;
 
 	if (m_alpha <= 0.0001f)
 		return;
 
-	// set new alpha
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, m_alpha);
 
-	// setup colors and some styles
 	if (!menu_setupped)
 		menu_setup(ImGui::GetStyle());
 
 	ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(ImGui::GetStyle().Colors[ImGuiCol_ScrollbarGrab].x, ImGui::GetStyle().Colors[ImGuiCol_ScrollbarGrab].y, ImGui::GetStyle().Colors[ImGuiCol_ScrollbarGrab].z, m_alpha));
 
 	// default menu size
-	const int x = 250, y = 120;
-
-	ImGuiStyle* Style = &ImGui::GetStyle();
-	Style->Colors[ImGuiCol_Text] = ImColor(255, 255, 255);
-	Style->Colors[ImGuiCol_WindowBg] = ImColor(30, 30, 30);
-	Style->Colors[ImGuiCol_ChildBg] = ImColor(30, 30, 30);
-
-	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, m_alpha);
-
-	Style->WindowBorderSize = 0;
-	Style->WindowRounding = 0;
-	Style->ChildRounding = 0;
-
-	//auto Name = "Qwerty.xyz";
-	ImGuiWindowFlags Flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings;
-	ImGuiWindowFlags NoMove = ImGuiWindowFlags_NoMove;
-	ImGuiWindowFlags NoScroll = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
-
-	static auto Active_Tab = 1;
-	static auto Active_Rage_Tab = 1;
-	static auto Active_Legit_Tab = 1;
-	static auto Active_Visuals_Tab = 1;
-	static auto Active_Changer_Tab = 1;
-	static auto Active_Misc_Tab = 1;
-	static auto Active_Movement_Tab = 1;
-
-	if (Active_Tab != 1) Active_Rage_Tab = 1;
-	if (Active_Tab != 2) Active_Legit_Tab = 1;
-	if (Active_Tab != 3) Active_Visuals_Tab = 1;
-	if (Active_Tab != 4) Active_Changer_Tab = 1;
-	if (Active_Tab != 5) Active_Misc_Tab = 1;
-	if (Active_Tab != 6) Active_Movement_Tab = 1;
-
-	// last active tab to switch effect & reverse alpha & preview alpha
-// IMPORTANT: DO TAB SWITCHING BY LAST_TAB!!!!!
-	static int last_tab = Active_Tab;
+	const int x = 745, y = 570;
+	static int last_tab = active_tab;
 	static bool preview_reverse = false;
 
-	if (ImGui::Begin(crypt_str("Qwerty.xyz"), nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar))
+	ImGui::Begin(crypt_str("LWK"), nullptr, ImGuiWindowFlags_NoDecoration);
 	{
+		ImGuiStyle* style = &ImGui::GetStyle();
 
 		auto p = ImGui::GetWindowPos();
+		if (Active_Tab != 1) Active_Rage_Tab = 1;
+		if (Active_Tab != 2) Active_Legit_Tab = 1;
+		if (Active_Tab != 3) Active_Visuals_Tab = 1;
+		if (Active_Tab != 4) Active_Changer_Tab = 1;
+		if (Active_Tab != 5) Active_Misc_Tab = 1;
+		if (Active_Tab != 6) Active_Config_Tab = 1;
+		if (Active_Tab != 7) Active_Steam_Tab = 1;
 
-		// main dpi update logic
-		// KEYWORD : DPI_FIND
-	
-
-		int child;
-		auto player = config_system.g_cfg.player.teams;
-
-		if(last_tab != active_tab || preview_reverse)
+		ImGui::BeginChild("##Full", ImVec2{ 735, 565 }, false, ImGuiWindowFlags_NoScrollbar);
 		{
-			if (!preview_reverse)
-			{
-				if (preview_alpha == 1.f) //-V550
-					preview_reverse = true;
+			draw1 = ImGui::GetWindowDrawList();
+			const ImVec2 pos(p.x + 0, p.y + 0);
 
-				preview_alpha = math::clamp(preview_alpha + (4.f * ImGui::GetIO().DeltaTime), 0.01f, 1.f);
-			}
-			else
+			draw1->AddRectFilled(ImVec2(pos), ImVec2(pos.x + 749, pos.y + 579), ImColor(15, 15, 62, 150));
+			draw1->AddRectFilled(ImVec2(pos.x + 10, pos.y + 45), ImVec2(pos.x + 740, pos.y + 48), ImColor(104, 108, 188, 155));
+			draw1->AddRect(ImVec2(pos), ImVec2(pos.x + 750, pos.y + 580), ImColor(104, 108, 188, 255));
+
+			//tabs
 			{
-				last_tab = active_tab;
-				if (preview_alpha == 0.01f) //-V550
+				ImGui::BeginChild("##Up", ImVec2{ 735, 60 }, false);
 				{
-					preview_reverse = false;
-				}
+					ImGui::SetCursorPos(ImVec2{ 2, -3 });
+					if (ImGui::Tab_all("R", "Rage", "", ImVec2(85, 43), Active_Tab == 1 ? true : false, c_menu::get().ico_menu_new))
+						Active_Tab = 1;
 
-				preview_alpha = math::clamp(preview_alpha - (4.f * ImGui::GetIO().DeltaTime), 0.01f, 1.f);
+					ImGui::SetCursorPos(ImVec2{ 87, -3 });
+					if (ImGui::Tab_all("L", "Legit", "", ImVec2{ 85, 43 }, Active_Tab == 2 ? true : false, c_menu::get().ico_menu_new))
+						Active_Tab = 2;
+					ImGui::SetCursorPos(ImVec2{ 172, -3 });
+					if (ImGui::Tab_all("V", "Visuals", "", ImVec2{ 85, 43 }, Active_Tab == 3 ? true : false, c_menu::get().ico_menu_new))
+						Active_Tab = 3;
+
+					ImGui::SetCursorPos(ImVec2{ 257, -3 });
+					if (ImGui::Tab_all("P", "Players", "", ImVec2{ 85, 43 }, Active_Tab == 4 ? true : false, c_menu::get().ico_menu_new))
+						Active_Tab = 4;
+
+					ImGui::SetCursorPos(ImVec2{ 342, -3 });
+					if (ImGui::Tab_all("M", "Misc", "", ImVec2{ 85, 43 }, Active_Tab == 5 ? true : false, c_menu::get().ico_menu_new))
+						Active_Tab = 5;
+
+					ImGui::SetCursorPos(ImVec2{ 562, -3 });
+					if (ImGui::Tab_all("S", "Settings", "", ImVec2{ 85, 43 }, Active_Tab == 6 ? true : false, c_menu::get().ico_menu_new))
+						Active_Tab = 6;
+					ImGui::SetCursorPos(ImVec2{ 647, -3 });
+					if (ImGui::Tab_all("J", "Lua", "", ImVec2{ 85, 43 }, Active_Tab == 7 ? true : false, c_menu::get().ico_menu_new))
+						Active_Tab = 7;
+				}
+				ImGui::EndChild();
+			}
+
+			// NOW WE DO TABS
+
+			switch (Active_Tab)
+			{
+				case 1: {
+					ImGui::SetCursorPos(ImVec2{ 10, 49 });
+					ImGui::BeginChild("##Main", ImVec2{ 750, 60 }, false, ImGuiWindowFlags_NoMove);
+					{
+						ImGui::SetCursorPos(ImVec2{ 235, 2 });
+						if (ImGui::SubTab("General", ImVec2(85, 30), Active_Rage_Tab == 1 ? true : false))
+							Active_Rage_Tab = 1;
+
+						ImGui::SetCursorPos(ImVec2{ 320, 2 });
+						if (ImGui::SubTab("Weapons", ImVec2(85, 30), Active_Rage_Tab == 2 ? true : false))
+							Active_Rage_Tab = 2;
+
+					}
+					ImGui::EndChild();
+
+					draw_ragebot(1);
+					
+				}
+				break;
+				case 2: {
+					draw_legit();
+				}
+				break;
+				case 3: {
+					ImGui::SetCursorPos(ImVec2{ 10, 49 });
+					ImGui::BeginChild("##Main", ImVec2{ 750, 60 }, false, ImGuiWindowFlags_NoMove);
+					{
+						ImGui::SetCursorPos(ImVec2{ 225, 2 });
+						if (ImGui::SubTab("General", ImVec2(85, 30), Active_Visuals_Tab == 1 ? true : false))
+							Active_Visuals_Tab = 1;
+
+						ImGui::SetCursorPos(ImVec2{ 320, 2 });
+						if (ImGui::SubTab("Viewmodel", ImVec2(85, 30), Active_Visuals_Tab == 2 ? true : false))
+							Active_Visuals_Tab = 2;
+
+						ImGui::SetCursorPos(ImVec2{ 405, 2 });
+						if (ImGui::SubTab("Skin", ImVec2(85, 30), Active_Visuals_Tab == 3 ? true : false))
+							Active_Visuals_Tab = 3;
+
+					}
+					ImGui::EndChild();
+				
+					draw_visuals(1);
+					
+				}
+				break;
+				case 4: {
+					ImGui::SetCursorPos(ImVec2{ 10, 49 });
+					ImGui::BeginChild("##Main", ImVec2{ 750, 60 }, false, ImGuiWindowFlags_NoMove);
+					{
+						ImGui::SetCursorPos(ImVec2{ 225, 2 });
+						if (ImGui::SubTab("Enemy", ImVec2(85, 30), Active_Changer_Tab == 1 ? true : false)) {
+							Active_Changer_Tab = 1;
+							players_section = ENEMY;
+						}
+
+						ImGui::SetCursorPos(ImVec2{ 320, 2 });
+						if (ImGui::SubTab("Team", ImVec2(85, 30), Active_Changer_Tab == 2 ? true : false)) {
+							Active_Changer_Tab = 2;
+							players_section = TEAM;
+						}
+
+						ImGui::SetCursorPos(ImVec2{ 405, 2 });
+						if (ImGui::SubTab("Local", ImVec2(85, 30), Active_Changer_Tab == 3 ? true : false)) {
+							Active_Changer_Tab = 3;
+							players_section = LOCAL;
+						}
+
+					}
+					ImGui::EndChild();
+
+					draw_players(1);
+				}
+				break;
+				case 5:	{
+					ImGui::SetCursorPos(ImVec2{ 10, 49 });
+					ImGui::BeginChild("##Main", ImVec2{ 750, 60 }, false, ImGuiWindowFlags_NoMove);
+					{
+						ImGui::SetCursorPos(ImVec2{ 235, 2 });
+						if (ImGui::SubTab("Main", ImVec2(75, 30), Active_Misc_Tab == 1 ? true : false))
+							Active_Misc_Tab = 1;
+
+						ImGui::SetCursorPos(ImVec2{ 320, 2 });
+						if (ImGui::SubTab("Addatives", ImVec2(85, 30), Active_Misc_Tab == 2 ? true : false))
+							Active_Misc_Tab = 2;
+
+					}
+					  ImGui::EndChild();
+
+					  // MAIN
+					  draw_misc(1);
+				}
+				break;
+				case 6: {
+					draw_settings(1);
+				}
+				break;
+				case 7: {
+					draw_lua(1);
+				}
+				break;
 			}
 		}
-		else
-			preview_alpha = math::clamp(preview_alpha - (4.f * ImGui::GetIO().DeltaTime), 0.0f, 1.f);
-
-		ImGui::BeginChild("##Full", ImVec2{ 815, 550 }, false);
-		{
-
-			Style->Colors[ImGuiCol_ChildBg] = ImColor(20, 20, 20);
-			/*ImGui::BeginChild("##Name", ImVec2{815, 20}, false);
-			{
-				ImGui::SetCursorPos(ImVec2{ 380, 1 });
-				ImGui::PushFont(c_menu::get().futura_small); ImGui::TextColored(ImColor(255, 255, 255), "Qwerty.xyz"); ImGui::PopFont();
-			}*/
-			ImGui::BeginChild("##Up", ImVec2{ 110, 550 }, false);
-			{
-				ImGui::SetCursorPos(ImVec2{ 10, 15 });
-				//ImGui::PushFont(c_menu::get().futura_large); ImGui::TextColored(ImColor(255, 255, 255), "Qwerty.xyz"); ImGui::PopFont();
-				ImGui::SetCursorPos(ImVec2{ 25, 15 });
-				//ImGui::Image(texture, ImVec2(900, 681));
-				ImGui::Image(logotype, ImVec2(50.f, 50.f)); //Когда сделать картинку в байты тогда раскомменти, а то так краш будет
-				//ImGui::Image(TextureImage, ImVec2(0.f, 0.f));
-				ImGui::SetCursorPos(ImVec2{ 50, 50 });
-				//ImGui::PushFont(c_menu::get().futura_large); ImGui::TextColored(ImColor(255, 255, 255), "Qwerty.xyz"); ImGui::PopFont();
-				
-				#if BETA
-				ImGui::SetCursorPos(ImVec2{ 10, 430 });
-				ImGui::PushFont(c_menu::get().futura); ImGui::TextColored(ImColor(255, 255, 255), "BETA"); ImGui::PopFont();
-				#endif
-
-				ImGui::SetCursorPos(ImVec2{ 10, 80 });
-				if (ImGui::Tab("1", "Rage", "Rage",  ImVec2{ 85, 50 }, Active_Tab == 1 ? true : false))
-					Active_Tab = 1;
-
-				ImGui::SetCursorPos(ImVec2{ 10, 140 });
-				if (ImGui::Tab("2", "Legit", "Legit",  ImVec2{ 85, 50 }, Active_Tab == 2 ? true : false))
-					Active_Tab = 2;
-
-				ImGui::SetCursorPos(ImVec2{ 10, 200 });
-				if (ImGui::Tab("3", "Visuals", "Visuals",  ImVec2{ 85, 50 }, Active_Tab == 3 ? true : false))
-					Active_Tab = 3;
-
-				ImGui::SetCursorPos(ImVec2{ 10, 260 });
-				if (ImGui::Tab("4", "Skins", "Skins",  ImVec2{ 85, 50 }, Active_Tab == 4 ? true : false))
-					Active_Tab = 4;
-
-				ImGui::SetCursorPos(ImVec2{ 10, 320 });
-				if (ImGui::Tab("5", "Misc", "Misc",  ImVec2{ 85, 50 }, Active_Tab == 5 ? true : false))
-					Active_Tab = 5;
-				ImGui::SetCursorPos(ImVec2{ 10, 380 });
-				if (ImGui::Tab("6", "Movement", "Beta",  ImVec2{ 85, 50 }, Active_Tab == 6 ? true : false))
-					Active_Tab = 6;
-			}
-			ImGui::EndChild();
-
-			if (Active_Tab == 1) // Rage | Đĺéäć
-			{
-				if (config_system.g_cfg.ragebot.enable)
-				{
-
-
-					auto cur_window = ImGui::GetCurrentWindow();
-					ImVec2 w_pos = cur_window->Pos;
-					ImGuiStyle* Style = &ImGui::GetStyle();
-
-					Style->WindowRounding = 0;
-					Style->WindowBorderSize = 1;
-					Style->WindowMinSize = { 1,1 };
-					bool theme = true;
-					Style->Colors[ImGuiCol_WindowBg] = ImColor(19, 19, 19, 255);
-					Style->Colors[ImGuiCol_Button] = ImColor(0, 0, 0, 0);
-					Style->Colors[ImGuiCol_ButtonHovered] = ImColor(29, 125, 229, 0);
-					Style->Colors[ImGuiCol_ButtonActive] = ImColor(29, 125, 229, 0);
-
-
-					ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 6.f);
-					ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0,0 });
-					ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
-
-					ImGui::SetNextWindowSize({ 340, 570 });
-
-					ImGui::Begin("##test", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
-					{
-
-						ImGui::Spacing();
-						ImGui::PushFont(futura_large);
-						ImGui::SetCursorPos({ 140, 5 });
-						ImGui::TextColored(ImColor(14, 176, 255), "Hitboxes");
-						ImGui::PopFont();
-						ImGui::SetCursorPos({ 0, 10 });
-						ImGui::Image(CTmd1, { 340,555 });
-
-						//head
-						{
-							ImGui::SetCursorPos({ 164, 50 });
-							if (config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(0))
-							{
-								if (ImGui::ImageButton((void*)head, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
-									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(0) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(0);
-							}
-							else
-							{
-								if (ImGui::ImageButton((void*)head1, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
-									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(0) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(0);
-							}
-						}
-						//body
-						{
-							ImGui::SetCursorPos({ 164, 110 });
-							if (config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(1))
-							{
-								if (ImGui::ImageButton((void*)upchest, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
-								{
-									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(1) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(1);
-								}
-							}
-							else
-							{
-								if (ImGui::ImageButton((void*)upchest1, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
-								{
-									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(1) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(1);
-
-								}
-							}
-
-							ImGui::SetCursorPos({ 164, 140 });
-							if (config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(2))
-							{
-								if (ImGui::ImageButton((void*)chest, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
-								{
-									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(2) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(2);
-
-								}
-							}
-							else
-							{
-								if (ImGui::ImageButton((void*)chest1, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
-								{
-									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(2) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(2);
-
-								}
-							}
-							ImGui::SetCursorPos({ 164, 180 });
-							if (config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(3))
-							{
-								if (ImGui::ImageButton((void*)lowchest, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
-								{
-
-									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(3) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(3);
-
-								}
-							}
-							else
-							{
-								if (ImGui::ImageButton((void*)lowchest1, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
-								{
-
-									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(3) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(3);
-
-								}
-							}
-							ImGui::SetCursorPos({ 164, 215 });
-							if (config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(4))
-							{
-								if (ImGui::ImageButton((void*)neck, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
-								{
-
-									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(4) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(4);
-
-								}
-							}
-							else
-							{
-								if (ImGui::ImageButton((void*)neck1, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
-								{
-
-									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(4) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(4);
-
-								}
-							}
-							ImGui::SetCursorPos({ 164, 280 });
-							if (config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(5))
-							{
-								if (ImGui::ImageButton((void*)pel, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
-								{
-
-									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(5) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(5);
-								}
-							}
-							else
-							{
-								if (ImGui::ImageButton((void*)pel1, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
-								{
-
-									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(5) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(5);
-								}
-							}
-						}
-
-						//arms
-						{
-							ImGui::SetCursorPos({ 65, 200 });
-							if (config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(6))
-							{
-								//left
-								if (ImGui::ImageButton((void*)arms, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
-									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(6) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(6);
-
-								ImGui::SetCursorPos({ 265, 200 });
-								if (ImGui::ImageButton((void*)arms2, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
-									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(6) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(6);
-							}
-							else
-							{
-								//right
-								if (ImGui::ImageButton((void*)arms1, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
-									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(6) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(6);
-								ImGui::SetCursorPos({ 265, 200 });
-								if (ImGui::ImageButton((void*)arms3, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
-									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(6) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(6);
-							}
-						}
-						//legs
-						{
-							ImGui::SetCursorPos({ 135, 330 });
-							if (config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(7))
-							{
-								if (ImGui::ImageButton((void*)legs, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
-								{
-									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(7) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(7);
-
-								}
-								ImGui::SetCursorPos({ 195, 330 });
-								if (ImGui::ImageButton((void*)legs2, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
-								{
-									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(7) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(7);
-
-								}
-							}
-							else
-							{
-								if (ImGui::ImageButton((void*)legs1, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
-								{
-									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(7) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(7);
-
-								}
-								ImGui::SetCursorPos({ 195, 330 });
-								if (ImGui::ImageButton((void*)legs3, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
-								{
-									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(7) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(7);
-
-								}
-							}
-
-							//feet
-							ImGui::SetCursorPos({ 135, 480 });
-							if (config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(8))
-							{
-								if (ImGui::ImageButton((void*)feet, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
-								{
-
-									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(8) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(8);
-								}
-								ImGui::SetCursorPos({ 195, 480 });
-								if (ImGui::ImageButton((void*)feet2, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
-								{
-
-									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(8) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(8);
-								}
-							}
-							else
-							{
-								if (ImGui::ImageButton((void*)feet1, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
-								{
-
-
-									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(8) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(8);
-								}
-								ImGui::SetCursorPos({ 195, 480 });
-								if (ImGui::ImageButton((void*)feet3, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
-								{
-
-									config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(8) = !config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes.at(8);
-								}
-							}
-						}
-
-					}
-					ImGui::End();
-					ImGui::PopStyleVar(3);
-				}
-				Style->ChildRounding = 5;
-				ImGui::SetCursorPos(ImVec2{ 130, 25 });
-				ImGui::BeginChild("##Main", ImVec2{ 655, 45 }, false, NoMove);
-				{
-					ImGui::SetCursorPos(ImVec2{ 15, 10 });
-					if (ImGui::SubTab("			General", ImVec2(180, 25), Active_Rage_Tab == 1 ? true : false))
-						Active_Rage_Tab = 1;
-
-					ImGui::SetCursorPos(ImVec2{ 230, 10 });
-					if (ImGui::SubTab("			Weapons", ImVec2(180, 25), Active_Rage_Tab == 2 ? true : false))
-						Active_Rage_Tab = 2;
-
-					ImGui::SetCursorPos(ImVec2{ 450, 10 });
-					if (ImGui::SubTab("			Player list", ImVec2(180, 25), Active_Rage_Tab == 3 ? true : false))
-						Active_Rage_Tab = 3;
-				}
-				ImGui::EndChild();
-			}
-			else if (Active_Tab == 2) // Legit | Ëĺăčň
-			{
-
-				auto cur_window = ImGui::GetCurrentWindow();
-				ImVec2 w_pos = cur_window->Pos;
-				ImGuiStyle* Style = &ImGui::GetStyle();
-
-				Style->WindowRounding = 0;
-				Style->WindowBorderSize = 1;
-				Style->WindowMinSize = { 1,1 };
-				bool theme = true;
-				Style->Colors[ImGuiCol_WindowBg] = ImColor(19, 19, 19, 255);
-				Style->Colors[ImGuiCol_Button] = ImColor(0, 0, 0, 0);
-				Style->Colors[ImGuiCol_ButtonHovered] = ImColor(29, 125, 229, 0);
-				Style->Colors[ImGuiCol_ButtonActive] = ImColor(29, 125, 229, 0);
-
-
-				ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 6.f);
-				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0,0 });
-				ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
-
-				ImGui::SetNextWindowSize({ 340, 570 });
-
-				ImGui::Begin("##test", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
-				{
-
-					ImGui::Spacing();
-					ImGui::PushFont(futura_large);
-					ImGui::SetCursorPos({ 140, 5 });
-					ImGui::TextColored(ImColor(14, 176, 255), "Hitboxes");
-					ImGui::PopFont();
-					ImGui::SetCursorPos({ 0, 10 });
-					ImGui::Image(CTmd1, { 340,555 });
-				};
-
-				ImGui::End();
-				ImGui::PopStyleVar(3);
-
-				Style->ChildRounding = 5;
-				ImGui::SetCursorPos(ImVec2{ 130, 25 });
-				ImGui::BeginChild("##Main", ImVec2{ 655, 45 }, false, NoMove);
-				{
-					ImGui::SetCursorPos(ImVec2{ 15, 10 });
-					if (ImGui::SubTab("			General", ImVec2(140, 25), Active_Legit_Tab == 1 ? true : false))
-						Active_Legit_Tab = 1;
-
-					ImGui::SetCursorPos(ImVec2{ 175, 10 });
-					if (ImGui::SubTab("			RSC", ImVec2(140, 25), Active_Legit_Tab == 2 ? true : false))
-						Active_Legit_Tab = 2;
-
-					ImGui::SetCursorPos(ImVec2{ 335, 10 });
-					if (ImGui::SubTab("			Trigger", ImVec2(140, 25), Active_Legit_Tab == 3 ? true : false))
-						Active_Legit_Tab = 3;
-
-					ImGui::SetCursorPos(ImVec2{ 495, 10 });
-					if (ImGui::SubTab("			Others", ImVec2(140, 25), Active_Legit_Tab == 4 ? true : false))
-						Active_Legit_Tab = 4;
-				}
-				ImGui::EndChild();
-			}
-			else if (Active_Tab == 3) // Visuals | Âčçóŕëű
-			{
-				auto cur_window = ImGui::GetCurrentWindow();
-				ImVec2 w_pos = cur_window->Pos;
-				ImGuiStyle* Style = &ImGui::GetStyle();
-
-				Style->WindowRounding = 0;
-				Style->WindowBorderSize = 1;
-				Style->WindowMinSize = { 1,1 };
-				bool theme = true;
-				Style->Colors[ImGuiCol_WindowBg] = ImColor(19, 19, 19, 255);
-				Style->Colors[ImGuiCol_Button] = ImColor(0, 0, 0, 0);
-				Style->Colors[ImGuiCol_ButtonHovered] = ImColor(29, 125, 229, 0);
-				Style->Colors[ImGuiCol_ButtonActive] = ImColor(29, 125, 229, 0);
-
-
-				ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 6.f);
-				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0,0 });
-				ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
-
-				ImGui::SetNextWindowSize({ 340, 570 });
-
-				ImGui::Begin("##test", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
-				{
-
-					ImGui::Spacing();
-					ImGui::PushFont(futura_large);
-					ImGui::SetCursorPos({ 140, 5 });
-					ImGui::TextColored(ImColor(14, 176, 255), "ESP Preview");
-					ImGui::PopFont();
-					ImGui::SetCursorPos({ 0, 10 });
-					
-					ImGui::SetCursorPos(ImVec2{ 5, 50 });
-					VisualPreview();
-				}
-				ImGui::End();
-				ImGui::PopStyleVar(3);
-
-				/*
-
-				enum esp_info_position
-				{
-					RIGHT,
-					CENTER_DOWN,
-					CENTER_UP
-				};
-
-				struct esp_info_s
-				{
-					esp_info_s(const std::string name, const ImColor color, const int position = RIGHT)
-					{
-						f_name = name; f_color = color; f_position = position;
-					}
-					std::string f_name;
-					int f_position;
-					ImColor f_color;
-				};
-
-
-				static std::vector<esp_info_s> info;
-
-				static bool enabled = true;
-				ImGui::SetNextWindowSize(ImVec2(280, 430));
-				//ffs i dont find showborder here maybe u can find it on old imgui or i dont know where it is
-				ImGui::Begin("ESP Preview", &enabled, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
-				{
-					ImGui::SetCursorPos(ImVec2{ 5, 50 });
-					ImGui::Image(esptype, ImVec2(280.f, 330.f));
-
-					auto cur_window = ImGui::GetCurrentWindow();
-					ImVec2 w_pos = cur_window->Pos;
-					if (config_system.g_cfg.player.type->box)
-					{
-						//clear shit box
-						cur_window->DrawList->AddRect(ImVec2(w_pos.x + 40, w_pos.y + 60), ImVec2(w_pos.x + 200, w_pos.y + 360), ImColor(config_system.g_cfg.player.type->box_color[0] * 255, config_system.g_cfg.player.type->box_color[1] * 255, config_system.g_cfg.player.type->box_color[2] * 255));//getrawcolor???
-					}
-					if (config_system.g_cfg.player.type->health)
-					{
-						cur_window->DrawList->AddRectFilled(ImVec2(w_pos.x + 34, w_pos.y + 60), ImVec2(w_pos.x + 37, w_pos.y + 360), ImColor(255, 255, 255, 255));//change this to green value im lazy to look hex color
-					}
-					if (config_system.g_cfg.player.type->name)
-						info.emplace_back(esp_info_s("name", ImColor(255, 255, 255, 255), CENTER_UP));
-
-					for (auto render : info)
-					{
-						auto text_size = ImGui::CalcTextSize(render.f_name.c_str());
-						auto pos = ImVec2(w_pos.x + 205, w_pos.y + 60);
-						if (render.f_position == CENTER_DOWN)
-						{
-							pos = ImVec2(w_pos.x + (240 / 2) - text_size.x / 2, pos.y + 315 - text_size.y);
-						}
-						else if (render.f_position == CENTER_UP)
-						{
-							pos = ImVec2(w_pos.x + (240 / 2) - text_size.x / 2, pos.y - 5 - text_size.y);
-						}
-						cur_window->DrawList->AddText(pos, render.f_color, render.f_name.c_str());//still no u32 ;D
-					}
-
-
-				}
-				ImGui::End();
-				info.clear();*/
-
-
-				Style->ChildRounding = 5;
-				ImGui::SetCursorPos(ImVec2{ 130, 25 });
-				ImGui::BeginChild("##Main", ImVec2{ 655, 45 }, false, NoMove);
-				{
-					ImGui::SetCursorPos(ImVec2{ 15, 10 });
-					if (ImGui::SubTab("		ESP", ImVec2(90, 25), Active_Visuals_Tab == 1 ? true : false))
-						Active_Visuals_Tab = 1;
-
-					ImGui::SetCursorPos(ImVec2{ 115, 10 });
-					if (ImGui::SubTab("	   Glow", ImVec2(90, 25), Active_Visuals_Tab == 2 ? true : false))
-						Active_Visuals_Tab = 2;
-
-					ImGui::SetCursorPos(ImVec2{ 215, 10 });
-					if (ImGui::SubTab("	   Chams", ImVec2(90, 25), Active_Visuals_Tab == 3 ? true : false))
-						Active_Visuals_Tab = 3;
-
-					ImGui::SetCursorPos(ImVec2{ 315, 10 });
-					if (ImGui::SubTab("	   Radar", ImVec2(90, 25), Active_Visuals_Tab == 4 ? true : false))
-						Active_Visuals_Tab = 4;
-
-					ImGui::SetCursorPos(ImVec2{ 415, 10 });
-					if (ImGui::SubTab("	   World", ImVec2(90, 25), Active_Visuals_Tab == 6 ? true : false))
-						Active_Visuals_Tab = 6;
-
-					ImGui::SetCursorPos(ImVec2{ 515, 10 });
-					if (ImGui::SubTab("	   Others", ImVec2(90, 25), Active_Visuals_Tab == 5 ? true : false))
-						Active_Visuals_Tab = 5;
-				}
-				ImGui::EndChild();
-			}
-			else if (Active_Tab == 4) // Changers | ×ĺíäćĺđű (Číâĺíňŕđü, ďđîôčëü)
-			{
-				Style->ChildRounding = 5;
-				ImGui::SetCursorPos(ImVec2{ 130, 25 });
-				ImGui::BeginChild("##Main", ImVec2{ 655, 45 }, false, NoMove);
-				{
-					ImGui::SetCursorPos(ImVec2{ 15, 10 });
-					if (ImGui::SubTab("			Inventory", ImVec2(180, 25), Active_Changer_Tab == 1 ? true : false))
-						Active_Changer_Tab = 1;
-
-					ImGui::SetCursorPos(ImVec2{ 230, 10 });
-					if (ImGui::SubTab("			Profile", ImVec2(180, 25), Active_Changer_Tab == 2 ? true : false))
-						Active_Changer_Tab = 2;
-
-					ImGui::SetCursorPos(ImVec2{ 450, 10 });
-					if (ImGui::SubTab("			Character", ImVec2(180, 25), Active_Changer_Tab == 3 ? true : false))
-						Active_Changer_Tab = 3;
-				}
-				ImGui::EndChild();
-			}
-			else if (Active_Tab == 5) // Misc | Ěčńę
-			{
-				Style->ChildRounding = 5;
-				ImGui::SetCursorPos(ImVec2{ 130, 25 });
-				ImGui::BeginChild("##Main", ImVec2{ 655, 45 }, false, NoMove);
-				{
-					ImGui::SetCursorPos(ImVec2{ 15, 10 });
-					if (ImGui::SubTab("			Main", ImVec2(140, 25), Active_Misc_Tab == 1 ? true : false))
-						Active_Misc_Tab = 1;
-
-					ImGui::SetCursorPos(ImVec2{ 175, 10 });
-					if (ImGui::SubTab("			Misc", ImVec2(140, 25), Active_Misc_Tab == 2 ? true : false))
-						Active_Misc_Tab = 2;
-
-					ImGui::SetCursorPos(ImVec2{ 335, 10 });
-					if (ImGui::SubTab("			Configs", ImVec2(140, 25), Active_Misc_Tab == 3 ? true : false))
-						Active_Misc_Tab = 3;
-
-					ImGui::SetCursorPos(ImVec2{ 495, 10 });
-					if (ImGui::SubTab("			Lua", ImVec2(140, 25), Active_Misc_Tab == 4 ? true : false))
-						Active_Misc_Tab = 4;
-				}
-				ImGui::EndChild();
-			}
-			else if (Active_Tab == 6)
-			{
-				Style->ChildRounding = 5;
-				ImGui::SetCursorPos(ImVec2{ 130, 25 });
-				ImGui::BeginChild("##Main", ImVec2{ 655, 45 }, false, NoMove);
-				{
-					ImGui::SetCursorPos(ImVec2{ 15, 10 });
-					if (ImGui::SubTab("		Movement Recorder", ImVec2(180, 25), Active_Movement_Tab == 1 ? true : false))
-						Active_Movement_Tab = 1;
-
-					ImGui::SetCursorPos(ImVec2{ 230, 10 });
-					if (ImGui::SubTab("			Grenade Helper", ImVec2(180, 25), Active_Movement_Tab == 2 ? true : false))
-						Active_Movement_Tab = 2;
-
-					ImGui::SetCursorPos(ImVec2{ 450, 10 });
-					if (ImGui::SubTab("			 Information", ImVec2(180, 25), Active_Movement_Tab == 3 ? true : false))
-						Active_Movement_Tab = 3;
-				}
-				ImGui::EndChild();
-			}
-			ImGui::SetCursorPos(ImVec2{ 180, 100 });
-			Style->ChildRounding = 10;
-		
-			ImGui::BeginChild("##Draw Function", ImVec2{ 560, 450 }, false, NoScroll);
-			{
-				ImGui::SetCursorPos(ImVec2{ 10, 10 });
-				ImGui::BeginChild("##Function", ImVec2{ 560, 450 }, false), NoScroll;
-				{
-					if (Active_Tab == 1 && Active_Rage_Tab == 1) //Rage | General
-					{
-						ImGui::Columns(2, nullptr, false);
-						ImGui::BeginChild("it3ems", { 300, 430 });
-						{
-
-							ImGui::SetCursorPos({ 2,2 });
-							ImGui::BeginGroup();
-							{
-								child_title(crypt_str("Ragebot"));
-
-								ImGui::Checkbox(crypt_str("Enabled"), &config_system.g_cfg.ragebot.enable);
-
-								if (config_system.g_cfg.ragebot.enable)
-									config_system.g_cfg.legitbot.enabled = false;
-
-								ImGui::SliderInt(crypt_str("Maximum FOV"), &config_system.g_cfg.ragebot.field_of_view, 1, 180, false, crypt_str("%d°"));
-								ImGui::Checkbox(crypt_str("Silent aim"), &config_system.g_cfg.ragebot.silent_aim);
-								ImGui::Checkbox(crypt_str("Automatic penetration"), &config_system.g_cfg.ragebot.autowall);
-								ImGui::Checkbox(crypt_str("Automatic zeus"), &config_system.g_cfg.ragebot.zeus_bot);
-								ImGui::Checkbox(crypt_str("Automatic knife"), &config_system.g_cfg.ragebot.knife_bot);
-								ImGui::Checkbox(crypt_str("Automatic fire"), &config_system.g_cfg.ragebot.autoshoot);
-								ImGui::Checkbox(crypt_str("Automatic scope"), &config_system.g_cfg.ragebot.autoscope);
-								ImGui::Checkbox(crypt_str("Pitch desync correction"), &config_system.g_cfg.ragebot.pitch_antiaim_correction);
-
-								ImGui::Spacing();
-								ImGui::Checkbox(crypt_str("Double tap"), &config_system.g_cfg.ragebot.double_tap);
-
-								if (config_system.g_cfg.ragebot.double_tap)
-								{
-									ImGui::SameLine();
-									draw_keybind(crypt_str(""), &config_system.g_cfg.ragebot.double_tap_key, crypt_str("##HOTKEY_DT"));
-									ImGui::Checkbox(crypt_str("Slow teleport"), &config_system.g_cfg.ragebot.slow_teleport);
-								}
-
-								ImGui::Checkbox(crypt_str("Hide shots"), &config_system.g_cfg.antiaim.hide_shots);
-
-								if (config_system.g_cfg.antiaim.hide_shots)
-								{
-									ImGui::SameLine();
-									draw_keybind(crypt_str(""), &config_system.g_cfg.antiaim.hide_shots_key, crypt_str("##HOTKEY_HIDESHOTS"));
-								}
-							}
-							ImGui::EndGroup();
-						}
-						ImGui::EndChild();
-						ImGui::NextColumn();
-						ImGui::BeginChild("item6s2", { 300, 430 });
-						{
-
-							ImGui::SetCursorPos({ 0,0 });
-							ImGui::BeginGroup();
-							{
-								child_title(crypt_str("Anti-aim"));
-
-								static auto type = 0;
-
-								ImGui::Checkbox(crypt_str("Enabled"), &config_system.g_cfg.antiaim.enable);
-								draw_combo(crypt_str("Anti-aim type"), config_system.g_cfg.antiaim.antiaim_type, antiaim_type, ARRAYSIZE(antiaim_type));
-
-								if (config_system.g_cfg.antiaim.antiaim_type)
-								{
-									padding(0, 3);
-									draw_combo(crypt_str("Desync"), config_system.g_cfg.antiaim.desync, desync, ARRAYSIZE(desync));
-
-									if (config_system.g_cfg.antiaim.desync)
-									{
-										padding(0, 3);
-										draw_combo(crypt_str("LBY type"), config_system.g_cfg.antiaim.legit_lby_type, lby_type, ARRAYSIZE(lby_type));
-
-										if (config_system.g_cfg.antiaim.desync == 1)
-										{
-											draw_keybind(crypt_str("Invert desync"), &config_system.g_cfg.antiaim.flip_desync, crypt_str("##HOTKEY_INVERT_DESYNC"));
-											ImGui::Checkbox(crypt_str("Side Arrow"), &config_system.g_cfg.antiaim.sidearrow);
-											ImGui::SameLine();
-											ImGui::ColorEdit(crypt_str("##invd"), &config_system.g_cfg.antiaim.invert_indicator_color, ALPHA);
-										}
-									}
-								}
-								else
-								{
-									draw_combo(crypt_str("Movement type"), type, movement_type, ARRAYSIZE(movement_type));
-									padding(0, 3);
-									draw_combo(crypt_str("Pitch"), config_system.g_cfg.antiaim.type[type].pitch, pitch, ARRAYSIZE(pitch));
-									padding(0, 3);
-									draw_combo(crypt_str("Yaw"), config_system.g_cfg.antiaim.type[type].yaw, yaw, ARRAYSIZE(yaw));
-									padding(0, 3);
-									draw_combo(crypt_str("Base angle"), config_system.g_cfg.antiaim.type[type].base_angle, baseangle, ARRAYSIZE(baseangle));
-
-									if (config_system.g_cfg.antiaim.type[type].yaw)
-									{
-										ImGui::SliderInt(config_system.g_cfg.antiaim.type[type].yaw == 1 ? crypt_str("Jitter range") : crypt_str("Spin range"), &config_system.g_cfg.antiaim.type[type].range, 1, 180);
-
-										if (config_system.g_cfg.antiaim.type[type].yaw == 2)
-											ImGui::SliderInt(crypt_str("Spin speed"), &config_system.g_cfg.antiaim.type[type].speed, 1, 15);
-
-										padding(0, 3);
-									}
-
-									draw_combo(crypt_str("Desync"), config_system.g_cfg.antiaim.type[type].desync, desync, ARRAYSIZE(desync));
-
-									if (config_system.g_cfg.antiaim.type[type].desync)
-									{
-										if (type == ANTIAIM_STAND)
-										{
-											padding(0, 3);
-											draw_combo(crypt_str("LBY type"), config_system.g_cfg.antiaim.lby_type, lby_type, ARRAYSIZE(lby_type));
-										}
-
-										if (type != ANTIAIM_STAND || !config_system.g_cfg.antiaim.lby_type)
-										{
-											ImGui::SliderInt(crypt_str("Fake amount"), &config_system.g_cfg.antiaim.type[type].desync_range, 1, 60);
-											ImGui::SliderInt(crypt_str("Inverted fake amount"), &config_system.g_cfg.antiaim.type[type].inverted_desync_range, 1, 60);
-											ImGui::SliderInt(crypt_str("Body lean"), &config_system.g_cfg.antiaim.type[type].body_lean, 0, 100);
-											ImGui::SliderInt(crypt_str("Inverted body lean"), &config_system.g_cfg.antiaim.type[type].inverted_body_lean, 0, 100);
-										}
-
-										if (config_system.g_cfg.antiaim.type[type].desync == 1)
-										{
-											draw_keybind(crypt_str("Invert desync"), &config_system.g_cfg.antiaim.flip_desync, crypt_str("##HOTKEY_INVERT_DESYNC"));
-										}
-									}
-
-									draw_keybind(crypt_str("Manual back"), &config_system.g_cfg.antiaim.manual_back, crypt_str("##HOTKEY_INVERT_BACK"));
-
-									draw_keybind(crypt_str("Manual left"), &config_system.g_cfg.antiaim.manual_left, crypt_str("##HOTKEY_INVERT_LEFT"));
-
-									draw_keybind(crypt_str("Manual right"), &config_system.g_cfg.antiaim.manual_right, crypt_str("##HOTKEY_INVERT_RIGHT"));
-
-									if (config_system.g_cfg.antiaim.manual_back.key > KEY_NONE && config_system.g_cfg.antiaim.manual_back.key < KEY_MAX || config_system.g_cfg.antiaim.manual_left.key > KEY_NONE && config_system.g_cfg.antiaim.manual_left.key < KEY_MAX || config_system.g_cfg.antiaim.manual_right.key > KEY_NONE && config_system.g_cfg.antiaim.manual_right.key < KEY_MAX)
-									{
-										ImGui::Checkbox(crypt_str("Manual indicator"), &config_system.g_cfg.antiaim.flip_indicator);
-										ImGui::SameLine();
-										ImGui::ColorEdit(crypt_str("##invc"), &config_system.g_cfg.antiaim.flip_indicator_color, ALPHA);
-									}
-								}
-
-
-
-							}
-							ImGui::EndGroup();
-						}
-						ImGui::EndChild();
-						ImGui::Columns(1, nullptr, false);
-					}
-					else if (Active_Tab == 1 && Active_Rage_Tab == 2) //Rage | Weapons
-					{
-						const char* rage_weapons[8] = { crypt_str("Revolver / Deagle"), crypt_str("Pistols"), crypt_str("SMGs"), crypt_str("Rifles"), crypt_str("Auto"), crypt_str("Scout"), crypt_str("AWP"), crypt_str("Heavy") };
-
-
-						ImGui::Columns(2, nullptr, false);
-						ImGui::BeginChild("it3ems", { 300, 430 });
-						{
-
-							ImGui::SetCursorPos({ 2,2 });
-							ImGui::BeginGroup();
-							{
-								child_title(crypt_str("General"));
-
-
-								ImGui::Spacing();
-
-								draw_combo(crypt_str("Current weapon"), hooks::rage_weapon, rage_weapons, ARRAYSIZE(rage_weapons));
-								ImGui::Spacing();
-
-								draw_combo(crypt_str("Target selection"), config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].selection_type, selection, ARRAYSIZE(selection));
-								padding(0, 3);
-								draw_multicombo(crypt_str("Hitboxes"), config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitboxes, hitboxes, ARRAYSIZE(hitboxes), preview);
-
-								ImGui::Checkbox(crypt_str("Static point scale"), &config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].static_point_scale);
-
-								if (config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].static_point_scale)
-								{
-									ImGui::SliderFloat(crypt_str("Head scale"), &config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].head_scale, 0.0f, 1.0f, config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].head_scale ? crypt_str("%.2f") : crypt_str("None"));
-									ImGui::SliderFloat(crypt_str("Body scale"), &config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].body_scale, 0.0f, 1.0f, config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].body_scale ? crypt_str("%.2f") : crypt_str("None"));
-								}
-
-
-								ImGui::Checkbox(crypt_str("Enable max misses"), &config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].max_misses);
-
-								if (config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].max_misses)
-									ImGui::SliderInt(crypt_str("Max misses"), &config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].max_misses_amount, 0, 6);
-
-								ImGui::Checkbox(crypt_str("Prefer safe points"), &config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].prefer_safe_points);
-								ImGui::Checkbox(crypt_str("Prefer body aim"), &config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].prefer_body_aim);
-
-								draw_keybind(crypt_str("Force safe points"), &config_system.g_cfg.ragebot.safe_point_key, crypt_str("##HOKEY_FORCE_SAFE_POINTS"));
-								draw_keybind(crypt_str("Force body aim"), &config_system.g_cfg.ragebot.body_aim_key, crypt_str("##HOKEY_FORCE_BODY_AIM"));
-
-								ImGui::SliderInt(crypt_str("Minimum visible damage"), &config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].minimum_visible_damage, 1, 120, true);
-
-								if (config_system.g_cfg.ragebot.autowall)
-									ImGui::SliderInt(crypt_str("Minimum penetration damage"), &config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].minimum_damage, 1, 120, true);
-
-								draw_keybind(crypt_str("Damage override"), &config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].damage_override_key, crypt_str("##HOTKEY__DAMAGE_OVERRIDE"));
-
-								if (config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].damage_override_key.key > KEY_NONE && config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].damage_override_key.key < KEY_MAX)
-									ImGui::SliderInt(crypt_str("Minimum override damage"), &config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].minimum_override_damage, 1, 120, true);
-							}
-							ImGui::EndGroup();
-						}
-						ImGui::EndChild();
-						ImGui::NextColumn();
-						ImGui::BeginChild("item6s2", { 300, 430 });
-						{
-
-							ImGui::SetCursorPos({ 0,0 });
-							ImGui::BeginGroup();
-							{
-								child_title(crypt_str("Accuracy"));
-
-
-								ImGui::Checkbox(crypt_str("Automatic stop"), &config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].autostop);
-
-								if (config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].autostop)
-									draw_multicombo(crypt_str("Modifiers"), config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].autostop_modifiers, autostop_modifiers, ARRAYSIZE(autostop_modifiers), preview);
-
-								ImGui::Checkbox(crypt_str("Hit chance"), &config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitchance);
-
-								if (config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitchance)
-									ImGui::SliderInt(crypt_str("Minimum hit chance"), &config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].hitchance_amount, 1, 100);
-
-								if (config_system.g_cfg.ragebot.double_tap && hooks::rage_weapon <= 4)
-								{
-									ImGui::Checkbox(crypt_str("Double tap hit chance"), &config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].double_tap_hitchance);
-
-									if (config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].double_tap_hitchance)
-										ImGui::SliderInt(crypt_str("Double tap hit chance"), &config_system.g_cfg.ragebot.weapon[hooks::rage_weapon].double_tap_hitchance_amount, 1, 100);
-								}
-							}
-							ImGui::EndGroup();
-						}
-						ImGui::EndChild();
-						ImGui::Columns(1, nullptr, false);
-					}
-					else if (Active_Tab == 1 && Active_Rage_Tab == 3) //Rage | Anti-Aims
-					{
-						auto player = players_section;
-
-						static std::vector <Player_list_data> players;
-
-						if (!config_system.g_cfg.player_list.refreshing)
-						{
-							players.clear();
-
-							for (auto player : config_system.g_cfg.player_list.players)
-								players.emplace_back(player);
-						}
-
-						static auto current_player = 0;
-						ImGui::Columns(2, nullptr, false);
-						child_title(crypt_str("Players"));
-						ImGui::BeginChild("it3ems", { 300, 430 });
-						{
-
-							ImGui::SetCursorPos({ 1,1 });
-							ImGui::BeginGroup();
-							{
-								if (!players.empty())
-								{
-									std::vector <std::string> player_names;
-
-									for (auto player : players)
-										player_names.emplace_back(player.name);
-
-									ImGui::PushItemWidth(291 * dpi_scale);
-									ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.f);
-									ImGui::ListBoxConfigArray(crypt_str("##PLAYERLIST"), &current_player, player_names, 14);
-									ImGui::PopStyleVar();
-									ImGui::PopItemWidth();
-								}
-							}
-							ImGui::EndGroup();
-						}
-						ImGui::EndChild();
-						ImGui::NextColumn();
-						child_title(crypt_str("Settings"));
-						ImGui::BeginChild("item6s2", { 300, 430 });
-						{
-
-							ImGui::SetCursorPos({ 10,10 });
-							ImGui::BeginGroup();
-							{
-
-								if (!players.empty())
-								{
-									if (current_player >= players.size())
-										current_player = players.size() - 1; //-V103
-
-									ImGui::Checkbox(crypt_str("White list"), &config_system.g_cfg.player_list.white_list[players.at(current_player).i]); //-V106 //-V807
-
-									if (!config_system.g_cfg.player_list.white_list[players.at(current_player).i]) //-V106
-									{
-										ImGui::Checkbox(crypt_str("High priority"), &config_system.g_cfg.player_list.high_priority[players.at(current_player).i]); //-V106
-										ImGui::Checkbox(crypt_str("Force safe points"), &config_system.g_cfg.player_list.force_safe_points[players.at(current_player).i]); //-V106
-										ImGui::Checkbox(crypt_str("Force body aim"), &config_system.g_cfg.player_list.force_body_aim[players.at(current_player).i]); //-V106
-										ImGui::Checkbox(crypt_str("Low delta"), &config_system.g_cfg.player_list.low_delta[players.at(current_player).i]); //-V106
-									}
-								}
-
-
-
-							}
-							ImGui::EndGroup();
-						}
-						ImGui::EndChild();
-						ImGui::Columns(1, nullptr, false);
-					}
-					if (Active_Tab == 2 && Active_Legit_Tab == 1) //Legit | General
-					{
-						const char* legit_weapons[6] = { crypt_str("Deagle"), crypt_str("Pistols"), crypt_str("Rifles"), crypt_str("SMGs"), crypt_str("Snipers"), crypt_str("Heavy") };
-						const char* hitbox_legit[3] = { crypt_str("Nearest"), crypt_str("Head"), crypt_str("Body") };
-
-						ImGui::Columns(2, nullptr, false);
-						child_title(crypt_str("Legit"));
-						ImGui::BeginChild("it3emsl", { 300, 430 });
-						{
-
-							ImGui::SetCursorPos({ 1,1 });
-							ImGui::BeginGroup();
-							{
-								padding(0, 6);
-								ImGui::Checkbox(crypt_str("Enabled"), &config_system.g_cfg.legitbot.enabled);
-								ImGui::SameLine();
-								draw_keybind(crypt_str(""), &config_system.g_cfg.legitbot.key, crypt_str("##HOTKEY_LGBT_KEY"));
-
-								if (config_system.g_cfg.legitbot.enabled)
-									config_system.g_cfg.ragebot.enable = false;
-
-								ImGui::Checkbox(crypt_str("Friendly fire"), &config_system.g_cfg.legitbot.friendly_fire);
-								ImGui::Checkbox(crypt_str("Automatic pistols"), &config_system.g_cfg.legitbot.autopistol);
-
-								ImGui::Checkbox(crypt_str("Automatic scope"), &config_system.g_cfg.legitbot.autoscope);
-
-								if (config_system.g_cfg.legitbot.autoscope)
-									ImGui::Checkbox(crypt_str("Unscope after shot"), &config_system.g_cfg.legitbot.unscope);
-
-								ImGui::Checkbox(crypt_str("Snipers in zoom only"), &config_system.g_cfg.legitbot.sniper_in_zoom_only);
-
-								ImGui::Checkbox(crypt_str("Aim if in air"), &config_system.g_cfg.legitbot.do_if_local_in_air);
-								ImGui::Checkbox(crypt_str("Aim if flashed"), &config_system.g_cfg.legitbot.do_if_local_flashed);
-								ImGui::Checkbox(crypt_str("Aim thru smoke"), &config_system.g_cfg.legitbot.do_if_enemy_in_smoke);
-								ImGui::Checkbox(crypt_str("Backtracking"), &config_system.g_cfg.legitbot.backtrackl);
-								ImGui::Checkbox(crypt_str("Legit Resolver"), &config_system.g_cfg.legitbot.legit_resolver);
-								draw_keybind(crypt_str("Automatic fire key"), &config_system.g_cfg.legitbot.autofire_key, crypt_str("##HOTKEY_AUTOFIRE_LGBT_KEY"));
-								ImGui::SliderInt(crypt_str("Automatic fire delay"), &config_system.g_cfg.legitbot.autofire_delay, 0, 12, false, (!config_system.g_cfg.legitbot.autofire_delay ? crypt_str("None") : (config_system.g_cfg.legitbot.autofire_delay == 1 ? crypt_str("%d tick") : crypt_str("%d ticks"))));
-							}
-							ImGui::EndGroup();
-						}
-						ImGui::EndChild();
-						ImGui::NextColumn();
-						child_title(crypt_str("Settings"));
-						ImGui::BeginChild("item6s2l2", { 300, 430 });
-						{
-
-							ImGui::SetCursorPos({ 10,10 });
-							ImGui::BeginGroup();
-							{
-								//	ImGui::Spacing();
-								draw_combo(crypt_str("Current weapon"), hooks::legit_weapon, legit_weapons, ARRAYSIZE(legit_weapons));
-								ImGui::Spacing();
-								draw_combo(crypt_str("Hitbox"), config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].priority, hitbox_legit, ARRAYSIZE(hitbox_legit));
-
-								ImGui::Checkbox(crypt_str("Automatic stop"), &config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].auto_stop);
-
-								draw_combo(crypt_str("Maximum FOV type"), config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].fov_type, LegitFov, ARRAYSIZE(LegitFov));
-								ImGui::SliderFloat(crypt_str("Maximum FOV amount"), &config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].fov, 0.f, 30.f, crypt_str("%.2f"));
-
-								ImGui::Spacing();
-
-								ImGui::SliderFloat(crypt_str("Silent FOV"), &config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].silent_fov, 0.f, 30.f, (!config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].silent_fov ? crypt_str("None") : crypt_str("%.2f"))); //-V550
-
-								ImGui::Spacing();
-
-								draw_combo(crypt_str("Smooth type"), config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].smooth_type, LegitSmooth, ARRAYSIZE(LegitSmooth));
-								ImGui::SliderFloat(crypt_str("Smooth amount"), &config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].smooth, 1.f, 12.f, crypt_str("%.1f"));
-
-								ImGui::Spacing();
-
-								ImGui::SliderInt(crypt_str("Automatic wall damage"), &config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].awall_dmg, 0, 100, false, (!config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].awall_dmg ? crypt_str("None") : crypt_str("%d")));
-								ImGui::SliderInt(crypt_str("Automatic fire hitchance"), &config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].autofire_hitchance, 0, 100, false, (!config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].autofire_hitchance ? crypt_str("None") : crypt_str("%d")));
-								ImGui::SliderFloat(crypt_str("Target switch delay"), &config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].target_switch_delay, 0.f, 1.f);
-								ImGui::SliderFloat(crypt_str("Backtrack ticks"), &config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].backtrack_ticks, 0, 12);
-
-
-
-							}
-							ImGui::EndGroup();
-						}
-						ImGui::EndChild();
-						ImGui::Columns(1, nullptr, false);
-					}
-					else if (Active_Tab == 2 && Active_Legit_Tab == 2) //Legit | RSC
-					{
-						ImGui::Columns(2, nullptr, false);
-						ImGui::BeginChild("it3ems", { 300, 430 });
-						{
-							const char* legit_weapons[6] = { crypt_str("Deagle"), crypt_str("Pistols"), crypt_str("Rifles"), crypt_str("SMGs"), crypt_str("Snipers"), crypt_str("Heavy") };
-							const char* hitbox_legit[3] = { crypt_str("Nearest"), crypt_str("Head"), crypt_str("Body") };
-
-							ImGui::SetCursorPos({ 2,2 });
-							ImGui::BeginGroup();
-							{
-								child_title(crypt_str("Recoil Control System"));
-
-								draw_combo(crypt_str("Current weapon"), hooks::legit_weapon, legit_weapons, ARRAYSIZE(legit_weapons));
-
-								draw_combo(crypt_str("RCS type"), config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].rcs_type, RCSType, ARRAYSIZE(RCSType));
-								ImGui::SliderFloat(crypt_str("RCS amount"), &config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].rcs, 0.f, 100.f, crypt_str("%.0f%%"), 1.f);
-
-								if (config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].rcs > 0)
-								{
-									ImGui::SliderFloat(crypt_str("RCS custom FOV"), &config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].custom_rcs_fov, 0.f, 30.f, (!config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].custom_rcs_fov ? crypt_str("None") : crypt_str("%.2f"))); //-V550
-									ImGui::SliderFloat(crypt_str("RCS Custom smooth"), &config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].custom_rcs_smooth, 0.f, 12.f, (!config_system.g_cfg.legitbot.weapon[hooks::legit_weapon].custom_rcs_smooth ? crypt_str("None") : crypt_str("%.1f"))); //-V550
-								}
-
-							}
-							ImGui::EndGroup();
-						}
-						ImGui::EndChild();
-						ImGui::NextColumn();
-						ImGui::BeginChild("item6s2", { 300, 430 });
-						{
-
-							ImGui::SetCursorPos({ 0,0 });
-							ImGui::BeginGroup();
-							{
-
-							}
-							ImGui::EndGroup();
-						}
-						ImGui::EndChild();
-						ImGui::Columns(1, nullptr, false);
-					
-					}
-					else if (Active_Tab == 2 && Active_Legit_Tab == 3) //Legit | Trigger
-					{
-					ImGui::Columns(2, nullptr, false);
-					child_title(crypt_str("Recorder"));
-					ImGui::BeginChild("it3ems", { 300, 430 });
-					{
-						padding(8, 8);
-
-						ImGui::BeginGroup();
-						{
-
-
-							ImGui::Checkbox("Movement recorder", &config_system.g_cfg.misc.enable_movement); padding(8, 2);
-							if (config_system.g_cfg.misc.enable_movement)
-							{
-								draw_keybind(crypt_str("Recorder"), &config_system.g_cfg.misc.recorder, crypt_str("##RECORDER_KEY")); padding(8, 2);
-								draw_keybind(crypt_str("Player"), &config_system.g_cfg.misc.playing, crypt_str("##PLAYER_KEY")); padding(8, 2);
-
-								ImGui::Checkbox("Show the first path", &config_system.g_cfg.misc.showfirstpath); padding(8, 2);
-								ImGui::SameLine(100); ImGui::ColorEdit4("##teste", &config_system.g_cfg.misc.showfirstpath_color); padding(8, 2);
-
-								ImGui::Checkbox("Show path", &config_system.g_cfg.misc.showpath); padding(8, 2);
-								ImGui::SameLine(100); ImGui::ColorEdit4("##show_path", &config_system.g_cfg.misc.pathcolor); padding(8, 2);
-
-								ImGui::Checkbox("Show 3D circle", &config_system.g_cfg.misc.show3dcircle); padding(8, 2);
-								ImGui::SameLine(100); ImGui::ColorEdit4("##show_3dcircle", &config_system.g_cfg.misc.circle3d); padding(8, 2);
-
-								if (config_system.g_cfg.misc.show3dcircle)
-								{
-
-									padding(6, 8); ImGui::SliderInt("Show circle distance", &config_system.g_cfg.misc.showcircle, 0, 5000); padding(8, 2);
-								}
-
-								padding(6, 8); ImGui::SliderFloat("Smooth", &config_system.g_cfg.misc.smooth, 10, 60); padding(8, 2);
-
-
-								if (static_cast<size_t>(current_config2) >= config_items2.size())
-									current_config2 = -1;
-
-								static char buffer[16];
-								padding(8, 2);
-								if (ImGui::Combo("Configs", &current_config2, [](void* data, int idx, const char** out_text) {
-									auto& vector = *static_cast<std::vector<std::string>*>(data);
-									*out_text = vector[idx].c_str();
-									return true;
-									}, &config_items2, config_items2.size(), 5) && current_config2 != -1)
-									strcpy(buffer, config_items2[current_config2].c_str());
-									ImGui::PushID(0);
-									ImGui::PushItemWidth(178);
-									padding(8, 2); if (ImGui::InputText("", buffer, IM_ARRAYSIZE(buffer), ImGuiInputTextFlags_EnterReturnsTrue)) {
-										if (current_config2 != -1)
-											config_system.rename2(current_config2, buffer);
-									}
-									ImGui::PopID();
-									ImGui::SameLine();
-									if (ImGui::CustomButton(("Create"), "##1", ImVec2(80, 18))) {
-										config_system.add2(buffer);
-									}
-
-
-									if (current_config2 != -1)
-									{
-
-										padding(8, 2);
-										if (ImGui::CustomButton(("Load Config"), "##2", ImVec2(80, 18))) {
-											config_system.load2(current_config2);
-										}
-										ImGui::SameLine();
-										if (ImGui::CustomButton(("Save Config"), "##3", ImVec2(80, 18))) {
-											config_system.save2(current_config2);
-										}
-										ImGui::SameLine();
-										if (ImGui::CustomButton(("Remove Config"), "##4", ImVec2(80, 18))) {
-											config_system.remove2(current_config2);
-										}
-
-									}
-							}
-							ImGui::EndGroup();
-						}
-					}
-					ImGui::EndChild();
-
-					}
-					else if (Active_Tab == 2 && Active_Legit_Tab == 4) //Legit | Others
-					{
-					static int map = 0;
-					ImGui::Checkbox(crypt_str("Blockbot"), &config_system.g_cfg.misc.blockbot_enabled);
-
-					if (config_system.g_cfg.misc.blockbot_enabled == 1)
-					{
-						draw_keybind(crypt_str("Blockbot key"), &config_system.g_cfg.misc.block_bot, crypt_str("##BLOCKBOT__HOTKEY"));
-						padding(10, 0);
-						draw_combo(crypt_str("Blockbot type"), config_system.g_cfg.misc.blockbot_type, blockbot_type_cb, ARRAYSIZE(blockbot_type_cb));
-					}
-
-					ImGui::Checkbox(crypt_str("Force Crosshair"), &config_system.g_cfg.misc.forcecrosshair);
-					
-
-					ImGui::Checkbox("Grenade helper", &config_system.g_cfg.grenadehelper.enable); padding(8, 2);
-
-					ImGui::Combo("Choose the map", &map, "de_mirage\0de_inferno\0de_overpass\0de_dust2\0de_cache\0de_nuke\0de_cbble\0de_train"); padding(8, 2);
-					if (map == 0)
-					{
-						static char pos_name[256] = "";
-						ImGui::InputText("Put name here", pos_name, 256);
-						std::string opt_pos_name = pos_name;
-
-						padding(8, 2); if (ImGui::CustomButton("Add new pos", "##1"))
-						{
-							if (!m_engine()->IsInGame())
-								return;
-
-							mirage new_str;
-							new_str.info = opt_pos_name;
-							new_str.pos = g_ctx.local()->GetAbsOrigin();
-							new_str.ang = g_ctx.local()->get_shoot_position();
-							m_engine()->GetViewAngles(new_str.ang);
-
-							config_system.g_cfg.grenadehelper.MirageGrenade.push_back(new_str);
-						}
-					}
-					if (map == 1)
-					{
-						static char pos_name[256] = "";
-						ImGui::InputText("Put name here", pos_name, 256);
-						std::string opt_pos_name = pos_name;
-
-						padding(8, 2);	if (ImGui::CustomButton("Add new pos", "##1"))
-						{
-							if (!m_engine()->IsInGame())
-								return;
-
-							inferno new_str;
-							new_str.info = opt_pos_name;
-							new_str.pos = g_ctx.local()->GetAbsOrigin();
-							new_str.ang = g_ctx.local()->get_shoot_position();
-							m_engine()->GetViewAngles(new_str.ang);
-
-							config_system.g_cfg.grenadehelper.InfernoGrenade.push_back(new_str);
-						}
-					}
-
-					if (map == 7)
-					{
-						static char pos_name[256] = "";
-						ImGui::InputText("Put name here", pos_name, 256);
-						std::string opt_pos_name = pos_name;
-
-						padding(8, 2); if (ImGui::CustomButton("Add new pos", "##1"))
-						{
-							if (!m_engine()->IsInGame())
-								return;
-
-							train new_str;
-							new_str.info = opt_pos_name;
-							new_str.pos = g_ctx.local()->GetAbsOrigin();
-							new_str.ang = g_ctx.local()->get_shoot_position();
-							m_engine()->GetViewAngles(new_str.ang);
-
-							config_system.g_cfg.grenadehelper.trainGrenade.push_back(new_str);
-						}
-					}
-
-					if (map == 3)
-					{
-						static char pos_name[256] = "";
-						ImGui::InputText("Put name here", pos_name, 256);
-						std::string opt_pos_name = pos_name;
-
-						padding(8, 2); if (ImGui::CustomButton("Add new pos", "##1"))
-						{
-							if (!m_engine()->IsInGame())
-								return;
-
-							dust2 new_str;
-							new_str.info = opt_pos_name;
-							new_str.pos = g_ctx.local()->GetAbsOrigin();
-							new_str.ang = g_ctx.local()->get_shoot_position();
-							m_engine()->GetViewAngles(new_str.ang);
-
-							config_system.g_cfg.grenadehelper.dust2Grenade.push_back(new_str);
-						}
-					}
-					if (map == 2)
-					{
-						static char pos_name[256] = "";
-						ImGui::InputText("Put name here", pos_name, 256);
-						std::string opt_pos_name = pos_name;
-
-						padding(8, 2);	if (ImGui::CustomButton("Add new pos", "##1"))
-						{
-							if (!m_engine()->IsInGame())
-								return;
-
-							overpass new_str;
-							new_str.info = opt_pos_name;
-							new_str.pos = g_ctx.local()->GetAbsOrigin();
-							new_str.ang = g_ctx.local()->get_shoot_position();
-							m_engine()->GetViewAngles(new_str.ang);
-
-							config_system.g_cfg.grenadehelper.overpassGrenade.push_back(new_str);
-						}
-					}
-					if (map == 5)
-					{
-						static char pos_name[256] = "";
-						ImGui::InputText("Put name here", pos_name, 256);
-						std::string opt_pos_name = pos_name;
-
-						padding(8, 2);	if (ImGui::CustomButton("Add new pos", "##1"))
-						{
-							if (!m_engine()->IsInGame())
-								return;
-
-							nuke new_str;
-							new_str.info = opt_pos_name;
-							new_str.pos = g_ctx.local()->GetAbsOrigin();
-							new_str.ang = g_ctx.local()->get_shoot_position();
-							m_engine()->GetViewAngles(new_str.ang);
-
-							config_system.g_cfg.grenadehelper.nukeGrenade.push_back(new_str);
-						}
-					}
-					if (map == 4)
-					{
-						static char pos_name[256] = "";
-						ImGui::InputText("Put name here", pos_name, 256);
-						std::string opt_pos_name = pos_name;
-
-						padding(8, 2);	if (ImGui::CustomButton("Add new pos", "##1"))
-						{
-							if (!m_engine()->IsInGame())
-								return;
-
-							cache new_str;
-							new_str.info = opt_pos_name;
-							new_str.pos = g_ctx.local()->GetAbsOrigin();
-							new_str.ang = g_ctx.local()->get_shoot_position();
-							m_engine()->GetViewAngles(new_str.ang);
-
-							config_system.g_cfg.grenadehelper.cacheGrenade.push_back(new_str);
-						}
-					}
-					if (map == 6)
-					{
-						static char pos_name[256] = "";
-						ImGui::InputText("Put name here", pos_name, 256);
-						std::string opt_pos_name = pos_name;
-
-						padding(8, 2);	if (ImGui::CustomButton("Add new pos", "##1"))
-						{
-							if (!m_engine()->IsInGame())
-								return;
-
-							cbble new_str;
-							new_str.info = opt_pos_name;
-							new_str.pos = g_ctx.local()->GetAbsOrigin();
-							new_str.ang = g_ctx.local()->get_shoot_position();
-							m_engine()->GetViewAngles(new_str.ang);
-
-							config_system.g_cfg.grenadehelper.cbbleGrenade.push_back(new_str);
-						}
-					}
-					
-					}
-					if (Active_Tab == 3 && Active_Visuals_Tab == 1) //Visuals | ESP
-					{
-
-						ImGui::Columns(2, nullptr, false);
-						ImGui::BeginChild("it3ems", { 300, 430 });
-						{
-
-							ImGui::SetCursorPos({ 2,2 });
-							ImGui::BeginGroup();
-							{
-								child_title(crypt_str("Players"));
-
-								//tab_start();
-
-								ImGui::Checkbox(crypt_str("Enabled"), &config_system.g_cfg.player.enable);
-								draw_combo(crypt_str("Set team"), config_system.g_cfg.player.teams, player_teams, ARRAYSIZE(player_teams));
-
-								if (player == 0 || ENEMY)
-								{
-									ImGui::Checkbox(crypt_str("OOF arrows"), &config_system.g_cfg.player.arrows);
-									ImGui::SameLine();
-									ImGui::ColorEdit(crypt_str("##arrowscolor"), &config_system.g_cfg.player.arrows_color, ALPHA);
-
-									if (config_system.g_cfg.player.arrows)
-									{
-										ImGui::SliderInt(crypt_str("Arrows distance"), &config_system.g_cfg.player.distance, 1, 100);
-										ImGui::SliderInt(crypt_str("Arrows size"), &config_system.g_cfg.player.size, 1, 100);
-									}
-								}
-
-								ImGui::Checkbox(crypt_str("Bounding box"), &config_system.g_cfg.player.type[player].box);
-								ImGui::SameLine();
-								ImGui::ColorEdit(crypt_str("##boxcolor"), &config_system.g_cfg.player.type[player].box_color, ALPHA);
-
-								ImGui::Checkbox(crypt_str("Name"), &config_system.g_cfg.player.type[player].name);
-								ImGui::SameLine();
-								ImGui::ColorEdit(crypt_str("##namecolor"), &config_system.g_cfg.player.type[player].name_color, ALPHA);
-
-								ImGui::Checkbox(crypt_str("Health bar"), &config_system.g_cfg.player.type[player].health);
-								ImGui::Checkbox(crypt_str("Override health color"), &config_system.g_cfg.player.type[player].custom_health_color);
-								ImGui::SameLine();
-								ImGui::ColorEdit(crypt_str("##healthcolor"), &config_system.g_cfg.player.type[player].health_color, ALPHA);
-
-								for (auto i = 0, j = 0; i < ARRAYSIZE(flags); i++)
-								{
-									if (config_system.g_cfg.player.type[player].flags[i])
-									{
-										if (j)
-											preview += crypt_str(", ") + (std::string)flags[i];
-										else
-											preview = flags[i];
-
-										j++;
-									}
-								}
-
-								draw_multicombo(crypt_str("Flags"), config_system.g_cfg.player.type[player].flags, flags, ARRAYSIZE(flags), preview);
-								draw_multicombo(crypt_str("Weapon"), config_system.g_cfg.player.type[player].weapon, weaponplayer, ARRAYSIZE(weaponplayer), preview);
-
-
-								if (config_system.g_cfg.player.type[player].weapon[WEAPON_ICON] || config_system.g_cfg.player.type[player].weapon[WEAPON_TEXT])
-								{
-									ImGui::Text(crypt_str("Color "));
-									ImGui::SameLine();
-									ImGui::ColorEdit(crypt_str("##weapcolor"), &config_system.g_cfg.player.type[player].weapon_color, ALPHA);
-								}
-
-								ImGui::Checkbox(crypt_str("Skeleton"), &config_system.g_cfg.player.type[player].skeleton);
-								ImGui::SameLine();
-								ImGui::ColorEdit(crypt_str("##skeletoncolor"), &config_system.g_cfg.player.type[player].skeleton_color, ALPHA);
-
-								ImGui::Checkbox(crypt_str("Ammo bar"), &config_system.g_cfg.player.type[player].ammo);
-								ImGui::SameLine();
-								ImGui::ColorEdit(crypt_str("##ammocolor"), &config_system.g_cfg.player.type[player].ammobar_color, ALPHA);
-
-								ImGui::Checkbox(crypt_str("Foot steps"), &config_system.g_cfg.player.type[player].footsteps);
-								ImGui::SameLine();
-								ImGui::ColorEdit(crypt_str("##footstepscolor"), &config_system.g_cfg.player.type[player].footsteps_color, ALPHA);
-
-								if (config_system.g_cfg.player.type[player].footsteps)
-								{
-									ImGui::SliderInt(crypt_str("Thickness"), &config_system.g_cfg.player.type[player].thickness, 1, 10);
-									ImGui::SliderInt(crypt_str("Radius"), &config_system.g_cfg.player.type[player].radius, 50, 500);
-								}
-
-								if (player == 0 || ENEMY || player == 1 || TEAM)
-								{
-									ImGui::Checkbox(crypt_str("Snap lines"), &config_system.g_cfg.player.type[player].snap_lines);
-									ImGui::SameLine();
-									ImGui::ColorEdit(crypt_str("##snapcolor"), &config_system.g_cfg.player.type[player].snap_lines_color, ALPHA);
-
-									if (player == 0)
-									{
-										if (config_system.g_cfg.ragebot.enable)
-										{
-											ImGui::Checkbox(crypt_str("Aimbot points"), &config_system.g_cfg.player.show_multi_points);
-											ImGui::SameLine();
-											ImGui::ColorEdit(crypt_str("##showmultipointscolor"), &config_system.g_cfg.player.show_multi_points_color, ALPHA);
-										}
-
-										ImGui::Checkbox(crypt_str("Aimbot hitboxes"), &config_system.g_cfg.player.lag_hitbox);
-										ImGui::SameLine();
-										ImGui::ColorEdit(crypt_str("##lagcompcolor"), &config_system.g_cfg.player.lag_hitbox_color, ALPHA);
-									}
-								}
-								else
-								{
-									draw_combo(crypt_str("Player model T"), config_system.g_cfg.player.player_model_t, player_model_t, ARRAYSIZE(player_model_t));
-									padding(0, 3);
-									draw_combo(crypt_str("Player model CT"), config_system.g_cfg.player.player_model_ct, player_model_ct, ARRAYSIZE(player_model_ct));
-								}
-							}
-							ImGui::EndGroup();
-						}
-						ImGui::EndChild();
-						ImGui::NextColumn();
-						ImGui::BeginChild("item6s2", { 300, 430 });
-						{
-
-							ImGui::SetCursorPos({ 0,0 });
-							ImGui::BeginGroup();
-							{
-								child_title(crypt_str("Other"));
-
-								ImGui::Checkbox(crypt_str("Grenade prediction"), &config_system.g_cfg.esp.grenade_prediction);
-								ImGui::SameLine();
-								ImGui::ColorEdit(crypt_str("##grenpredcolor"), &config_system.g_cfg.esp.grenade_prediction_color, ALPHA);
-
-								if (config_system.g_cfg.esp.grenade_prediction)
-								{
-									ImGui::Checkbox(crypt_str("On click"), &config_system.g_cfg.esp.on_click);
-									ImGui::Text(crypt_str("Tracer color "));
-									ImGui::SameLine();
-									ImGui::ColorEdit(crypt_str("##tracergrenpredcolor"), &config_system.g_cfg.esp.grenade_prediction_tracer_color, ALPHA);
-								}
-
-								ImGui::Checkbox(crypt_str("Grenade warning "), &config_system.g_cfg.esp.grenade_warning);
-								if (config_system.g_cfg.esp.grenade_warning) {
-									ImGui::BeginGroup(); {//line
-										ImGui::Checkbox("Enable tracer", &config_system.g_cfg.warning.trace.enable);
-										draw_combo(crypt_str("Tracer type"), config_system.g_cfg.warning.trace.type, warning_mode, ARRAYSIZE(warning_mode));
-										if (config_system.g_cfg.warning.trace.type != 1) {
-											ImGui::Text(crypt_str("Tracer color "));
-											ImGui::SameLine();
-											ImGui::ColorEdit(crypt_str("##grenade_tr_color"), &config_system.g_cfg.warning.trace.color, ALPHA);
-										}
-										ImGui::Checkbox("Visible only##trace", &config_system.g_cfg.warning.trace.visible_only);
-										ImGui::SliderFloat(crypt_str("Width"), &config_system.g_cfg.warning.trace.width, 1, 5);
-									}
-									ImGui::EndGroup();
-
-									ImGui::Spacing();
-
-									ImGui::BeginGroup(); {//icon и другая хуйня
-										ImGui::Checkbox("Enable warning", &config_system.g_cfg.warning.main.enable);
-										if (ImGui::BeginCombo("Designers", "Select any element"))
-										{
-
-											ImGui::Checkbox("Show grenade icon", &config_system.g_cfg.warning.main.show_icon); if (!config_system.g_cfg.warning.main.color_by_time) {
-												ImGui::SameLine();
-												ImGui::ColorEdit(crypt_str("##grenade_ic_color"), &config_system.g_cfg.warning.main.icon_col, ALPHA);
-											}
-
-											ImGui::Checkbox("Show background", &config_system.g_cfg.warning.main.show_bg); ImGui::SameLine();
-											ImGui::ColorEdit(crypt_str("##grenade_bg_color"), &config_system.g_cfg.warning.main.bg_col, ALPHA);
-
-
-											ImGui::Checkbox("Show timer", &config_system.g_cfg.warning.main.show_timer); if (!config_system.g_cfg.warning.main.color_by_time) {
-												ImGui::SameLine();
-												ImGui::ColorEdit(crypt_str("##grenade_tim_color"), &config_system.g_cfg.warning.main.timer_col, ALPHA);
-											}
-
-											ImGui::Checkbox("Show damage/distance", &config_system.g_cfg.warning.main.show_damage_dist);
-
-											ImGui::Checkbox("Set color based on remaining time", &config_system.g_cfg.warning.main.color_by_time);
-
-											ImGui::EndCombo();
-										}
-
-										draw_combo(crypt_str("Damage warning type"), config_system.g_cfg.warning.main.d_warn_type, d_warning_mode, ARRAYSIZE(d_warning_mode));
-										if (config_system.g_cfg.warning.main.d_warn_type) {
-											ImGui::Text(crypt_str("Damage warning color "));
-											ImGui::SameLine();
-											ImGui::ColorEdit(crypt_str("##grenadewa_tr_color"), &config_system.g_cfg.warning.main.warn_col, ALPHA);
-										}
-										ImGui::Checkbox("Visible only##main", &config_system.g_cfg.warning.main.visible_only);
-									}
-									ImGui::EndGroup();
-								}
-
-								ImGui::Checkbox(crypt_str("Grenade projectiles"), &config_system.g_cfg.esp.projectiles);
-
-								if (config_system.g_cfg.esp.projectiles)
-									draw_multicombo(crypt_str("Grenade ESP"), config_system.g_cfg.esp.grenade_esp, proj_combo, ARRAYSIZE(proj_combo), preview);
-
-								if (config_system.g_cfg.esp.grenade_esp[GRENADE_ICON] || config_system.g_cfg.esp.grenade_esp[GRENADE_TEXT])
-								{
-									ImGui::Text(crypt_str("Color "));
-									ImGui::SameLine();
-									ImGui::ColorEdit(crypt_str("##projectcolor"), &config_system.g_cfg.esp.projectiles_color, ALPHA);
-								}
-
-								if (config_system.g_cfg.esp.grenade_esp[GRENADE_BOX])
-								{
-									ImGui::Text(crypt_str("Box color "));
-									ImGui::SameLine();
-									ImGui::ColorEdit(crypt_str("##grenade_box_color"), &config_system.g_cfg.esp.grenade_box_color, ALPHA);
-								}
-
-								if (config_system.g_cfg.esp.grenade_esp[GRENADE_GLOW])
-								{
-									ImGui::Text(crypt_str("Glow color "));
-									ImGui::SameLine();
-									ImGui::ColorEdit(crypt_str("##grenade_glow_color"), &config_system.g_cfg.esp.grenade_glow_color, ALPHA);
-								}
-
-								/*if (config_system.g_cfg.esp.grenade_esp[GRENADE_WARNING])
-								{
-									ImGui::Text(crypt_str("Warning color "));
-									ImGui::SameLine();
-									ImGui::ColorEdit(crypt_str("##grenade_warning_color"), &config_system.g_cfg.esp.grenade_warning_color, ALPHA);
-								}*/
-
-								ImGui::Checkbox(crypt_str("Fire timer"), &config_system.g_cfg.esp.molotov_timer);
-								ImGui::SameLine();
-								ImGui::ColorEdit(crypt_str("##molotovcolor"), &config_system.g_cfg.esp.molotov_timer_color, ALPHA);
-
-								ImGui::Checkbox(crypt_str("Smoke timer"), &config_system.g_cfg.esp.smoke_timer);
-								ImGui::SameLine();
-								ImGui::ColorEdit(crypt_str("##smokecolor"), &config_system.g_cfg.esp.smoke_timer_color, ALPHA);
-
-								ImGui::Checkbox(crypt_str("Bomb indicator"), &config_system.g_cfg.esp.bomb_timer);
-								draw_multicombo(crypt_str("Weapon ESP"), config_system.g_cfg.esp.weapon, weaponesp, ARRAYSIZE(weaponesp), preview);
-
-								if (config_system.g_cfg.esp.weapon[WEAPON_ICON] || config_system.g_cfg.esp.weapon[WEAPON_TEXT] || config_system.g_cfg.esp.weapon[WEAPON_DISTANCE])
-								{
-									ImGui::Text(crypt_str("Color "));
-									ImGui::SameLine();
-									ImGui::ColorEdit(crypt_str("##weaponcolor"), &config_system.g_cfg.esp.weapon_color, ALPHA);
-								}
-
-								if (config_system.g_cfg.esp.weapon[WEAPON_BOX])
-								{
-									ImGui::Text(crypt_str("Box color "));
-									ImGui::SameLine();
-									ImGui::ColorEdit(crypt_str("##weaponboxcolor"), &config_system.g_cfg.esp.box_color, ALPHA);
-								}
-
-								if (config_system.g_cfg.esp.weapon[WEAPON_GLOW])
-								{
-									ImGui::Text(crypt_str("Glow color "));
-									ImGui::SameLine();
-									ImGui::ColorEdit(crypt_str("##weaponglowcolor"), &config_system.g_cfg.esp.weapon_glow_color, ALPHA);
-								}
-
-								if (config_system.g_cfg.esp.weapon[WEAPON_AMMO])
-								{
-									ImGui::Text(crypt_str("Ammo bar color "));
-									ImGui::SameLine();
-									ImGui::ColorEdit(crypt_str("##weaponammocolor"), &config_system.g_cfg.esp.weapon_ammo_color, ALPHA);
-								}
-							}
-							ImGui::EndGroup();
-						}
-						ImGui::EndChild();
-						ImGui::Columns(1, nullptr, false);
-					}
-					else if (Active_Tab == 3 && Active_Visuals_Tab == 2) //Visuals | Glow 
-					{
-						child_title(crypt_str("Glow"));
-
-						draw_combo(crypt_str("Set team"), config_system.g_cfg.player.teams, player_teams, ARRAYSIZE(player_teams));
-
-						ImGui::Checkbox(crypt_str("Glow"), &config_system.g_cfg.player.type[player].glow);
-
-						if (config_system.g_cfg.player.type[player].glow)
-						{
-							draw_combo(crypt_str("Glow type"), config_system.g_cfg.player.type[player].glow_type, glowtype, ARRAYSIZE(glowtype));
-							ImGui::Text(crypt_str("Color "));
-							ImGui::SameLine();
-							ImGui::ColorEdit(crypt_str("##glowcolor"), &config_system.g_cfg.player.type[player].glow_color, ALPHA);
-						}
-					}
-					else if (Active_Tab == 3 && Active_Visuals_Tab == 3)  //Visuals | Chams
-					{
-
-					
-				
-
-
-						//tab_end();
-						ImGui::Columns(2, nullptr, false);
-						ImGui::BeginChild("it3ems", { 300, 430 });
-						{
-
-							ImGui::SetCursorPos({ 2,2 });
-							ImGui::BeginGroup();
-							{
-								child_title(crypt_str("Player models"));
-								draw_combo(crypt_str("Set team"), config_system.g_cfg.player.teams, player_teams, ARRAYSIZE(player_teams));
-								//tab_start();
-									//ImGui::Spacing();
-								if (player == 2 || LOCAL)
-									draw_combo(crypt_str("Type"), config_system.g_cfg.player.local_chams_type, local_chams_type, ARRAYSIZE(local_chams_type));
-
-								if (player != 2 || LOCAL || !config_system.g_cfg.player.local_chams_type)
-									draw_multicombo(crypt_str("Chams"), config_system.g_cfg.player.type[player].chams, config_system.g_cfg.player.type[player].chams[PLAYER_CHAMS_VISIBLE] ? chamsvisact : chamsvis, config_system.g_cfg.player.type[player].chams[PLAYER_CHAMS_VISIBLE] ? ARRAYSIZE(chamsvisact) : ARRAYSIZE(chamsvis), preview);
-
-								if (config_system.g_cfg.player.type[player].chams[PLAYER_CHAMS_VISIBLE] || player == 2 || LOCAL && config_system.g_cfg.player.local_chams_type) //-V648
-								{
-									if (player == LOCAL && config_system.g_cfg.player.local_chams_type)
-									{
-										ImGui::Checkbox(crypt_str("Enable desync chams"), &config_system.g_cfg.player.fake_chams_enable);
-										ImGui::Checkbox(crypt_str("Visualize fake-lag"), &config_system.g_cfg.player.visualize_lag);
-										ImGui::Checkbox(crypt_str("Layered"), &config_system.g_cfg.player.layered);
-
-										draw_combo(crypt_str("Player chams material"), config_system.g_cfg.player.fake_chams_type, chamstype, ARRAYSIZE(chamstype));
-
-										ImGui::Text(crypt_str("Color "));
-										ImGui::SameLine();
-										ImGui::ColorEdit(crypt_str("##fakechamscolor"), &config_system.g_cfg.player.fake_chams_color, ALPHA);
-
-										if (config_system.g_cfg.player.fake_chams_type != 6)
-										{
-											ImGui::Checkbox(crypt_str("Fake Double material "), &config_system.g_cfg.player.fake_double_material);
-											ImGui::SameLine();
-											ImGui::ColorEdit(crypt_str("##doublematerialcolor"), &config_system.g_cfg.player.fake_double_material_color, ALPHA);
-										}
-
-										ImGui::Checkbox(crypt_str("Animated material"), &config_system.g_cfg.player.fake_animated_material);
-										ImGui::SameLine();
-										ImGui::ColorEdit(crypt_str("##animcolormat"), &config_system.g_cfg.player.fake_animated_material_color, ALPHA);
-									}
-									else
-									{
-										draw_combo(crypt_str("Player chams material"), config_system.g_cfg.player.type[player].chams_type, chamstype, ARRAYSIZE(chamstype));
-
-										if (config_system.g_cfg.player.type[player].chams[PLAYER_CHAMS_VISIBLE])
-										{
-											ImGui::Text(crypt_str("Visible "));
-											ImGui::SameLine();
-											ImGui::ColorEdit(crypt_str("##chamsvisible"), &config_system.g_cfg.player.type[player].chams_color, ALPHA);
-										}
-
-										if (config_system.g_cfg.player.type[player].chams[PLAYER_CHAMS_VISIBLE] && config_system.g_cfg.player.type[player].chams[PLAYER_CHAMS_INVISIBLE])
-										{
-											ImGui::Text(crypt_str("Invisible "));
-											ImGui::SameLine();
-											ImGui::ColorEdit(crypt_str("##chamsinvisible"), &config_system.g_cfg.player.type[player].xqz_color, ALPHA);
-										}
-
-										if (config_system.g_cfg.player.type[player].chams_type != 6)
-										{
-											ImGui::Checkbox(crypt_str("Player Double material "), &config_system.g_cfg.player.type[player].double_material);
-											ImGui::SameLine();
-											ImGui::ColorEdit(crypt_str("##doublematerialcolor"), &config_system.g_cfg.player.type[player].double_material_color, ALPHA);
-										}
-
-										ImGui::Checkbox(crypt_str("Animated material"), &config_system.g_cfg.player.type[player].animated_material);
-										ImGui::SameLine();
-										ImGui::ColorEdit(crypt_str("##animcolormat"), &config_system.g_cfg.player.type[player].animated_material_color, ALPHA);
-
-										if (player == 0 || ENEMY)
-										{
-											ImGui::Checkbox(crypt_str("Backtrack chams"), &config_system.g_cfg.player.backtrack_chams);
-
-											if (config_system.g_cfg.player.backtrack_chams)
-											{
-												draw_combo(crypt_str("Backtrack chams material"), config_system.g_cfg.player.backtrack_chams_material, chamstype, ARRAYSIZE(chamstype));
-
-												ImGui::Text(crypt_str("Color "));
-												ImGui::SameLine();
-												ImGui::ColorEdit(crypt_str("##backtrackcolor"), &config_system.g_cfg.player.backtrack_chams_color, ALPHA);
-											}
-										}
-										if (player == 0 || ENEMY || player == 1 || TEAM)
-										{
-											ImGui::Checkbox(crypt_str("Ragdoll chams"), &config_system.g_cfg.player.type[player].ragdoll_chams);
-
-											if (config_system.g_cfg.player.type[player].ragdoll_chams)
-											{
-												draw_combo(crypt_str("Ragdoll chams material"), config_system.g_cfg.player.type[player].ragdoll_chams_material, chamstype, ARRAYSIZE(chamstype));
-
-												ImGui::Text(crypt_str("Color "));
-												ImGui::SameLine();
-												ImGui::ColorEdit(crypt_str("##ragdollcolor"), &config_system.g_cfg.player.type[player].ragdoll_chams_color, ALPHA);
-											}
-										}
-										else if (!config_system.g_cfg.player.local_chams_type)
-										{
-											ImGui::Checkbox(crypt_str("Transparency in scope"), &config_system.g_cfg.player.transparency_in_scope);
-
-											if (config_system.g_cfg.player.transparency_in_scope)
-												ImGui::SliderFloat(crypt_str("Alpha"), &config_system.g_cfg.player.transparency_in_scope_amount, 0.0f, 1.0f);
-										}
-									}
-								}
-
-							}
-							ImGui::EndGroup();
-						}
-						ImGui::EndChild();
-						ImGui::NextColumn();
-						ImGui::BeginChild("item6s2", { 300, 430 });
-						{
-
-							ImGui::SetCursorPos({ 0,0 });
-							ImGui::BeginGroup();
-							{
-								child_title(crypt_str("Other models"));
-
-								ImGui::Checkbox(crypt_str("Arms chams"), &config_system.g_cfg.esp.arms_chams);
-								ImGui::SameLine();
-								ImGui::ColorEdit(crypt_str("##armscolor"), &config_system.g_cfg.esp.arms_chams_color, ALPHA);
-								
-								if (config_system.g_cfg.esp.arms_chams)
-								{
-
-									draw_combo(crypt_str("Arms chams material"), config_system.g_cfg.esp.arms_chams_type, chamstype, ARRAYSIZE(chamstype));
-
-									if (config_system.g_cfg.esp.arms_chams_type != 6)
-									{
-										ImGui::Checkbox(crypt_str("Arms double material "), &config_system.g_cfg.esp.arms_double_material);
-										ImGui::SameLine();
-										ImGui::ColorEdit(crypt_str("##armsdoublematerial"), &config_system.g_cfg.esp.arms_double_material_color, ALPHA);
-									}
-
-									ImGui::Checkbox(crypt_str("Arms animated material "), &config_system.g_cfg.esp.arms_animated_material);
-									ImGui::SameLine();
-									ImGui::ColorEdit(crypt_str("##armsanimatedmaterial"), &config_system.g_cfg.esp.arms_animated_material_color, ALPHA);
-								}
-
-								ImGui::Checkbox(crypt_str("Weapon chams"), &config_system.g_cfg.esp.weapon_chams);
-								ImGui::SameLine();
-								ImGui::ColorEdit(crypt_str("##weaponchamscolors"), &config_system.g_cfg.esp.weapon_chams_color, ALPHA);
-
-								if (config_system.g_cfg.esp.weapon_chams)
-								{
-									draw_combo(crypt_str("Weapon chams material"), config_system.g_cfg.esp.weapon_chams_type, chamstype, ARRAYSIZE(chamstype));
-
-									if (config_system.g_cfg.esp.weapon_chams_type != 6)
-									{
-										ImGui::Checkbox(crypt_str("Weapon Double material "), &config_system.g_cfg.esp.weapon_double_material);
-										ImGui::SameLine();
-										ImGui::ColorEdit(crypt_str("##weapondoublematerial"), &config_system.g_cfg.esp.weapon_double_material_color, ALPHA);
-									}
-
-									ImGui::Checkbox(crypt_str("Animated material "), &config_system.g_cfg.esp.weapon_animated_material);
-									ImGui::SameLine();
-									ImGui::ColorEdit(crypt_str("##weaponanimatedmaterial"), &config_system.g_cfg.esp.weapon_animated_material_color, ALPHA);
-									ImGui::Spacing();
-								}
-							}
-							ImGui::EndGroup();
-						}
-						ImGui::EndChild();
-						ImGui::Columns(1, nullptr, false);
-					
-
-					}
-					else if (Active_Tab == 3 && Active_Visuals_Tab == 4) //Visuals | Radar
-					{
-						child_title(crypt_str("Radar"));
-						//tab_start();
-
-						ImGui::Spacing();
-
-						ImGui::Checkbox(crypt_str("Enabled"), &config_system.g_cfg.misc.ingame_radar);
-						ImGui::Checkbox(crypt_str("Draw local"), &config_system.g_cfg.radar.render_local);
-						ImGui::Checkbox(crypt_str("Draw enemies"), &config_system.g_cfg.radar.render_enemy);
-						ImGui::Checkbox(crypt_str("Draw teammates"), &config_system.g_cfg.radar.render_team);
-						ImGui::Checkbox(crypt_str("Draw planted c4"), &config_system.g_cfg.radar.render_planted_c4);
-						ImGui::Checkbox(crypt_str("Draw dropped c4"), &config_system.g_cfg.radar.render_dropped_c4);
-						ImGui::Checkbox(crypt_str("Draw health"), &config_system.g_cfg.radar.render_health);
-
-						//tab_end();
-					}
-					else if (Active_Tab == 3 && Active_Visuals_Tab == 5) //Visuals | Others
-					{
-						ImGui::Columns(2, nullptr, false);
-						ImGui::BeginChild("it3ems", { 300, 430 });
-						{
-
-							ImGui::SetCursorPos({ 2,2 });
-							ImGui::BeginGroup();
-							{
-								child_title(crypt_str("General"));
-
-								ImGui::Checkbox(crypt_str("Enabled"), &config_system.g_cfg.player.enable);
-
-								draw_multicombo(crypt_str("Indicators"), config_system.g_cfg.esp.indicators, indicators, ARRAYSIZE(indicators), preview);
-								padding(0, 3);
-
-								draw_multicombo(crypt_str("Removals"), config_system.g_cfg.esp.removals, removals, ARRAYSIZE(removals), preview);
-
-								if (config_system.g_cfg.esp.removals[REMOVALS_ZOOM])
-									ImGui::Checkbox(crypt_str("Fix zoom sensivity"), &config_system.g_cfg.esp.fix_zoom_sensivity);
-
-
-
-								ImGui::Checkbox(crypt_str("Client bullet impacts"), &config_system.g_cfg.esp.client_bullet_impacts);
-								ImGui::SameLine();
-								ImGui::ColorEdit(crypt_str("##clientbulletimpacts"), &config_system.g_cfg.esp.client_bullet_impacts_color, ALPHA);
-
-								ImGui::Checkbox(crypt_str("Server bullet impacts"), &config_system.g_cfg.esp.server_bullet_impacts);
-								ImGui::SameLine();
-								ImGui::ColorEdit(crypt_str("##serverbulletimpacts"), &config_system.g_cfg.esp.server_bullet_impacts_color, ALPHA);
-
-								ImGui::Checkbox(crypt_str("Local bullet tracers"), &config_system.g_cfg.esp.bullet_tracer);
-								ImGui::SameLine();
-								ImGui::ColorEdit(crypt_str("##bulltracecolor"), &config_system.g_cfg.esp.bullet_tracer_color, ALPHA);
-
-								ImGui::Checkbox(crypt_str("Enemy bullet tracers"), &config_system.g_cfg.esp.enemy_bullet_tracer);
-								ImGui::SameLine();
-
-								ImGui::ColorEdit(crypt_str("##enemybulltracecolor"), &config_system.g_cfg.esp.enemy_bullet_tracer_color, ALPHA);
-								draw_multicombo(crypt_str("Hit marker"), config_system.g_cfg.esp.hitmarker, hitmarkers, ARRAYSIZE(hitmarkers), preview);
-								ImGui::Checkbox(crypt_str("Damage marker"), &config_system.g_cfg.esp.damage_marker);
-								ImGui::Checkbox(crypt_str("Kill effect"), &config_system.g_cfg.esp.kill_effect);
-
-								if (config_system.g_cfg.esp.kill_effect)
-									ImGui::SliderFloat(crypt_str("Duration"), &config_system.g_cfg.esp.kill_effect_duration, 0.01f, 3.0f);
-
-								ImGui::Checkbox(crypt_str("Velocity graph"), &config_system.g_cfg.esp.velocity_graph);
-
-							}
-							ImGui::EndGroup();
-						}
-						ImGui::EndChild();
-						ImGui::NextColumn();
-						ImGui::BeginChild("item6s2", { 300, 430 });
-						{
-
-							ImGui::SetCursorPos({ 0,0 });
-							ImGui::BeginGroup();
-							{
-								child_title(crypt_str("Other"));
-
-								draw_keybind(crypt_str("Third person"), &config_system.g_cfg.misc.thirdperson_toggle, crypt_str("##TPKEY__HOTKEY"));
-
-								ImGui::Checkbox(crypt_str("Third person when dead"), &config_system.g_cfg.misc.thirdperson_when_spectating);
-
-								if (config_system.g_cfg.misc.thirdperson_toggle.key > KEY_NONE && config_system.g_cfg.misc.thirdperson_toggle.key < KEY_MAX)
-									ImGui::SliderInt(crypt_str("Third person distance"), &config_system.g_cfg.misc.thirdperson_distance, 100, 300);
-
-								ImGui::SliderInt(crypt_str("Field of view"), &config_system.g_cfg.esp.fov, 0, 89);
-								ImGui::Checkbox(crypt_str("Taser range"), &config_system.g_cfg.esp.taser_range);
-								ImGui::Checkbox(crypt_str("Show spread"), &config_system.g_cfg.esp.show_spread);
-								ImGui::SameLine();
-								ImGui::ColorEdit(crypt_str("##spredcolor"), &config_system.g_cfg.esp.show_spread_color, ALPHA);
-								ImGui::Checkbox(crypt_str("Penetration crosshair"), &config_system.g_cfg.esp.penetration_reticle);
-
-								child_title(crypt_str("Viewmodel"));
-
-								ImGui::SliderInt(crypt_str("Viewmodel field of view"), &config_system.g_cfg.esp.viewmodel_fov, 0, 89);
-								ImGui::SliderInt(crypt_str("Viewmodel X"), &config_system.g_cfg.esp.viewmodel_x, -50, 50);
-								ImGui::SliderInt(crypt_str("Viewmodel Y"), &config_system.g_cfg.esp.viewmodel_y, -50, 50);
-								ImGui::SliderInt(crypt_str("Viewmodel Z"), &config_system.g_cfg.esp.viewmodel_z, -50, 50);
-								ImGui::SliderInt(crypt_str("Viewmodel roll"), &config_system.g_cfg.esp.viewmodel_roll, -180, 180);
-							}
-							ImGui::EndGroup();
-						}
-						ImGui::EndChild();
-						ImGui::Columns(1, nullptr, false);
-					}
-
-
-					else if (Active_Tab == 3 && Active_Visuals_Tab == 6) //Visuals | Others
-					{
-
-						child_title(crypt_str("World"));
-
-						ImGui::Checkbox(crypt_str("Enabled"), &config_system.g_cfg.player.enable);
-
-
-						ImGui::Checkbox(crypt_str("Rain"), &config_system.g_cfg.esp.rain);
-						ImGui::Checkbox(crypt_str("Full bright"), &config_system.g_cfg.esp.bright);
-
-						draw_combo(crypt_str("Skybox"), config_system.g_cfg.esp.skybox, skybox, ARRAYSIZE(skybox));
-
-						ImGui::Text(crypt_str("Color "));
-						ImGui::SameLine();
-						ImGui::ColorEdit(crypt_str("##skyboxcolor"), &config_system.g_cfg.esp.skybox_color, NOALPHA);
-
-						if (config_system.g_cfg.esp.skybox == 21)
-						{
-							static char sky_custom[64] = "\0";
-
-							if (!config_system.g_cfg.esp.custom_skybox.empty())
-								strcpy_s(sky_custom, sizeof(sky_custom), config_system.g_cfg.esp.custom_skybox.c_str());
-
-							ImGui::Text(crypt_str("Name"));
-							ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.f);
-
-							if (ImGui::InputText(crypt_str("##customsky"), sky_custom, sizeof(sky_custom)))
-								config_system.g_cfg.esp.custom_skybox = sky_custom;
-
-							ImGui::PopStyleVar();
-						}
-
-						ImGui::Checkbox(crypt_str("Color modulation"), &config_system.g_cfg.esp.nightmode);
-
-						if (config_system.g_cfg.esp.nightmode)
-						{
-							ImGui::Text(crypt_str("World color "));
-							ImGui::SameLine();
-							ImGui::ColorEdit(crypt_str("##worldcolor"), &config_system.g_cfg.esp.world_color, ALPHA);
-
-							ImGui::Text(crypt_str("Props color "));
-							ImGui::SameLine();
-							ImGui::ColorEdit(crypt_str("##propscolor"), &config_system.g_cfg.esp.props_color, ALPHA);
-						}
-
-						ImGui::Checkbox(crypt_str("World modulation"), &config_system.g_cfg.esp.world_modulation);
-
-						if (config_system.g_cfg.esp.world_modulation)
-						{
-							ImGui::SliderFloat(crypt_str("Bloom"), &config_system.g_cfg.esp.bloom, 0.0f, 750.0f);
-							ImGui::SliderFloat(crypt_str("Exposure"), &config_system.g_cfg.esp.exposure, 0.0f, 2000.0f);
-							ImGui::SliderFloat(crypt_str("Ambient"), &config_system.g_cfg.esp.ambient, 0.0f, 1500.0f);
-						}
-
-						ImGui::Checkbox(crypt_str("Fog modulation"), &config_system.g_cfg.esp.fog);
-
-						if (config_system.g_cfg.esp.fog)
-						{
-							ImGui::SliderInt(crypt_str("Distance"), &config_system.g_cfg.esp.fog_distance, 0, 2500);
-							ImGui::SliderInt(crypt_str("Density"), &config_system.g_cfg.esp.fog_density, 0, 100);
-
-							ImGui::Text(crypt_str("Color "));
-							ImGui::SameLine();
-							ImGui::ColorEdit(crypt_str("##fogcolor"), &config_system.g_cfg.esp.fog_color, NOALPHA);
-						}
-					}
-
-				
-					if (Active_Tab == 4 && Active_Changer_Tab == 1) //Changers | Inventory
-					{
-						// hey stewen, what r u doing there? he, hm heee, DRUGS
-						static bool drugs = false;
-
-						// some animation logic(switch)
-						static bool active_animation = false;
-						static bool preview_reverse = false;
-						static float switch_alpha = 1.f;
-						static int next_id = -1;
-						if (active_animation)
-						{
-							if (preview_reverse)
-							{
-								if (switch_alpha == 1.f) //-V550
-								{
-									preview_reverse = false;
-									active_animation = false;
-								}
-
-								switch_alpha = math::clamp(switch_alpha + (4.f * ImGui::GetIO().DeltaTime), 0.01f, 1.f);
-							}
-							else
-							{
-								if (switch_alpha == 0.01f) //-V550
-								{
-									preview_reverse = true;
-								}
-
-								switch_alpha = math::clamp(switch_alpha - (4.f * ImGui::GetIO().DeltaTime), 0.01f, 1.f);
-							}
-						}
-						else
-							switch_alpha = math::clamp(switch_alpha + (4.f * ImGui::GetIO().DeltaTime), 0.0f, 1.f);
-
-							ImGui::PushStyleVar(ImGuiStyleVar_Alpha, (1.f - preview_alpha) * public_alpha * switch_alpha);
-							child_title(current_profile == -1 ? crypt_str("Skinchanger") : game_data::weapon_names[current_profile].name);
-							//tab_start();
-							ImGui::Spacing();
-							ImGui::BeginChild(crypt_str("##SKINCHANGER__CHILD"), ImVec2(586 * dpi_scale, (child_height - 35)* dpi_scale));
-							{
-								// we need to count our items in 1 line
-								auto same_line_counter = 0;
-
-								// if we didnt choose any weapon
-								if (current_profile == -1)
-								{
-									for (auto i = 0; i < config_system.g_cfg.skins.skinChanger.size(); i++)
-									{
-										// do we need update our preview for some reasons?
-										if (!all_skins[i])
-										{
-											config_system.g_cfg.skins.skinChanger.at(i).update();
-											all_skins[i] = get_skin_preview(get_wep(i, (i == 0 || i == 1) ? config_system.g_cfg.skins.skinChanger.at(i).definition_override_vector_index : -1, i == 0).c_str(), config_system.g_cfg.skins.skinChanger.at(i).skin_name, device); //-V810
-										}
-
-										// we licked on weapon
-										if (ImGui::ImageButton(all_skins[i], ImVec2(87, 76)))
-										{
-											next_id = i;
-											active_animation = true;
-										}
-
-										// if our animation step is half from all - switch profile
-										if (active_animation && preview_reverse)
-										{
-											ImGui::SetScrollY(0);
-											current_profile = next_id;
-										}
-
-										if (same_line_counter < 4) { // continue push same-line
-											ImGui::SameLine();
-											same_line_counter++;
-										}
-										else { // we have maximum elements in 1 line
-											same_line_counter = 0;
-										}
-									}
-								}
-								else
-								{
-									// update skin preview bool
-									static bool need_update[36];
-
-									// we pressed crypt_str("Save & Close") button
-									static bool leave;
-
-									// update if we have nullptr texture or if we push force update
-									if (!all_skins[current_profile] || need_update[current_profile])
-									{
-										all_skins[current_profile] = get_skin_preview(get_wep(current_profile, (current_profile == 0 || current_profile == 1) ? config_system.g_cfg.skins.skinChanger.at(current_profile).definition_override_vector_index : -1, current_profile == 0).c_str(), config_system.g_cfg.skins.skinChanger.at(current_profile).skin_name, device); //-V810
-										need_update[current_profile] = false;
-									}
-
-									// get settings for selected weapon
-									auto& selected_entry = config_system.g_cfg.skins.skinChanger[current_profile];
-									selected_entry.itemIdIndex = current_profile;
-
-									ImGui::BeginGroup();
-									ImGui::PushItemWidth(260 * dpi_scale);
-
-									// search input later
-									static char search_skins[64] = "\0";
-									static auto item_index = selected_entry.paint_kit_vector_index;
-
-									if (!current_profile)
-									{
-										ImGui::Text(crypt_str("Knife"));
-										ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 5 * c_menu::get().dpi_scale);
-										if (ImGui::Combo(crypt_str("##Knife_combo"), &selected_entry.definition_override_vector_index, [](void* data, int idx, const char** out_text)
-											{
-												*out_text = game_data::knife_names[idx].name;
-												return true;
-											}, nullptr, IM_ARRAYSIZE(game_data::knife_names)))
-											need_update[current_profile] = true; // push force update
-									}
-									else if (current_profile == 1)
-									{
-										ImGui::Text(crypt_str("Gloves"));
-										ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 5 * c_menu::get().dpi_scale);
-										if (ImGui::Combo(crypt_str("##Glove_combo"), &selected_entry.definition_override_vector_index, [](void* data, int idx, const char** out_text)
-											{
-												*out_text = game_data::glove_names[idx].name;
-												return true;
-											}, nullptr, IM_ARRAYSIZE(game_data::glove_names)))
-										{
-											item_index = 0; // set new generated paintkits element to 0;
-											need_update[current_profile] = true; // push force update
-										}
-									}
-									else
-										selected_entry.definition_override_vector_index = 0;
-
-									if (current_profile != 1)
-									{
-										ImGui::Text(crypt_str("Search"));
-										ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.f);
-
-										if (ImGui::InputText(crypt_str("##search"), search_skins, sizeof(search_skins)))
-											item_index = -1;
-
-										ImGui::PopStyleVar();
-									}
-
-									auto main_kits = current_profile == 1 ? SkinChanger::gloveKits : SkinChanger::skinKits;
-									auto display_index = 0;
-
-									SkinChanger::displayKits = main_kits;
-
-									// we dont need custom gloves
-									if (current_profile == 1)
-									{
-										for (auto i = 0; i < main_kits.size(); i++)
-										{
-											auto main_name = main_kits.at(i).name;
-
-											for (auto i = 0; i < main_name.size(); i++)
-												if (iswalpha((main_name.at(i))))
-													main_name.at(i) = towlower(main_name.at(i));
-
-											char search_name[64];
-
-											if (!strcmp(game_data::glove_names[selected_entry.definition_override_vector_index].name, crypt_str("Hydra")))
-												strcpy_s(search_name, sizeof(search_name), crypt_str("Bloodhound"));
-											else
-												strcpy_s(search_name, sizeof(search_name), game_data::glove_names[selected_entry.definition_override_vector_index].name);
-
-											for (auto i = 0; i < sizeof(search_name); i++)
-												if (iswalpha(search_name[i]))
-													search_name[i] = towlower(search_name[i]);
-
-											if (main_name.find(search_name) != std::string::npos)
-											{
-												SkinChanger::displayKits.at(display_index) = main_kits.at(i);
-												display_index++;
-											}
-										}
-
-										SkinChanger::displayKits.erase(SkinChanger::displayKits.begin() + display_index, SkinChanger::displayKits.end());
-									}
-									else
-									{
-										if (strcmp(search_skins, crypt_str(""))) //-V526
-										{
-											for (auto i = 0; i < main_kits.size(); i++)
-											{
-												auto main_name = main_kits.at(i).name;
-
-												for (auto i = 0; i < main_name.size(); i++)
-													if (iswalpha(main_name.at(i)))
-														main_name.at(i) = towlower(main_name.at(i));
-
-												char search_name[64];
-												strcpy_s(search_name, sizeof(search_name), search_skins);
-
-												for (auto i = 0; i < sizeof(search_name); i++)
-													if (iswalpha(search_name[i]))
-														search_name[i] = towlower(search_name[i]);
-
-												if (main_name.find(search_name) != std::string::npos)
-												{
-													SkinChanger::displayKits.at(display_index) = main_kits.at(i);
-													display_index++;
-												}
-											}
-
-											SkinChanger::displayKits.erase(SkinChanger::displayKits.begin() + display_index, SkinChanger::displayKits.end());
-										}
-										else
-											item_index = selected_entry.paint_kit_vector_index;
-									}
-
-									ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.f);
-									if (!SkinChanger::displayKits.empty())
-									{
-										if (ImGui::ListBox(crypt_str("##PAINTKITS"), &item_index, [](void* data, int idx, const char** out_text) //-V107
-											{
-												while (SkinChanger::displayKits.at(idx).name.find(crypt_str("С‘")) != std::string::npos) //-V807
-													SkinChanger::displayKits.at(idx).name.replace(SkinChanger::displayKits.at(idx).name.find(crypt_str("С‘")), 2, crypt_str("Рµ"));
-
-												*out_text = SkinChanger::displayKits.at(idx).name.c_str();
-												return true;
-											}, nullptr, SkinChanger::displayKits.size(), SkinChanger::displayKits.size() > 9 ? 9 : SkinChanger::displayKits.size()) || !all_skins[current_profile])
-										{
-											SkinChanger::scheduleHudUpdate();
-											need_update[current_profile] = true;
-
-											auto i = 0;
-
-											while (i < main_kits.size())
-											{
-												if (main_kits.at(i).id == SkinChanger::displayKits.at(item_index).id)
-												{
-													selected_entry.paint_kit_vector_index = i;
-													break;
-												}
-
-												i++;
-											}
-
-										}
-									}
-									ImGui::PopStyleVar();
-
-									if (ImGui::InputInt(crypt_str("Seed"), &selected_entry.seed, 1, 100))
-										SkinChanger::scheduleHudUpdate();
-
-									if (ImGui::InputInt(crypt_str("StatTrak"), &selected_entry.stat_trak, 1, 15))
-										SkinChanger::scheduleHudUpdate();
-
-									if (ImGui::SliderFloat(crypt_str("Wear"), &selected_entry.wear, 0.0f, 1.0f))
-										drugs = true;
-									else if (drugs)
-									{
-										SkinChanger::scheduleHudUpdate();
-										drugs = false;
-									}
-
-									ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 6 * c_menu::get().dpi_scale);
-									ImGui::Text(crypt_str("Quality"));
-									ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 5 * c_menu::get().dpi_scale);
-									if (ImGui::Combo(crypt_str("##Quality_combo"), &selected_entry.entity_quality_vector_index, [](void* data, int idx, const char** out_text)
-										{
-											*out_text = game_data::quality_names[idx].name;
-											return true;
-										}, nullptr, IM_ARRAYSIZE(game_data::quality_names)))
-										SkinChanger::scheduleHudUpdate();
-
-										if (current_profile != 1)
-										{
-											if (!config_system.g_cfg.skins.custom_name_tag[current_profile].empty())
-												strcpy_s(selected_entry.custom_name, sizeof(selected_entry.custom_name), config_system.g_cfg.skins.custom_name_tag[current_profile].c_str());
-
-											ImGui::Text(crypt_str("Name Tag"));
-											ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.f);
-
-											if (ImGui::InputText(crypt_str("##nametag"), selected_entry.custom_name, sizeof(selected_entry.custom_name)))
-											{
-												config_system.g_cfg.skins.custom_name_tag[current_profile] = selected_entry.custom_name;
-												SkinChanger::scheduleHudUpdate();
-											}
-
-											ImGui::PopStyleVar();
-										}
-
-										ImGui::PopItemWidth();
-
-										ImGui::EndGroup();
-
-										ImGui::SameLine();
-										ImGui::SetCursorPosX(ImGui::GetCursorPosX() - 30);
-
-										ImGui::BeginGroup();
-										if (ImGui::ImageButton(all_skins[current_profile], ImVec2(190, 155)))
-										{
-											// maybe i will do smth later where, who knows :/
-										}
-
-										if (ImGui::CustomButton(crypt_str("Close"), crypt_str("##CLOSE__SKING"), ImVec2(198 * dpi_scale, 26 * dpi_scale)))
-										{
-											// start animation
-											active_animation = true;
-											next_id = -1;
-											leave = true;
-										}
-										ImGui::Checkbox(crypt_str("Force rare animations"), &config_system.g_cfg.skins.rare_animations);
-
-										ImGui::EndGroup();
-
-										// update element
-										selected_entry.update();
-
-										// we need to reset profile in the end to prevent render images with massive's index == -1
-										if (leave && (preview_reverse || !active_animation))
-										{
-											ImGui::SetScrollY(0);
-											current_profile = next_id;
-											leave = false;
-										}
-
-								}
-							}
-							ImGui::EndChild();
-							//tab_end();
-					}
-					else if (Active_Tab == 4 && Active_Changer_Tab == 2) //Changers | Profile
-					{
-					ImGui::Checkbox(crypt_str("Fake Prime"), &config_system.g_cfg.misc.prime);
-					}
-					else if (Active_Tab == 4 && Active_Changer_Tab == 3) //Changers | Character
-					{
-
-					}
-					if (Active_Tab == 5 && Active_Misc_Tab == 1) //Misc | Main
-					{
-							ImGui::Columns(2, nullptr, false);
-							ImGui::BeginChild("it3ems", { 300, 430 });
-							{
-
-								ImGui::SetCursorPos({ 2,2 });
-								ImGui::BeginGroup();
-								{
-									child_title(crypt_str("General"));
-
-									//tab_start();
-									ImGui::Checkbox(crypt_str("Anti-untrusted"), &config_system.g_cfg.misc.anti_untrusted);
-									ImGui::Checkbox(crypt_str("Rank reveal"), &config_system.g_cfg.misc.rank_reveal);
-									ImGui::Checkbox(crypt_str("Unlock inventory access"), &config_system.g_cfg.misc.inventory_access);
-									ImGui::Checkbox(crypt_str("Gravity ragdolls"), &config_system.g_cfg.misc.ragdolls);
-									ImGui::Checkbox(crypt_str("Preserve killfeed"), &config_system.g_cfg.esp.preserve_killfeed);
-									ImGui::Checkbox(crypt_str("Aspect ratio"), &config_system.g_cfg.misc.aspect_ratio);
-
-								
-
-									if (config_system.g_cfg.misc.aspect_ratio)
-									{
-										padding(0, -5);
-										ImGui::SliderFloat(crypt_str("Amount"), &config_system.g_cfg.misc.aspect_ratio_amount, 1.0f, 2.0f);
-									}
-
-									ImGui::Checkbox(crypt_str("Fake-lag"), &config_system.g_cfg.antiaim.fakelag);
-									if (config_system.g_cfg.antiaim.fakelag)
-									{
-										draw_combo(crypt_str("Fake-lag type"), config_system.g_cfg.antiaim.fakelag_type, fakelags, ARRAYSIZE(fakelags));
-										ImGui::SliderInt(crypt_str("Limit"), &config_system.g_cfg.antiaim.fakelag_amount, 1, 16);
-
-										draw_multicombo(crypt_str("Fake-lag triggers"), config_system.g_cfg.antiaim.fakelag_enablers, lagstrigger, ARRAYSIZE(lagstrigger), preview);
-
-										auto enabled_fakelag_triggers = false;
-
-										for (auto i = 0; i < ARRAYSIZE(lagstrigger); i++)
-											if (config_system.g_cfg.antiaim.fakelag_enablers[i])
-												enabled_fakelag_triggers = true;
-
-										if (enabled_fakelag_triggers)
-											ImGui::SliderInt(crypt_str("Triggers limit"), &config_system.g_cfg.antiaim.triggers_fakelag_amount, 1, 16);
-									}
-									draw_combo(crypt_str("Force mm region"), config_system.g_cfg.misc.region_changer, mmregions, ARRAYSIZE(mmregions));
-									if (ImGui::CustomButton(crypt_str("Apply region changes"), crypt_str("##CONFIG__CREATE"), ImVec2(220 * dpi_scale, 26 * dpi_scale)))
-									{
-										misc::get().ChangeRegion();
-									}
-								}
-								ImGui::EndGroup();
-							}
-							ImGui::EndChild();
-							ImGui::NextColumn();
-							ImGui::BeginChild("item6s2", { 300, 430 });
-							{
-
-								ImGui::SetCursorPos({ 0,0 });
-								ImGui::BeginGroup();
-								{
-									child_title(crypt_str("Information"));
-
-
-									ImGui::Checkbox(crypt_str("Watermark"), &config_system.g_cfg.menu.watermark);
-									ImGui::Checkbox(crypt_str("Spectators list"), &config_system.g_cfg.misc.spectators_list);
-									draw_combo(crypt_str("Hitsound"), config_system.g_cfg.esp.hitsound, sounds, ARRAYSIZE(sounds));
-									ImGui::Checkbox(crypt_str("Killsound"), &config_system.g_cfg.esp.killsound);
-									draw_multicombo(crypt_str("Logs"), config_system.g_cfg.misc.events_to_log, events, ARRAYSIZE(events), preview);
-									padding(0, 3);
-									draw_multicombo(crypt_str("Logs output"), config_system.g_cfg.misc.log_output, events_output, ARRAYSIZE(events_output), preview);
-
-									if (config_system.g_cfg.misc.events_to_log[EVENTLOG_HIT] || config_system.g_cfg.misc.events_to_log[EVENTLOG_ITEM_PURCHASES] || config_system.g_cfg.misc.events_to_log[EVENTLOG_BOMB])
-									{
-										ImGui::Text(crypt_str("Color "));
-										ImGui::SameLine();
-										ImGui::ColorEdit(crypt_str("##logcolor"), &config_system.g_cfg.misc.log_color, ALPHA);
-									}
-
-									ImGui::Checkbox(crypt_str("Show CS:GO logs"), &config_system.g_cfg.misc.show_default_log);
-								}
-								ImGui::EndGroup();
-							}
-							ImGui::EndChild();
-							ImGui::Columns(1, nullptr, false);
-					
-
-
-					}
-					else if (Active_Tab == 5 && Active_Misc_Tab == 2) //Misc | Additives
-					{
-
-
-						ImGui::Columns(2, nullptr, false);
-						ImGui::BeginChild("it3ems", { 300, 430 });
-						{
-
-							ImGui::SetCursorPos({ 2,2 });
-							ImGui::BeginGroup();
-							{
-								child_title(crypt_str("Movement"));
-
-								//tab_start();
-
-								ImGui::Checkbox(crypt_str("Automatic jump"), &config_system.g_cfg.misc.bunnyhop);
-								draw_combo(crypt_str("Automatic strafes"), config_system.g_cfg.misc.airstrafe, strafes, ARRAYSIZE(strafes));
-								ImGui::Checkbox(crypt_str("Crouch in air"), &config_system.g_cfg.misc.crouch_in_air);
-								ImGui::Checkbox(crypt_str("Fast stop"), &config_system.g_cfg.misc.fast_stop);
-								ImGui::Checkbox(crypt_str("Slide walk"), &config_system.g_cfg.misc.slidewalk);
-								ImGui::Checkbox(crypt_str("No duck cooldown"), &config_system.g_cfg.misc.noduck);
-
-								if (config_system.g_cfg.misc.noduck)
-									draw_keybind(crypt_str("Fake duck"), &config_system.g_cfg.misc.fakeduck_key, crypt_str("##FAKEDUCK__HOTKEY"));
-
-								draw_keybind(crypt_str("Slow walk"), &config_system.g_cfg.misc.slowwalk_key, crypt_str("##SLOWWALK__HOTKEY"));
-								draw_keybind(crypt_str("Auto peek"), &config_system.g_cfg.misc.automatic_peek, crypt_str("##AUTOPEEK__HOTKEY"));
-								draw_keybind(crypt_str("Edge jump"), &config_system.g_cfg.misc.edge_jump, crypt_str("##EDGEJUMP__HOTKEY"));
-								draw_keybind(crypt_str("Edge bug"), &config_system.g_cfg.misc.edgebug, crypt_str("##EDGEBUG__HOTKEY"));
-								draw_keybind(crypt_str("Jump bug"), &config_system.g_cfg.misc.jumpbug, crypt_str("##JUMPBUG__HOTKEY"));
-
-							}
-							ImGui::EndGroup();
-						}
-						ImGui::EndChild();
-						ImGui::NextColumn();
-						ImGui::BeginChild("item6s2", { 300, 430 });
-						{
-
-							ImGui::SetCursorPos({ 0,0 });
-							ImGui::BeginGroup();
-							{
-								child_title(crypt_str("Extra"));
-
-								ImGui::Checkbox(crypt_str("Anti-screenshot"), &config_system.g_cfg.misc.anti_screenshot);
-								ImGui::Checkbox(crypt_str("Clantag"), &config_system.g_cfg.misc.clantag_spammer);
-								ImGui::Checkbox(crypt_str("Chat spam"), &config_system.g_cfg.misc.chat);
-								ImGui::Checkbox(crypt_str("Enable buybot"), &config_system.g_cfg.misc.buybot_enable);
-
-								if (config_system.g_cfg.misc.buybot_enable)
-								{
-									draw_combo(crypt_str("Snipers"), config_system.g_cfg.misc.buybot1, mainwep, ARRAYSIZE(mainwep));
-									padding(0, 3);
-									draw_combo(crypt_str("Pistols"), config_system.g_cfg.misc.buybot2, secwep, ARRAYSIZE(secwep));
-									padding(0, 3);
-									draw_multicombo(crypt_str("Other"), config_system.g_cfg.misc.buybot3, grenades, ARRAYSIZE(grenades), preview);
-								}
-							}
-							ImGui::EndGroup();
-						}
-						ImGui::EndChild();
-						ImGui::Columns(1, nullptr, false);
-					}
-					else if (Active_Tab == 5 && Active_Misc_Tab == 3) //Misc | Configs
-					{
-						child_title(crypt_str("Configs"));
-						ImGui::Spacing();
-
-						/*ImGui::SetCursorPos(ImVec2{370, 60});
-						ImGui::BeginChild("##Maein", ImVec2{ 300, 240 }, false, NoMove);
-						{
-
-							IDirect3DTexture9* image;
-							image = steam_image();
-
-							ImGui::Image(image, ImVec2(75, 75));
-							ImGui::Text("Current user: %s\nTime ingame: %f\nTime in real: %s\nTickrate: %d\nFps: %d\nServer time: %f\nSteam level: %d\nPrealpha build", SteamFriends->GetPersonaName(), m_globals()->m_realtime, zGetTimeString().c_str(), zgettickrate(), zgetfps(), m_globals()->m_curtime, SteamUser->GetPlayerSteamLevel());
-
-						}
-						ImGui::EndChild();
-						ImGui::SetCursorPos(ImVec2{ 370, 285 });
-						ImGui::BeginChild("##eMain", ImVec2{ 300, 260 }, false, NoMove);
-						{
-							enum k_EFriendFlags
-							{
-								k_EFriendFlagNone = 0x00,
-								k_EFriendFlagBlocked = 0x01,
-								k_EFriendFlagFriendshipRequested = 0x02,
-								k_EFriendFlagImmediate = 0x04,			// "regular" friend
-								k_EFriendFlagClanMember = 0x08,
-								k_EFriendFlagOnGameServer = 0x10,
-								//	k_EFriendFlagHasPlayedWith	= 0x20,
-								//	k_EFriendFlagFriendOfFriend	= 0x40,
-								k_EFriendFlagRequestingFriendship = 0x80,
-								k_EFriendFlagRequestingInfo = 0x100,
-								k_EFriendFlagAll = 0xFFFF,
-							};
-							static auto friends = SteamFriends->GetFriendCount(k_EFriendFlagAll);
-
-
-							for (static auto i = 0; i < 1; friends_images = new IDirect3DTexture9 * [friends], i++); //creates
-
-
-							for (static auto i = 0; i < friends; friends_images[i] = steam_image_friends(SteamFriends->GetFriendByIndex(i, k_EFriendFlagAll)), i++);
-
-							for (auto i = 0; i < friends; i++)
-							{
-								ImGui::Image(friends_images[i], ImVec2(48, 48));
-								ImGui::SameLine();
-								ImGui::Text("%s Steam level %d", SteamFriends->GetFriendPersonaName(SteamFriends->GetFriendByIndex(i, k_EFriendFlagAll)),
-									SteamFriends->GetFriendSteamLevel(SteamFriends->GetFriendByIndex(i, k_EFriendFlagAll)));
-							}
-						}
-						ImGui::EndChild();*/
-
-						ImGui::BeginChild("item6s2", { 300, 430 });
-						{
-
-							ImGui::PushItemWidth(220);
-
-							static auto should_update = true;
-
-							if (should_update)
-							{
-								should_update = false;
-
-								cfg_manager->config_files();
-								files = cfg_manager->files;
-
-								for (auto& current : files)
-									if (current.size() > 2)
-										current.erase(current.size() - 3, 3);
-							}
-
-							if (ImGui::CustomButton(crypt_str("Open configs folder"), crypt_str("##CONFIG__FOLDER"), ImVec2(220 * dpi_scale, 26 * dpi_scale)))
-							{
-								std::string folder;
-
-								auto get_dir = [&folder]() -> void
-								{
-									static TCHAR path[MAX_PATH];
-
-									if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, NULL, path)))
-										folder = std::string(path) + crypt_str("\\Qwerty.xyz\\Configs\\");
-
-									CreateDirectory(folder.c_str(), NULL);
-								};
-
-								get_dir();
-								ShellExecute(NULL, crypt_str("open"), folder.c_str(), NULL, NULL, SW_SHOWNORMAL);
-							}
-
-							ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.f);
-							ImGui::ListBoxConfigArray(crypt_str("##CONFIGS"), &config_system.g_cfg.selected_config, files, 7);
-							ImGui::PopStyleVar();
-
-							if (ImGui::CustomButton(crypt_str("Refresh configs"), crypt_str("##CONFIG__REFRESH"), ImVec2(220 * dpi_scale, 26 * dpi_scale)))
-							{
-								cfg_manager->config_files();
-								files = cfg_manager->files;
-
-								for (auto& current : files)
-									if (current.size() > 2)
-										current.erase(current.size() - 3, 3);
-							}
-
-							static char config_name[64] = "\0";
-
-							ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.f);
-							ImGui::InputText(crypt_str("##configname"), config_name, sizeof(config_name));
-							ImGui::PopStyleVar();
-
-							if (ImGui::CustomButton(crypt_str("Create config"), crypt_str("##CONFIG__CREATE"), ImVec2(220 * dpi_scale, 26 * dpi_scale)))
-							{
-								config_system.g_cfg.new_config_name = config_name;
-								add_config();
-							}
-
-							static auto next_save = false;
-							static auto prenext_save = false;
-							static auto clicked_sure = false;
-							static auto save_time = m_globals()->m_realtime;
-							static auto save_alpha = 1.0f;
-
-							save_alpha = math::clamp(save_alpha + (4.f * ImGui::GetIO().DeltaTime * (!prenext_save ? 1.f : -1.f)), 0.01f, 1.f);
-							ImGui::PushStyleVar(ImGuiStyleVar_Alpha, save_alpha * public_alpha * (1.f - preview_alpha));
-
-							if (!next_save)
-							{
-								clicked_sure = false;
-
-								if (prenext_save && save_alpha <= 0.01f)
-									next_save = true;
-
-								if (ImGui::CustomButton(crypt_str("Save config"), crypt_str("##CONFIG__SAVE"), ImVec2(220 * dpi_scale, 26 * dpi_scale)))
-								{
-									save_time = m_globals()->m_realtime;
-									prenext_save = true;
-								}
-							}
-							else
-							{
-								if (prenext_save && save_alpha <= 0.01f)
-								{
-									prenext_save = false;
-									next_save = !clicked_sure;
-								}
-
-								if (ImGui::CustomButton(crypt_str("Are you sure?"), crypt_str("##AREYOUSURE__SAVE"), ImVec2(220 * dpi_scale, 26 * dpi_scale)))
-								{
-									save_config();
-									prenext_save = true;
-									clicked_sure = true;
-								}
-
-								if (!clicked_sure && m_globals()->m_realtime > save_time + 1.5f)
-								{
-									prenext_save = true;
-									clicked_sure = true;
-								}
-							}
-
-							ImGui::PopStyleVar();
-
-							if (ImGui::CustomButton(crypt_str("Load config"), crypt_str("##CONFIG__LOAD"), ImVec2(220 * dpi_scale, 26 * dpi_scale)))
-								load_config();
-
-							static auto next_delete = false;
-							static auto prenext_delete = false;
-							static auto clicked_sure_del = false;
-							static auto delete_time = m_globals()->m_realtime;
-							static auto delete_alpha = 1.0f;
-
-							delete_alpha = math::clamp(delete_alpha + (4.f * ImGui::GetIO().DeltaTime * (!prenext_delete ? 1.f : -1.f)), 0.01f, 1.f);
-							ImGui::PushStyleVar(ImGuiStyleVar_Alpha, delete_alpha * public_alpha * (1.f - preview_alpha));
-
-							if (!next_delete)
-							{
-								clicked_sure_del = false;
-
-								if (prenext_delete && delete_alpha <= 0.01f)
-									next_delete = true;
-
-								if (ImGui::CustomButton(crypt_str("Remove config"), crypt_str("##CONFIG__delete"), ImVec2(220 * dpi_scale, 26 * dpi_scale)))
-								{
-									delete_time = m_globals()->m_realtime;
-									prenext_delete = true;
-								}
-							}
-							else
-							{
-								if (prenext_delete && delete_alpha <= 0.01f)
-								{
-									prenext_delete = false;
-									next_delete = !clicked_sure_del;
-								}
-
-								if (ImGui::CustomButton(crypt_str("Are you sure?"), crypt_str("##AREYOUSURE__delete"), ImVec2(220 * dpi_scale, 26 * dpi_scale)))
-								{
-									remove_config();
-									prenext_delete = true;
-									clicked_sure_del = true;
-								}
-
-								if (!clicked_sure_del && m_globals()->m_realtime > delete_time + 1.5f)
-								{
-									prenext_delete = true;
-									clicked_sure_del = true;
-								}
-							}
-
-							ImGui::PopStyleVar();
-							ImGui::PopItemWidth();
-
-							//ImGui::EndChild();
-							//ImGui::SetWindowFontScale(c_menu::get().dpi_scale);
-						}
-
-						ImGui::EndChild();
-					}
-					else if (Active_Tab == 5 && Active_Misc_Tab == 4) //Misc | Lua
-					{
-					ImGui::Columns(2, nullptr, false);
-					child_title(crypt_str("Scripts"));
-					ImGui::BeginChild("it3ems", { 300, 430 });
-					{
-
-						//	ImGui::SetCursorPos({ 1,1 });
-						ImGui::BeginGroup();
-						{
-
-							ImGui::PushItemWidth(220);
-							static auto should_update = true;
-
-							if (should_update)
-							{
-								should_update = false;
-								scripts = c_lua::get().scripts;
-
-								for (auto& current : scripts)
-								{
-									if (current.size() >= 5 && current.at(current.size() - 1) == 'c')
-										current.erase(current.size() - 5, 5);
-									else if (current.size() >= 4)
-										current.erase(current.size() - 4, 4);
-								}
-							}
-
-							if (ImGui::CustomButton(crypt_str("Open scripts folder"), crypt_str("##LUAS__FOLDER"), ImVec2(220 * dpi_scale, 26 * dpi_scale)))
-							{
-								std::string folder;
-
-								auto get_dir = [&folder]() -> void
-								{
-									static TCHAR path[MAX_PATH];
-
-									if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, NULL, path)))
-										folder = std::string(path) + crypt_str("\\Qwerty.xyz\\Scripts\\");
-
-									CreateDirectory(folder.c_str(), NULL);
-								};
-
-								get_dir();
-								ShellExecute(NULL, crypt_str("open"), folder.c_str(), NULL, NULL, SW_SHOWNORMAL);
-							}
-
-							ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.f);
-
-							if (scripts.empty())
-								ImGui::ListBoxConfigArray(crypt_str("##LUAS"), &selected_script, scripts, 7);
-
-							else
-							{
-								auto backup_scripts = scripts;
-
-								for (auto& script : scripts)
-								{
-									auto script_id = c_lua::get().get_script_id(script + crypt_str(".lua"));
-
-									if (script_id == -1)
-										continue;
-
-									if (c_lua::get().loaded.at(script_id))
-										scripts.at(script_id) += crypt_str(" [loaded]");
-								}
-
-								ImGui::ListBoxConfigArray(crypt_str("##LUAS"), &selected_script, scripts, 7);
-								scripts = std::move(backup_scripts);
-							}
-
-							ImGui::PopStyleVar();
-
-							if (ImGui::CustomButton(crypt_str("Refresh scripts"), crypt_str("##LUA__REFRESH"), ImVec2(220 * dpi_scale, 26 * dpi_scale)))
-							{
-								c_lua::get().refresh_scripts();
-								scripts = c_lua::get().scripts;
-
-								if (selected_script >= scripts.size())
-									selected_script = scripts.size() - 1; //-V103
-
-								for (auto& current : scripts)
-								{
-									if (current.size() >= 5 && current.at(current.size() - 1) == 'c')
-										current.erase(current.size() - 5, 5);
-									else if (current.size() >= 4)
-										current.erase(current.size() - 4, 4);
-								}
-							}
-
-							if (ImGui::CustomButton(crypt_str("Edit script"), crypt_str("##LUA__EDIT"), ImVec2(220 * dpi_scale, 26 * dpi_scale)))
-							{
-								loaded_editing_script = false;
-								editing_script = scripts.at(selected_script);
-							}
-
-							if (ImGui::CustomButton(crypt_str("Load script"), crypt_str("##SCRIPTS__LOAD"), ImVec2(220 * dpi_scale, 26 * dpi_scale)))
-							{
-								c_lua::get().load_script(selected_script);
-								c_lua::get().refresh_scripts();
-
-								scripts = c_lua::get().scripts;
-
-								if (selected_script >= scripts.size())
-									selected_script = scripts.size() - 1; //-V103
-
-								for (auto& current : scripts)
-								{
-									if (current.size() >= 5 && current.at(current.size() - 1) == 'c')
-										current.erase(current.size() - 5, 5);
-									else if (current.size() >= 4)
-										current.erase(current.size() - 4, 4);
-								}
-
-								eventlogs::get().addnew(crypt_str("Loaded ") + scripts.at(selected_script) + crypt_str(" script"), Color::Yellow, false); //-V106
-							}
-
-							if (ImGui::CustomButton(crypt_str("Unload script"), crypt_str("##SCRIPTS__UNLOAD"), ImVec2(220 * dpi_scale, 26 * dpi_scale)))
-							{
-								c_lua::get().unload_script(selected_script);
-								c_lua::get().refresh_scripts();
-
-								scripts = c_lua::get().scripts;
-
-								if (selected_script >= scripts.size())
-									selected_script = scripts.size() - 1; //-V103
-
-								for (auto& current : scripts)
-								{
-									if (current.size() >= 5 && current.at(current.size() - 1) == 'c')
-										current.erase(current.size() - 5, 5);
-									else if (current.size() >= 4)
-										current.erase(current.size() - 4, 4);
-								}
-
-								eventlogs::get().addnew(crypt_str("Unloaded ") + scripts.at(selected_script) + crypt_str(" script"), Color::Yellow, false); //-V106
-							}
-
-							if (ImGui::CustomButton(crypt_str("Reload all scripts"), crypt_str("##SCRIPTS__RELOAD"), ImVec2(220 * dpi_scale, 26 * dpi_scale)))
-							{
-								c_lua::get().reload_all_scripts();
-								c_lua::get().refresh_scripts();
-
-								scripts = c_lua::get().scripts;
-
-								if (selected_script >= scripts.size())
-									selected_script = scripts.size() - 1; //-V103
-
-								for (auto& current : scripts)
-								{
-									if (current.size() >= 5 && current.at(current.size() - 1) == 'c')
-										current.erase(current.size() - 5, 5);
-									else if (current.size() >= 4)
-										current.erase(current.size() - 4, 4);
-								}
-							}
-
-							if (ImGui::CustomButton(crypt_str("Unload all scripts"), crypt_str("##SCRIPTS__UNLOADALL"), ImVec2(220 * dpi_scale, 26 * dpi_scale)))
-							{
-								c_lua::get().unload_all_scripts();
-								c_lua::get().refresh_scripts();
-
-								scripts = c_lua::get().scripts;
-
-								if (selected_script >= scripts.size())
-									selected_script = scripts.size() - 1; //-V103
-
-								for (auto& current : scripts)
-								{
-									if (current.size() >= 5 && current.at(current.size() - 1) == 'c')
-										current.erase(current.size() - 5, 5);
-									else if (current.size() >= 4)
-										current.erase(current.size() - 4, 4);
-								}
-							}
-
-							//ImGui::PopItemWidth();
-							//tab_end();
-						}
-						if (Active_Tab == 6 && Active_Movement_Tab == 1) //Changers | Inventory
-						{
-						}
-						else if (Active_Tab == 6 && Active_Movement_Tab == 2) //Changers | Profile
-						{
-
-						}
-						else if (Active_Tab == 6 && Active_Movement_Tab == 3) //Changers | Character
-						{
-							/*ImGui::SetCursorPos(ImVec2{370, 60});
-							ImGui::BeginChild("##Maein", ImVec2{ 300, 240 }, false, NoMove);
-							{
-
-								IDirect3DTexture9* image;
-								image = steam_image();
-
-								ImGui::Image(image, ImVec2(75, 75));
-								ImGui::Text("Current user: %s\nTime ingame: %f\nTime in real: %s\nTickrate: %d\nFps: %d\nServer time: %f\nSteam level: %d\nPrealpha build", SteamFriends->GetPersonaName(), m_globals()->m_realtime, zGetTimeString().c_str(), zgettickrate(), zgetfps(), m_globals()->m_curtime, SteamUser->GetPlayerSteamLevel());
-
-							}
-							ImGui::EndChild();
-							ImGui::SetCursorPos(ImVec2{ 370, 285 });
-							ImGui::BeginChild("##eMain", ImVec2{ 300, 260 }, false, NoMove);
-							{
-								enum k_EFriendFlags
-								{
-									k_EFriendFlagNone = 0x00,
-									k_EFriendFlagBlocked = 0x01,
-									k_EFriendFlagFriendshipRequested = 0x02,
-									k_EFriendFlagImmediate = 0x04,			// "regular" friend
-									k_EFriendFlagClanMember = 0x08,
-									k_EFriendFlagOnGameServer = 0x10,
-									//	k_EFriendFlagHasPlayedWith	= 0x20,
-									//	k_EFriendFlagFriendOfFriend	= 0x40,
-									k_EFriendFlagRequestingFriendship = 0x80,
-									k_EFriendFlagRequestingInfo = 0x100,
-									k_EFriendFlagAll = 0xFFFF,
-								};
-								static auto friends = SteamFriends->GetFriendCount(k_EFriendFlagAll);
-
-
-								for (static auto i = 0; i < 1; friends_images = new IDirect3DTexture9 * [friends], i++); //creates
-
-
-								for (static auto i = 0; i < friends; friends_images[i] = steam_image_friends(SteamFriends->GetFriendByIndex(i, k_EFriendFlagAll)), i++);
-
-								for (auto i = 0; i < friends; i++)
-								{
-									ImGui::Image(friends_images[i], ImVec2(48, 48));
-									ImGui::SameLine();
-									ImGui::Text("%s Steam level %d", SteamFriends->GetFriendPersonaName(SteamFriends->GetFriendByIndex(i, k_EFriendFlagAll)),
-										SteamFriends->GetFriendSteamLevel(SteamFriends->GetFriendByIndex(i, k_EFriendFlagAll)));
-								}
-							}
-							ImGui::EndChild();*/
-						}
-
-						ImGui::EndGroup();
-					}
-					ImGui::EndChild();
-					ImGui::NextColumn();
-					child_title(crypt_str("Script elements"));
-					ImGui::Spacing();
-					ImGui::BeginChild("item6s2", { 300, 430 });
-					{
-
-						ImGui::SetCursorPos({ 10,10 });
-						ImGui::BeginGroup();
-						{
-
-								ImGui::Checkbox(crypt_str("Developer mode"), &config_system.g_cfg.scripts.developer_mode);
-								ImGui::Checkbox(crypt_str("Allow HTTP requests"), &config_system.g_cfg.scripts.allow_http);
-								ImGui::Checkbox(crypt_str("Allow files read or write"), &config_system.g_cfg.scripts.allow_file);
-								ImGui::Spacing();
-
-								auto previous_check_box = false;
-
-								for (auto& current : c_lua::get().scripts)
-								{
-									auto& items = c_lua::get().items.at(c_lua::get().get_script_id(current));
-
-									for (auto& item : items)
-									{
-										std::string item_name;
-
-										auto first_point = false;
-										auto item_str = false;
-
-										for (auto& c : item.first)
-										{
-											if (c == '.')
-											{
-												if (first_point)
-												{
-													item_str = true;
-													continue;
-												}
-												else
-													first_point = true;
-											}
-
-											if (item_str)
-												item_name.push_back(c);
-										}
-
-										switch (item.second.type)
-										{
-										case NEXT_LINE:
-											previous_check_box = false;
-											break;
-										case CHECK_BOX:
-											previous_check_box = true;
-											ImGui::Checkbox(item_name.c_str(), &item.second.check_box_value);
-											break;
-										case COMBO_BOX:
-											previous_check_box = false;
-											draw_combo(item_name.c_str(), item.second.combo_box_value, [](void* data, int idx, const char** out_text)
-												{
-													auto labels = (std::vector <std::string>*)data;
-													*out_text = labels->at(idx).c_str(); //-V106
-													return true;
-												}, &item.second.combo_box_labels, item.second.combo_box_labels.size());
-											break;
-										case SLIDER_INT:
-											previous_check_box = false;
-											ImGui::SliderInt(item_name.c_str(), &item.second.slider_int_value, item.second.slider_int_min, item.second.slider_int_max);
-											break;
-										case SLIDER_FLOAT:
-											previous_check_box = false;
-											ImGui::SliderFloat(item_name.c_str(), &item.second.slider_float_value, item.second.slider_float_min, item.second.slider_float_max);
-											break;
-										case COLOR_PICKER:
-											if (previous_check_box)
-												previous_check_box = false;
-											else
-												ImGui::Text((item_name + ' ').c_str());
-
-											ImGui::SameLine();
-											ImGui::ColorEdit((crypt_str("##") + item_name).c_str(), &item.second.color_picker_value, ALPHA, true);
-											break;
-										}
-									}
-								}
-
-								
-
-						}
-						ImGui::EndGroup();
-					}
-					ImGui::EndChild();
-					ImGui::Columns(1, nullptr, false);
-					}
-		        }
-				ImGui::EndChild();
-				if (!editing_script.empty())
-					lua_edit(editing_script);
-			}
-			ImGui::EndChild();
-		}
-		ImGui::EndChild();
-}
+	}
 	ImGui::End();
-}
 
-void c_menu::create_style() 
-{
-	#define HI(v)   ImVec4(0.502f, 0.075f, 0.256f, v)
-    #define MED(v)  ImVec4(0.455f, 0.198f, 0.301f, v)
-    #define LOW(v)  ImVec4(0.232f, 0.201f, 0.271f, v)
-    // backgrounds (@todo: complete with BG_MED, BG_LOW)
-    #define BG(v)   ImVec4(0.200f, 0.220f, 0.270f, v)
-    // text
-    #define TEXT(v) ImVec4(0.860f, 0.930f, 0.890f, v)
-
-	ImGui::StyleColorsDark();
-	ImGui::SetColorEditOptions(ImGuiColorEditFlags_NoInputs);
-	_style = ImGui::GetStyle();
-
-	/*edit Style if needed*/
-	_style.ScrollbarRounding = 0.f;
-	_style.TabRounding = 0;
-	_style.WindowRounding = 0;
-	_style.FrameRounding = 0;
-
-	_style.Colors[ImGuiCol_::ImGuiCol_Header] = TEXT(0.78f);;
-	_style.Colors[ImGuiCol_::ImGuiCol_HeaderHovered] = TEXT(0.28f);
-	_style.Colors[ImGuiCol_::ImGuiCol_HeaderActive] = ImVec4(0.13f, 0.14f, 0.17f, 1.00f);
-	_style.Colors[ImGuiCol_::ImGuiCol_TitleBg] = BG(0.58f);
-	_style.Colors[ImGuiCol_::ImGuiCol_TitleBgActive] = ImVec4(0.31f, 0.31f, 1.00f, 0.00f);
-	_style.Colors[ImGuiCol_::ImGuiCol_TitleBgCollapsed] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-	_style.Colors[ImGuiCol_::ImGuiCol_WindowBg] = BG(1.00f);
-	_style.Colors[ImGuiCol_::ImGuiCol_ChildWindowBg] = MED(0.78f);
-	_style.Colors[ImGuiCol_::ImGuiCol_ChildBg] = MED(1.00f);
-	_style.Colors[ImGuiCol_::ImGuiCol_Border] = LOW(1.00f);
-	_style.Colors[ImGuiCol_FrameBg] = HI(1.00f);
-	_style.Colors[ImGuiCol_FrameBgActive] = BG(0.75f);
-	_style.Colors[ImGuiCol_FrameBgHovered] = BG(0.47f);
-	_style.ScrollbarSize = 5.f;
-
-	ImGui::GetStyle() = _style;
+	ImGui::PopStyleColor();
+	ImGui::PopStyleVar();
 }

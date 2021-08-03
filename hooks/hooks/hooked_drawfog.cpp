@@ -5,5 +5,5 @@
 
 bool __fastcall hooks::hooked_drawfog(void* ecx, void* edx)
 {
-	return !config_system.g_cfg.esp.removals[REMOVALS_FOGS] || config_system.g_cfg.esp.fog;
+	return !g_cfg.esp.removals[REMOVALS_FOGS] || g_cfg.esp.fog;
 }

@@ -1,108 +1,28 @@
-﻿// This is an independent project of an individual developer. Dear PVS-Studio, please check it.
+// This is an independent project of an individual developer. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
 
 #include "misc.h"
 #include "fakelag.h"
 #include "..\ragebot\aim.h"
-#include "../lagcompensation/animation_system.h"
 #include "..\visuals\world_esp.h"
 #include "prediction_system.h"
 #include "logs.h"
-#include "../../sdk/Memory.h"
-//#include "../../Interfaces.h"
+#include "..\menu.h"
 
-#if RELEASE
-#if BETA
-#define VERSION crypt_str("Qwerty.xyz [beta] | ")
-#else
-#define VERSION crypt_str("Qwerty.xyz | ")
-#endif
-#else
-#define VERSION crypt_str("Qwerty.xyz [alpha] | ")
-#endif
-int pre_flags = 0;
 
-void misc::edgebug(CUserCmd* pCmd) {
-
-	if (g_ctx.local()->get_move_type() == MOVETYPE_LADDER || g_ctx.local()->get_move_type() == MOVETYPE_NOCLIP) return;
-
-	if (engineprediction::get().backup_data.flags & FL_ONGROUND && !(g_ctx.local()->m_fFlags() & FL_ONGROUND))
-		pCmd->m_buttons |= IN_DUCK;
-
+std::string t()
+{
+	return SteamFriends->GetPersonaName();
 }
-bool jumpbugged = false;
-
-/*void misc::autoaccept(const char* soundEntry) noexcept {
-	if (!config_system.g_cfg.legitbot.autoaccept)
-		return;
-
-	if (std::strcmp(soundEntry, "UIPanorama.popup_accept_match_beep"))
-		return;
-
-	//if (const auto idx = memory->registeredPanoramaEvents->find(memory->makePanoramaSymbol("MatchAssistedAccept")); idx != -1) {
-	//	if (const auto eventPtr = memory->registeredPanoramaEvents->memory[idx].value.makeEvent(nullptr))
-	//		interfaces->panoramaUIEngine->accessUIEngine()->dispatchEvent(eventPtr);
-	//}
-
-#ifdef _WIN32
-	auto window = FindWindowW(L"Valve001", NULL);
-	FLASHWINFO flash{ sizeof(FLASHWINFO), window, FLASHW_TRAY | FLASHW_TIMERNOFG, 0, 0 };
-	FlashWindowEx(&flash);
-	ShowWindow(window, SW_RESTORE);
-#endif
-}*/
-
-void misc::jumpbug(CUserCmd* pCmd) {
-
-	auto poop = g_ctx.local()->m_fFlags();
-	bool unduck = false;
-	static bool niggacheck = false;
-
-	if ((g_ctx.local()->m_fFlags() & (1 << 0)) && !(engineprediction::get().backup_data.flags & (1 << 0))) {
-
-		if (config_system.g_cfg.misc.bunnyhop) {
-			config_system.g_cfg.misc.bunnyhop = false;
-			niggacheck = true;
-		}
-
-		if (unduck) {
-			pCmd->m_buttons &= ~IN_DUCK;
-			pCmd->m_buttons |= IN_JUMP;
-			unduck = false;
-			jumpbugged = true;
-		}
-
-		pCmd->m_buttons |= IN_DUCK;
-		pCmd->m_buttons &= ~IN_JUMP;
-		unduck = true;
-		jumpbugged = false;
-	}
-	else if (niggacheck) {
-		config_system.g_cfg.misc.bunnyhop = true;
-		niggacheck = false;
-	}
-
-}
-
-const std::string currentDateTime() {
-	time_t     now = time(0);
-	struct tm  tstruct;
-	char       buf[80];
-	tstruct = *localtime(&now);
-	strftime(buf, sizeof(buf), "%X", &tstruct);
-
-	return buf;
-}
-
 void misc::watermark()
 {
-	if (!config_system.g_cfg.menu.watermark)
+	if (!g_cfg.menu.watermark)
 		return;
 
 	auto width = 0, height = 0;
-	m_engine()->GetScreenSize(width, height); //-V807
+	m_engine()->GetScreenSize(width, height);
 
-	auto watermark = VERSION + g_ctx.username + crypt_str(" | ") + g_ctx.globals.time;
+	auto watermark = crypt_str("LWK / ") + t() + " / " + g_ctx.globals.time;
 
 	if (m_engine()->IsInGame())
 	{
@@ -113,31 +33,26 @@ void misc::watermark()
 			auto server = nci->GetAddress();
 
 			if (!strcmp(server, crypt_str("loopback")))
-				server = crypt_str("Local server");
+				server = crypt_str("local server");
 			else if (m_gamerules()->m_bIsValveDS())
-				server = crypt_str("Valve server");
+				server = crypt_str("valve server");
 
 			auto tickrate = std::to_string((int)(1.0f / m_globals()->m_intervalpertick));
-			watermark = VERSION + g_ctx.username + crypt_str(" | ") + server + crypt_str(" | ") + std::to_string(g_ctx.globals.ping) + crypt_str(" ms | ") + tickrate + crypt_str(" tick | ") + g_ctx.globals.time;
+			watermark = crypt_str("LWK / ") + t() + " / " + server + crypt_str(" / ") + std::to_string(g_ctx.globals.ping) + crypt_str(" ms / ") + tickrate + crypt_str(" tick / ") + g_ctx.globals.time;
 		}
 	}
 
 	auto box_width = render::get().text_width(fonts[NAME], watermark.c_str()) + 10;
 
-	render::get().gradient(width - 10 - box_width, 10, box_width / 2, 1, Color(config_system.g_cfg.menu.menu_theme.r(), config_system.g_cfg.menu.menu_theme.g(), config_system.g_cfg.menu.menu_theme.b(), 170), Color(config_system.g_cfg.menu.menu_theme.r(), config_system.g_cfg.menu.menu_theme.g(), config_system.g_cfg.menu.menu_theme.b(), 240), GRADIENT_HORIZONTAL);
-	render::get().gradient(width - 10 - box_width + (box_width / 2), 10, box_width / 2, 1, Color(config_system.g_cfg.menu.menu_theme.r(), config_system.g_cfg.menu.menu_theme.g(), config_system.g_cfg.menu.menu_theme.b(), 240), Color(config_system.g_cfg.menu.menu_theme.r(), config_system.g_cfg.menu.menu_theme.g(), config_system.g_cfg.menu.menu_theme.b(), 170), GRADIENT_HORIZONTAL);
+	render::get().rect_filled(width - 10 - box_width, 10, box_width, 2, Color(104, 108, 188, 255));
+	render::get().rect_filled(width - 10 - box_width, 11, box_width, 18, Color(15, 15, 62, 150));
 
-	render::get().rect_filled(width - 10 - box_width, 11, box_width, 18, Color(10, 10, 10, 150));
-
-	render::get().text(fonts[NAME], width - 10 - box_width + 5, 20, Color(106, 90, 214, 220), HFONT_CENTERED_Y, watermark.c_str());
-
-	render::get().gradient(width - 10 - box_width, 29, box_width / 2, 1, Color(config_system.g_cfg.menu.menu_theme.r(), config_system.g_cfg.menu.menu_theme.g(), config_system.g_cfg.menu.menu_theme.b(), 170), Color(config_system.g_cfg.menu.menu_theme.r(), config_system.g_cfg.menu.menu_theme.g(), config_system.g_cfg.menu.menu_theme.b(), 240), GRADIENT_HORIZONTAL);
-	render::get().gradient(width - 10 - box_width + (box_width / 2), 29, box_width / 2, 1, Color(config_system.g_cfg.menu.menu_theme.r(), config_system.g_cfg.menu.menu_theme.g(), config_system.g_cfg.menu.menu_theme.b(), 240), Color(config_system.g_cfg.menu.menu_theme.r(), config_system.g_cfg.menu.menu_theme.g(), config_system.g_cfg.menu.menu_theme.b(), 170), GRADIENT_HORIZONTAL);
+	render::get().text(fonts[NAME], width - 10 - box_width + 5, 20, Color(255, 255, 255, 255), HFONT_CENTERED_Y, watermark.c_str());
 }
 
 void misc::NoDuck(CUserCmd* cmd)
 {
-	if (!config_system.g_cfg.misc.noduck)
+	if (!g_cfg.misc.noduck)
 		return;
 
 	if (m_gamerules()->m_bIsValveDS())
@@ -146,169 +61,14 @@ void misc::NoDuck(CUserCmd* cmd)
 	cmd->m_buttons |= IN_BULLRUSH;
 }
 
-
-
-void misc::ChangeRegion()
-{
-	switch (config_system.g_cfg.misc.region_changer) {
-	case 0:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster waw");
-		break;
-	case 1:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster atl");
-		break;
-	case 2:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster bom");
-		break;
-	case 3:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster can");
-		break;
-	case 4:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster canm");
-		break;
-	case 5:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster cant");
-		break;
-	case 6:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster canu");
-		break;
-	case 7:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster dxb");
-		break;
-	case 8:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster eat");
-		break;
-	case 9:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster fra");
-		break;
-	case 10:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster gru");
-		break;
-	case 11:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster hkg");
-		break;
-	case 12:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster iad");
-		break;
-	case 13:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster jnb");
-		break;
-	case 14:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster lax");
-		break;
-	case 15:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster lhr");
-		break;
-	case 16:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster lim");
-		break;
-	case 17:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster lux");
-		break;
-	case 18:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster maa");
-		break;
-	case 19:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster mad");
-		break;
-	case 20:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster man");
-		break;
-	case 21:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster okc");
-		break;
-	case 22:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster ord");
-		break;
-	case 23:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster par");
-		break;
-	case 24:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster pwg");
-		break;
-	case 25:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster pwj");
-		break;
-	case 26:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster pwu");
-		break;
-	case 27:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster pww");
-		break;
-	case 28:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster pwz");
-		break;
-	case 29:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster scl");
-		break;
-	case 30:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster sea");
-		break;
-	case 31:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster sgp");
-		break;
-	case 32:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster sha");
-		break;
-	case 33:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster sham");
-		break;
-	case 34:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster shat");
-		break;
-	case 35:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster shau");
-		break;
-	case 36:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster shb");
-		break;
-	case 37:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster sto");
-		break;
-	case 38:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster sto2");
-		break;
-	case 39:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster syd");
-		break;
-	case 40:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster tsn");
-		break;
-	case 41:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster tsnm");
-		break;
-	case 42:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster tsnt");
-		break;
-	case 43:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster tsnu");
-		break;
-	case 44:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster tyo");
-		break;
-	case 45:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster tyo1");
-		break;
-	case 46:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster vie");
-		break;
-	case 47:
-		m_engine()->ExecuteClientCmd("sdr SDRClient_ForceRelayCluster ams");
-		break;
-	}
-}
-
 void misc::ChatSpamer()
 {
-	if (!config_system.g_cfg.misc.chat)
+	if (!g_cfg.misc.chat)
 		return;
 
 	static std::string chatspam[] = 
 	{ 
-		crypt_str(""),
-		crypt_str(""),
-		crypt_str(""),
-		crypt_str(""),
+		crypt_str("rekt by LWK")
 	};
 
 	static auto lastspammed = 0;
@@ -318,7 +78,7 @@ void misc::ChatSpamer()
 		lastspammed = GetTickCount();
 
 		srand(m_globals()->m_tickcount);
-		std::string msg = crypt_str("say ") + chatspam[rand() % 4];
+		std::string msg = crypt_str("say ") + chatspam[rand() % 1];
 
 		m_engine()->ExecuteClientCmd(msg.c_str());
 	}
@@ -372,7 +132,7 @@ void misc::SlideWalk(CUserCmd* cmd)
 	if (!(g_ctx.local()->m_fFlags() & FL_ONGROUND && engineprediction::get().backup_data.flags & FL_ONGROUND))
 		return;
 
-	if (antiaim::get().condition(cmd, true) && config_system.g_cfg.misc.slidewalk)
+	if (antiaim::get().condition(cmd, true) && g_cfg.misc.slidewalk)
 	{
 		if (cmd->m_forwardmove > 0.0f)
 		{
@@ -400,7 +160,7 @@ void misc::SlideWalk(CUserCmd* cmd)
 	{
 		auto buttons = cmd->m_buttons & ~(IN_MOVERIGHT | IN_MOVELEFT | IN_BACK | IN_FORWARD);
 
-		if (config_system.g_cfg.misc.slidewalk)
+		if (g_cfg.misc.slidewalk)
 		{
 			if (cmd->m_forwardmove <= 0.0f)
 				buttons |= IN_BACK;
@@ -496,9 +256,9 @@ void misc::automatic_peek(CUserCmd* cmd, float wish_yaw)
 
 void misc::ViewModel()
 {
-	if (config_system.g_cfg.esp.viewmodel_fov)
+	if (g_cfg.esp.viewmodel_fov)
 	{
-		auto viewFOV = (float)config_system.g_cfg.esp.viewmodel_fov + 68.0f;
+		auto viewFOV = (float)g_cfg.esp.viewmodel_fov + 68.0f;
 		static auto viewFOVcvar = m_cvar()->FindVar(crypt_str("viewmodel_fov"));
 
 		if (viewFOVcvar->GetFloat() != viewFOV) //-V550
@@ -508,9 +268,9 @@ void misc::ViewModel()
 		}
 	}
 	
-	if (config_system.g_cfg.esp.viewmodel_x)
+	if (g_cfg.esp.viewmodel_x)
 	{
-		auto viewX = (float)config_system.g_cfg.esp.viewmodel_x / 2.0f;
+		auto viewX = (float)g_cfg.esp.viewmodel_x / 2.0f;
 		static auto viewXcvar = m_cvar()->FindVar(crypt_str("viewmodel_offset_x")); //-V807
 
 		if (viewXcvar->GetFloat() != viewX) //-V550
@@ -520,9 +280,9 @@ void misc::ViewModel()
 		}
 	}
 
-	if (config_system.g_cfg.esp.viewmodel_y)
+	if (g_cfg.esp.viewmodel_y)
 	{
-		auto viewY = (float)config_system.g_cfg.esp.viewmodel_y / 2.0f;
+		auto viewY = (float)g_cfg.esp.viewmodel_y / 2.0f;
 		static auto viewYcvar = m_cvar()->FindVar(crypt_str("viewmodel_offset_y"));
 
 		if (viewYcvar->GetFloat() != viewY) //-V550
@@ -532,9 +292,9 @@ void misc::ViewModel()
 		}
 	}
 
-	if (config_system.g_cfg.esp.viewmodel_z)
+	if (g_cfg.esp.viewmodel_z)
 	{
-		auto viewZ = (float)config_system.g_cfg.esp.viewmodel_z / 2.0f;
+		auto viewZ = (float)g_cfg.esp.viewmodel_z / 2.0f;
 		static auto viewZcvar = m_cvar()->FindVar(crypt_str("viewmodel_offset_z"));
 
 		if (viewZcvar->GetFloat() != viewZ) //-V550
@@ -547,13 +307,13 @@ void misc::ViewModel()
 
 void misc::FullBright()
 {		
-	if (!config_system.g_cfg.player.enable)
+	if (!g_cfg.player.enable)
 		return;
 
 	static auto mat_fullbright = m_cvar()->FindVar(crypt_str("mat_fullbright"));
 
-	if (mat_fullbright->GetBool() != config_system.g_cfg.esp.bright)
-		mat_fullbright->SetValue(config_system.g_cfg.esp.bright);
+	if (mat_fullbright->GetBool() != g_cfg.esp.bright)
+		mat_fullbright->SetValue(g_cfg.esp.bright);
 }
 
 void misc::PovArrows(player_t* e, Color color)
@@ -586,8 +346,8 @@ void misc::PovArrows(player_t* e, Color color)
 	auto screenCenter = Vector2D(width * 0.5f, height * 0.5f);
 	auto angleYawRad = DEG2RAD(viewAngles.y - math::calculate_angle(g_ctx.globals.eye_pos, e->GetAbsOrigin()).y - 90.0f);
 
-	auto radius = config_system.g_cfg.player.distance;
-	auto size = config_system.g_cfg.player.size;
+	auto radius = g_cfg.player.distance;
+	auto size = g_cfg.player.size;
 
 	auto newPointX = screenCenter.x + ((((width - (size * 3)) * 0.5f) * (radius / 100.0f)) * cos(angleYawRad)) + (int)(6.0f * (((float)size - 4.0f) / 16.0f));
 	auto newPointY = screenCenter.y + ((((height - (size * 3)) * 0.5f) * (radius / 100.0f)) * sin(angleYawRad));
@@ -605,10 +365,10 @@ void misc::PovArrows(player_t* e, Color color)
 
 void misc::zeus_range()
 {
-	if (!config_system.g_cfg.player.enable)
+	if (!g_cfg.player.enable)
 		return;
 
-	if (!config_system.g_cfg.esp.taser_range)
+	if (!g_cfg.esp.taser_range)
 		return;
 
 	if (!m_input()->m_fCameraInThirdPerson)
@@ -651,38 +411,38 @@ void misc::NightmodeFix()
 	else if (!m_engine()->IsInGame() && in_game)
 		in_game = false;
 
-	static auto player_enable = config_system.g_cfg.player.enable;
+	static auto player_enable = g_cfg.player.enable;
 
-	if (player_enable != config_system.g_cfg.player.enable)
+	if (player_enable != g_cfg.player.enable)
 	{
-		player_enable = config_system.g_cfg.player.enable;
+		player_enable = g_cfg.player.enable;
 		g_ctx.globals.change_materials = true;
 		return;
 	}
 
-	static auto setting = config_system.g_cfg.esp.nightmode;
+	static auto setting = g_cfg.esp.nightmode;
 
-	if (setting != config_system.g_cfg.esp.nightmode)
+	if (setting != g_cfg.esp.nightmode)
 	{
-		setting = config_system.g_cfg.esp.nightmode;
+		setting = g_cfg.esp.nightmode;
 		g_ctx.globals.change_materials = true;
 		return;
 	}
 
-	static auto setting_world = config_system.g_cfg.esp.world_color;
+	static auto setting_world = g_cfg.esp.world_color;
 
-	if (setting_world != config_system.g_cfg.esp.world_color)
+	if (setting_world != g_cfg.esp.world_color)
 	{
-		setting_world = config_system.g_cfg.esp.world_color;
+		setting_world = g_cfg.esp.world_color;
 		g_ctx.globals.change_materials = true;
 		return;
 	}
 
-	static auto setting_props = config_system.g_cfg.esp.props_color;
+	static auto setting_props = g_cfg.esp.props_color;
 
-	if (setting_props != config_system.g_cfg.esp.props_color)
+	if (setting_props != g_cfg.esp.props_color)
 	{
-		setting_props = config_system.g_cfg.esp.props_color;
+		setting_props = g_cfg.esp.props_color;
 		g_ctx.globals.change_materials = true;
 	}
 }
@@ -692,16 +452,16 @@ void misc::desync_arrows()
 	if (!g_ctx.local()->is_alive())
 		return;
 
-	if (!config_system.g_cfg.ragebot.enable)
+	if (!g_cfg.ragebot.enable)
 		return;
 
-	if (!config_system.g_cfg.antiaim.enable)
+	if (!g_cfg.antiaim.enable)
 		return;
 
-	if ((config_system.g_cfg.antiaim.manual_back.key <= KEY_NONE || config_system.g_cfg.antiaim.manual_back.key >= KEY_MAX) && (config_system.g_cfg.antiaim.manual_left.key <= KEY_NONE || config_system.g_cfg.antiaim.manual_left.key >= KEY_MAX) && (config_system.g_cfg.antiaim.manual_right.key <= KEY_NONE || config_system.g_cfg.antiaim.manual_right.key >= KEY_MAX))
+	if ((g_cfg.antiaim.manual_back.key <= KEY_NONE || g_cfg.antiaim.manual_back.key >= KEY_MAX) && (g_cfg.antiaim.manual_left.key <= KEY_NONE || g_cfg.antiaim.manual_left.key >= KEY_MAX) && (g_cfg.antiaim.manual_right.key <= KEY_NONE || g_cfg.antiaim.manual_right.key >= KEY_MAX))
 		antiaim::get().manual_side = SIDE_NONE;
 
-	if (!config_system.g_cfg.antiaim.flip_indicator)
+	if (!g_cfg.antiaim.flip_indicator)
 		return;
 
 	static int width, height;
@@ -716,7 +476,7 @@ void misc::desync_arrows()
 	alpha += switch_alpha ? 2.0f * m_globals()->m_frametime : -2.0f * m_globals()->m_frametime;
 	alpha = math::clamp(alpha, 0.0f, 1.0f);
 
-	auto color = config_system.g_cfg.antiaim.flip_indicator_color;
+	auto color = g_cfg.antiaim.flip_indicator_color;
 	color.SetAlpha((int)(min(255.0f * alpha, color.a())));
 
 	if (antiaim::get().manual_side == SIDE_BACK)
@@ -729,10 +489,10 @@ void misc::desync_arrows()
 
 void misc::aimbot_hitboxes()
 {
-	if (!config_system.g_cfg.player.enable)
+	if (!g_cfg.player.enable)
 		return;
 
-	if (!config_system.g_cfg.player.lag_hitbox)
+	if (!g_cfg.player.lag_hitbox)
 		return;
 
 	auto player = (player_t*)m_entitylist()->GetClientEntity(aim::get().last_target_index);
@@ -771,13 +531,13 @@ void misc::aimbot_hitboxes()
 		math::vector_transform(hitbox->bbmin, aim::get().last_target[aim::get().last_target_index].record.matrixes_data.main[hitbox->bone], min);
 		math::vector_transform(hitbox->bbmax, aim::get().last_target[aim::get().last_target_index].record.matrixes_data.main[hitbox->bone], max);
 
-		m_debugoverlay()->AddCapsuleOverlay(min, max, hitbox->radius, config_system.g_cfg.player.lag_hitbox_color.r(), config_system.g_cfg.player.lag_hitbox_color.g(), config_system.g_cfg.player.lag_hitbox_color.b(), config_system.g_cfg.player.lag_hitbox_color.a(), 4.0f, 0, 1);
+		m_debugoverlay()->AddCapsuleOverlay(min, max, hitbox->radius, g_cfg.player.lag_hitbox_color.r(), g_cfg.player.lag_hitbox_color.g(), g_cfg.player.lag_hitbox_color.b(), g_cfg.player.lag_hitbox_color.a(), 4.0f, 0, 1);
 	}
 }
 
 void misc::ragdolls()
 {
-	if (!config_system.g_cfg.misc.ragdolls)
+	if (!g_cfg.misc.ragdolls)
 		return;
 
 	for (auto i = 1; i <= m_entitylist()->GetHighestEntityIndex(); ++i)
@@ -805,7 +565,7 @@ void misc::ragdolls()
 
 void misc::rank_reveal()
 {
-	if (!config_system.g_cfg.misc.rank_reveal)
+	if (!g_cfg.misc.rank_reveal)
 		return;
 
 	using RankReveal_t = bool(__cdecl*)(int*);
@@ -823,7 +583,7 @@ void misc::rank_reveal()
 
 void misc::fast_stop(CUserCmd* m_pcmd)
 {
-	if (!config_system.g_cfg.misc.fast_stop)
+	if (!g_cfg.misc.fast_stop)
 		return;
 
 	if (!(g_ctx.local()->m_fFlags() & FL_ONGROUND && engineprediction::get().backup_data.flags & FL_ONGROUND))
@@ -834,7 +594,7 @@ void misc::fast_stop(CUserCmd* m_pcmd)
 	if (pressed_move_key)
 		return;
 
-	if (!((antiaim::get().type == ANTIAIM_LEGIT ? config_system.g_cfg.antiaim.desync : config_system.g_cfg.antiaim.type[antiaim::get().type].desync) && (antiaim::get().type == ANTIAIM_LEGIT ? !config_system.g_cfg.antiaim.legit_lby_type : !config_system.g_cfg.antiaim.lby_type) && (!g_ctx.globals.weapon->is_grenade() || config_system.g_cfg.esp.on_click & !(m_pcmd->m_buttons & IN_ATTACK) && !(m_pcmd->m_buttons & IN_ATTACK2))) || antiaim::get().condition(m_pcmd)) //-V648
+	if (g_cfg.misc.fast_stop) //-V648
 	{
 		auto velocity = g_ctx.local()->m_vecVelocity();
 
@@ -912,127 +672,7 @@ void misc::fast_stop(CUserCmd* m_pcmd)
 	}
 }
 
-void misc::spectators_list()
-{
-	if (!config_system.g_cfg.misc.spectators_list)
-		return;
 
-	if (!g_ctx.local()->is_alive())
-		return;
-
-	std::vector <std::string> spectators;
-
-	for (int i = 1; i < m_globals()->m_maxclients; i++)
-	{
-		auto e = static_cast<player_t *>(m_entitylist()->GetClientEntity(i));
-
-		if (!e)
-			continue;
-
-		if (e->is_alive())
-			continue;
-
-		if (e->IsDormant())
-			continue;
-
-		if (e->m_hObserverTarget().Get() != g_ctx.local())
-			continue;
-
-		player_info_t player_info;
-		m_engine()->GetPlayerInfo(i, &player_info);
-
-		spectators.push_back(player_info.szName);
-	}
-
-	for (auto i = 0; i < spectators.size(); i++)
-	{
-		int width, heigth;
-		m_engine()->GetScreenSize(width, heigth);
-
-		auto x = render::get().text_width(fonts[LOGS], spectators.at(i).c_str()) + 6; //-V106
-		auto y = i * 16;
-
-		render::get().text(fonts[LOGS], width - x, config_system.g_cfg.menu.watermark ? y + 30 : y + 6, Color::White, HFONT_CENTERED_NONE, spectators.at(i).c_str()); //-V106
-	}
-}
-
-void misc::prime()
-{
-	static bool bLastState = false;
-	static char patch[2]{ 0x74, 0xEB };
-	static uint8_t* prime = (uint8_t*)(util::FindSignature("client.dll", "17 F6 40 14 10") - 0x1);
-
-	if (bLastState != config_system.g_cfg.misc.prime)
-	{
-		DWORD old_protect;
-		VirtualProtect(prime, 1, PAGE_EXECUTE_READWRITE, &old_protect);
-
-		//memcpy(prime, patch[config_system.g_cfg.misc.prime], 1);
-
-		*prime = patch[config_system.g_cfg.misc.prime];
-		VirtualProtect(prime, 1, old_protect, nullptr);
-	}
-
-	bLastState = config_system.g_cfg.misc.prime;
-}
-
-/*void misc::forceangle()
-{
-	if (config_system.g_cfg.misc.forceangle)
-	{
-		animstate->m_flGoalFeetYaw = math::normalize_yaw(animstate->m_flGoalFeetYaw + config_system.g_cfg.misc.forceanglevalue);
-	}
-}*/
-
-
-void misc::blockbot(CUserCmd* cmd)
-{
-	if (!config_system.g_cfg.misc.blockbot_enabled || !key_binds::get().get_key_bind_state(25))
-		return;
-
-	float flBestDistance = 250.0f;
-	int iBestIndex = -1;
-
-	for (auto i = 1; i < m_globals()->m_maxclients; i++) {
-		auto entity = (player_t*)m_entitylist()->GetClientEntity(i);
-
-		if (!entity || entity->IsDormant() || !entity->is_alive() ||
-			entity == g_ctx.local())
-			continue;
-
-		float flDistance = g_ctx.local()->m_vecOrigin().DistTo(entity->m_vecOrigin());
-		if (flDistance < flBestDistance)
-		{
-			flBestDistance = flDistance;
-			iBestIndex = i;
-		}
-	}
-
-	auto entity = (player_t*)m_entitylist()->GetClientEntity(iBestIndex);
-
-	if (!entity)
-		return;
-
-	float flBestSpeed = config_system.g_cfg.misc.blockbot_type == 0 ? entity->m_vecVelocity().Length() : 450.0f;
-
-	Vector angLocal;
-	m_engine()->GetViewAngles(angLocal);
-
-	Vector vecForward = entity->m_vecOrigin() - g_ctx.local()->m_vecOrigin();
-	if (entity->hitbox_position(6).z < g_ctx.local()->m_vecOrigin().z && g_ctx.local()->m_vecOrigin().DistTo(entity->m_vecOrigin()) < 100.0f)
-	{
-		cmd->m_forwardmove = ((sin(DEG2RAD(angLocal.y)) * vecForward.y) + (cos(DEG2RAD(angLocal.y)) * vecForward.x)) * flBestSpeed;
-		cmd->m_sidemove = ((cos(DEG2RAD(angLocal.y)) * -vecForward.y) + (sin(DEG2RAD(angLocal.y)) * vecForward.x)) * flBestSpeed;
-	}
-	else
-	{
-		auto yaw_delta = (atan2(vecForward.y, vecForward.x) * 180.0f / M_PI) - angLocal.y;
-		if (yaw_delta > 180) { yaw_delta -= 360; }
-		else if (yaw_delta < -180) { yaw_delta += 360; }
-		if (yaw_delta > 0.25) { cmd->m_sidemove = -flBestSpeed; }
-		else if (yaw_delta < -0.25) { cmd->m_sidemove = flBestSpeed; }
-	}
-}
 
 bool misc::double_tap(CUserCmd* m_pcmd)
 {
@@ -1052,7 +692,7 @@ bool misc::double_tap(CUserCmd* m_pcmd)
 	
 	if (recharging_double_tap)
 	{
-		auto recharge_time = g_ctx.globals.weapon->can_double_tap() ? TIME_TO_TICKS(0.1f) : TIME_TO_TICKS(0.1f);
+		auto recharge_time = g_ctx.globals.weapon->can_double_tap() ? TIME_TO_TICKS(0.3f) : TIME_TO_TICKS(1.0f);
 
 		if (!aim::get().should_stop && fabs(g_ctx.globals.fixed_tickbase - last_double_tap) > recharge_time)
 		{
@@ -1065,7 +705,7 @@ bool misc::double_tap(CUserCmd* m_pcmd)
 			last_double_tap = g_ctx.globals.fixed_tickbase;
 	}
 
-	if (!config_system.g_cfg.ragebot.enable)
+	if (!g_cfg.ragebot.enable)
 	{
 		double_tap_enabled = false;
 		double_tap_key = false;
@@ -1074,7 +714,7 @@ bool misc::double_tap(CUserCmd* m_pcmd)
 		return false;
 	}
 
-	if (!config_system.g_cfg.ragebot.double_tap)
+	if (!g_cfg.ragebot.double_tap)
 	{
 		double_tap_enabled = false;
 		double_tap_key = false;
@@ -1083,7 +723,7 @@ bool misc::double_tap(CUserCmd* m_pcmd)
 		return false;
 	}
 
-	if (config_system.g_cfg.ragebot.double_tap_key.key <= KEY_NONE || config_system.g_cfg.ragebot.double_tap_key.key >= KEY_MAX)
+	if (g_cfg.ragebot.double_tap_key.key <= KEY_NONE || g_cfg.ragebot.double_tap_key.key >= KEY_MAX)
 	{
 		double_tap_enabled = false;
 		double_tap_key = false;
@@ -1092,7 +732,7 @@ bool misc::double_tap(CUserCmd* m_pcmd)
 		return false;
 	}
 
-	if (double_tap_key && config_system.g_cfg.ragebot.double_tap_key.key != config_system.g_cfg.antiaim.hide_shots_key.key)
+	if (double_tap_key && g_cfg.ragebot.double_tap_key.key != g_cfg.antiaim.hide_shots_key.key)
 		hide_shots_key = false;
 
 	if (!double_tap_key)
@@ -1160,39 +800,11 @@ bool misc::double_tap(CUserCmd* m_pcmd)
 	return true;
 }
 
-void misc::EnableHiddenCVars()
-{
-	auto idk = **reinterpret_cast<ConCommandBase***>(reinterpret_cast<DWORD>(m_cvar()) + 0x34);
-
-	for (auto c = idk->m_pNext; c != nullptr; c = c->m_pNext) {
-		c->m_nFlags &= ~FCVAR_DEVELOPMENTONLY;
-		c->m_nFlags &= ~FCVAR_HIDDEN;
-	}
-}
-
-void misc::auto_accept() //change
-{
-	if (!config_system.g_cfg.misc.auto_accept)
-		return;
-
-	static auto SetLocalPlayerReadyFn = reinterpret_cast<bool(__stdcall*)(const char*)>(util::find_pattern("client.dll", "55 8B EC 83 E4 F8 8B 4D 08 BA ? ? ? ? E8 ? ? ? ? 85 C0 75 12", 0));
-	HWND Hwnd;
-	if ((Hwnd = FindWindow(NULL, "Counter-Strike: Global Offensive")) && GetForegroundWindow() == Hwnd) // Gets the csgo window and checks if the active window is csgos window // EDIT: Changed from Valve001 to Counter-Strike: Global Offensive.
-	{
-		RECT lprect;
-		GetClientRect(Hwnd, &lprect); // Gets the resolution of the window
-		SendMessage(Hwnd, WM_MOUSEMOVE, 0, MAKELPARAM(lprect.right / 2, lprect.bottom / 2)); // Moves the mouse into the middle of the window
-		mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, 0, 0, 0, 0); // click
-	}
-	if (SetLocalPlayerReadyFn)
-		SetLocalPlayerReadyFn(""); // Calling with "" because then it accepts everytime. Calling it with "deferred" dont always work.
-}
-
 void misc::hide_shots(CUserCmd* m_pcmd, bool should_work)
 {
 	hide_shots_enabled = true;
 
-	if (!config_system.g_cfg.ragebot.enable)
+	if (!g_cfg.ragebot.enable)
 	{
 		hide_shots_enabled = false;
 		hide_shots_key = false;
@@ -1206,7 +818,7 @@ void misc::hide_shots(CUserCmd* m_pcmd, bool should_work)
 		return;
 	}
 
-	if (!config_system.g_cfg.antiaim.hide_shots)
+	if (!g_cfg.antiaim.hide_shots)
 	{
 		hide_shots_enabled = false;
 		hide_shots_key = false;
@@ -1220,7 +832,7 @@ void misc::hide_shots(CUserCmd* m_pcmd, bool should_work)
 		return;
 	}
 
-	if (config_system.g_cfg.antiaim.hide_shots_key.key <= KEY_NONE || config_system.g_cfg.antiaim.hide_shots_key.key >= KEY_MAX)
+	if (g_cfg.antiaim.hide_shots_key.key <= KEY_NONE || g_cfg.antiaim.hide_shots_key.key >= KEY_MAX)
 	{
 		hide_shots_enabled = false;
 		hide_shots_key = false;
@@ -1277,4 +889,555 @@ void misc::hide_shots(CUserCmd* m_pcmd, bool should_work)
 
 	if (g_ctx.send_packet && !g_ctx.globals.weapon->is_grenade() && weapon_shoot)
 		g_ctx.globals.tickbase_shift = g_ctx.globals.next_tickbase_shift;
+}
+void misc::keybinds()
+{
+	if (!m_engine()->IsInGame() || !m_engine()->IsConnected())
+		return;
+
+	if (!g_cfg.menu.keybinds)
+		return;
+
+	// color_mode.m_gradient
+	const auto freq = 1.f; /// Gradient speed (curr: 100%)
+
+	const auto real_time = m_globals()->m_realtime * freq;
+	const int r = std::floor(std::sin(real_time + 0.f) * 127.f + 128.f);
+	const int g = std::floor(std::sin(real_time + 2.f) * 127.f + 128.f);
+	const int b = std::floor(std::sin(real_time + 4.f) * 127.f + 128.f);
+
+
+	// antiaim inverter
+		// doubletap key
+		// force body
+		// override dmg
+		// thirdperson key
+
+		// antiaim manual
+		// antiaim manual
+		// antiaim manual
+
+	int specs = 0;
+	int modes = 0;
+	std::string spect = "";
+	std::string mode = "";
+
+	if (key_binds::get().get_key_bind_state(16)) {
+		spect += "inverter";
+		spect += "\n";
+		specs++;
+
+		switch (g_cfg.antiaim.flip_desync.mode) {
+		case 0: {
+			mode += "[holding]  ";
+		}break;
+		case 1: {
+			mode += "[toggled]  ";
+		}break;
+		}
+		mode += "\n";
+		modes++;
+	}
+	if (key_binds::get().get_key_bind_state(18)) {
+		spect += "auto peek";
+		spect += "\n";
+		specs++;
+
+		switch (g_cfg.misc.automatic_peek.mode) {
+		case 0: {
+			mode += "[holding]  ";
+		}break;
+		case 1: {
+			mode += "[toggled]  ";
+		}break;
+		}
+		mode += "\n";
+		modes++;
+	}
+	if (key_binds::get().get_key_bind_state(20)) {
+		spect += "fakeduck";
+		spect += "\n";
+		specs++;
+
+		switch (g_cfg.misc.fakeduck_key.mode) {
+		case 0: {
+			mode += "[holding]  ";
+		}break;
+		case 1: {
+			mode += "[toggled]  ";
+		}break;
+		}
+		mode += "\n";
+		modes++;
+	}
+	if (key_binds::get().get_key_bind_state(21)) {
+		spect += "slowwalk";
+		spect += "\n";
+		specs++;
+
+		switch (g_cfg.misc.slowwalk_key.mode) {
+		case 0: {
+			mode += "[holding]  ";
+		}break;
+		case 1: {
+			mode += "[toggled]  ";
+		}break;
+		}
+		mode += "\n";
+		modes++;
+	}
+	if (misc::get().double_tap_key) {
+		spect += "doubletap";
+		spect += "\n";
+		specs++;
+
+		switch (g_cfg.ragebot.double_tap_key.mode) {
+		case 0: {
+			mode += "[holding]  ";
+		}break;
+		case 1: {
+			mode += "[toggled]  ";
+		}break;
+		}
+		mode += "\n";
+		modes++;
+	}
+	if (key_binds::get().get_key_bind_state(17)) {
+		spect += "thirdperson";
+		spect += "\n";
+		specs++;
+
+		switch (g_cfg.misc.thirdperson_toggle.mode) {
+		case 0: {
+			mode += "[holding]  ";
+		}break;
+		case 1: {
+			mode += "[toggled]  ";
+		}break;
+		}
+		mode += "\n";
+		modes++;
+	}
+	if (key_binds::get().get_key_bind_state(4 + hooks::rage_weapon)) {
+		spect += "damage override";
+		spect += "\n";
+		specs++;
+
+		switch (g_cfg.ragebot.weapon[hooks::rage_weapon].damage_override_key.mode) {
+		case 0: {
+			mode += "[holding]  ";
+		}break;
+		case 1: {
+			mode += "[toggled]  ";
+		}break;
+		}
+		mode += "\n";
+		modes++;
+	}
+	if (key_binds::get().get_key_bind_state(3)) {
+		spect += "safepoint";
+		spect += "\n";
+		specs++;
+
+		switch (g_cfg.ragebot.safe_point_key.mode) {
+		case 0: {
+			mode += "[holding]  ";
+		}break;
+		case 1: {
+			mode += "[toggled]  ";
+		}break;
+		}
+		mode += "\n";
+		modes++;
+	}
+	if (key_binds::get().get_key_bind_state(0)) {
+		spect += "autofire";
+		spect += "\n";
+		specs++;
+
+		switch (g_cfg.legitbot.autofire_key.mode) {
+		case 0: {
+			mode += "[holding]  ";
+		}break;
+		case 1: {
+			mode += "[toggled]  ";
+		}break;
+		}
+		mode += "\n";
+		modes++;
+	}
+
+	if (key_binds::get().get_key_bind_state(1)) {
+		spect += "legit aim";
+		spect += "\n";
+		specs++;
+
+		switch (g_cfg.legitbot.key.mode) {
+		case 0: {
+			mode += "[holding]  ";
+		}break;
+		case 1: {
+			mode += "[toggled]  ";
+		}break;
+		}
+		mode += "\n";
+		modes++;
+	}
+	if (key_binds::get().get_key_bind_state(19)) {
+		spect += "edge jump";
+		spect += "\n";
+		specs++;
+
+		switch (g_cfg.misc.edge_jump.mode) {
+		case 0: {
+			mode += "[holding]  ";
+		}break;
+		case 1: {
+			mode += "[toggled]  ";
+		}break;
+		}
+		mode += "\n";
+		modes++;
+	}
+	if (key_binds::get().get_key_bind_state(13) || key_binds::get().get_key_bind_state(14) || key_binds::get().get_key_bind_state(15)) {
+		spect += "manual yaw";
+		spect += "\n";
+		specs++;
+
+
+		mode += "[toggle]";
+
+		mode += "\n";
+		modes++;
+	}
+	if (misc::get().hide_shots_key) {
+		spect += "hide shots";
+		spect += "\n";
+		specs++;
+
+		switch (g_cfg.antiaim.hide_shots_key.mode) {
+		case 0: {
+			mode += "[holding]  ";
+		}break;
+		case 1: {
+			mode += "[toggled]  ";
+		}break;
+		}
+		mode += "\n";
+		modes++;
+	}
+	if (key_binds::get().get_key_bind_state(22)) {
+		spect += "body aim";
+		spect += "\n";
+		specs++;
+
+		switch (g_cfg.ragebot.body_aim_key.mode) {
+		case 0: {
+			mode += "[holding]  ";
+		}break;
+		case 1: {
+			mode += "[toggled]  ";
+		}break;
+		}
+		mode += "\n";
+		modes++;
+	}
+	
+	ImVec2 Pos;
+	ImVec2 size_menu;
+
+	static bool window_set = false;
+	float speed = 10;
+	static bool finish = false;
+	static bool other_bind_pressed = false;
+	static int sub_tabs = false;
+	if (key_binds::get().get_key_bind_state(4 + hooks::rage_weapon) || key_binds::get().get_key_bind_state(16) || key_binds::get().get_key_bind_state(18) || key_binds::get().get_key_bind_state(20)
+		|| key_binds::get().get_key_bind_state(21) || key_binds::get().get_key_bind_state(17) || key_binds::get().get_key_bind_state(22) || key_binds::get().get_key_bind_state(13) || key_binds::get().get_key_bind_state(14) || key_binds::get().get_key_bind_state(15)
+		|| misc::get().double_tap_key || misc::get().hide_shots_key || key_binds::get().get_key_bind_state(0) || key_binds::get().get_key_bind_state(3) || key_binds::get().get_key_bind_state(23))
+		other_bind_pressed = true;
+	else
+		other_bind_pressed = false;
+
+
+	if (g_cfg.menu.windowsize_x_saved != g_cfg.menu.oldwindowsize_x_saved)
+	{
+		if (g_cfg.menu.windowsize_x_saved > g_cfg.menu.oldwindowsize_x_saved)
+		{
+			g_cfg.menu.windowsize_x_saved -= g_cfg.menu.speed;
+		}
+		if (g_cfg.menu.windowsize_x_saved < g_cfg.menu.oldwindowsize_x_saved)
+		{
+			g_cfg.menu.windowsize_x_saved += g_cfg.menu.speed;
+		}
+	}
+	if (g_cfg.menu.windowsize_y_saved != g_cfg.menu.oldwindowsize_y_saved)
+	{
+		if (g_cfg.menu.windowsize_y_saved > g_cfg.menu.oldwindowsize_y_saved)
+		{
+			g_cfg.menu.windowsize_y_saved -= g_cfg.menu.speed;
+		}
+		if (g_cfg.menu.windowsize_y_saved < g_cfg.menu.oldwindowsize_y_saved)
+		{
+			g_cfg.menu.windowsize_y_saved += g_cfg.menu.speed;
+		}
+	}
+	if (g_cfg.menu.windowsize_x_saved == g_cfg.menu.oldwindowsize_x_saved && g_cfg.menu.windowsize_y_saved == g_cfg.menu.oldwindowsize_y_saved)
+	{
+		finish = true;
+	}
+	else
+	{
+		finish = false;
+	}
+
+	if (!g_cfg.antiaim.flip_desync.key || !g_cfg.misc.automatic_peek.key || !g_cfg.misc.fakeduck_key.key || !g_cfg.misc.slowwalk_key.key || !g_cfg.ragebot.double_tap_key.key || !g_cfg.misc.fakeduck_key.key || !g_cfg.misc.thirdperson_toggle.key || !hooks::menu_open)
+	{
+
+		g_cfg.menu.windowsize_x_saved = 0;
+
+		g_cfg.menu.windowsize_y_saved = 0;
+
+	}
+
+	static float alpha_menu = 0.1f;
+
+	if (other_bind_pressed)
+	{
+		if (alpha_menu < 1.f)
+			alpha_menu += 0.05f;
+
+	}
+	else
+	{
+		if (alpha_menu > 0.1f)
+			alpha_menu -= 0.05f;
+
+	}
+
+	ImGuiStyle* Style = &ImGui::GetStyle();
+	Style->FramePadding = ImVec2(1, 1);
+	/*Style->WindowRounding = 0;
+	Style->WindowMinSize = { 1,1 };
+	Style->WindowBorderSize = 1;
+	bool theme = true;
+	Style->Colors[ImGuiCol_WindowBg] = ImColor(33, 33, 33, 215);//zochem? ia zhe ubral bg?
+	Style->Colors[ImGuiCol_ChildBg] = ImColor(21, 20, 21, 255);
+	Style->Colors[ImGuiCol_ResizeGrip] = ImColor(42, 40, 43, 0);
+	Style->Colors[ImGuiCol_ResizeGripHovered] = ImColor(42, 40, 43, 0);
+	Style->Colors[ImGuiCol_ResizeGripActive] = ImColor(42, 40, 43, 0);
+	Style->Colors[ImGuiCol_Border] = ImColor(38, 39, 55, 215);
+	Style->Colors[ImGuiCol_Button] = ImColor(29, 125, 229, 5);
+	Style->Colors[ImGuiCol_ButtonHovered] = ImColor(29, 125, 229, 5);
+	Style->Colors[ImGuiCol_ButtonActive] = ImColor(29, 125, 229, 5);
+	Style->Colors[ImGuiCol_PopupBg] = ImColor(18, 17, 18, 255);
+	Style->FramePadding = ImVec2(1, 1);*/
+	if ((g_cfg.menu.keybinds)) {
+		if ((other_bind_pressed && alpha_menu > 0.1f) || hooks::menu_open) {
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha_menu);
+			if (ImGui::Begin("Keybinds", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar))
+			{
+				auto b_alpha = alpha_menu;
+				size_menu = ImGui::GetWindowSize();
+				Pos = ImGui::GetWindowPos();
+				auto Render = ImGui::GetWindowDrawList();
+				Render->AddRectFilled({ Pos.x + 0, Pos.y + 0 }, { Pos.x + 220, Pos.y + 23 }, ImColor(15, 15, 62, (int)(b_alpha * 155)));
+				Render->AddRectFilled({ Pos.x + 0, Pos.y + 0 }, { Pos.x + 200, Pos.y + 4 }, ImColor(104, 108, 188, (int)(b_alpha * 255)));
+				ImGui::PushFont(c_menu::get().ico_keybinds);
+				auto icon = ImGui::CalcTextSize("k");
+				Render->AddText({ Pos.x + 55, Pos.y + 5 }, ImColor(255,255,255, (int)(b_alpha * 255)), "k");
+				ImGui::PopFont();
+				//ImGui::PushFont(c_menu::get().futura_small);
+				Render->AddText({ Pos.x + 55 + icon.x + 2, Pos.y + 8 }, ImColor(255, 255, 255, (int)(alpha_menu * 255)), "KeyBinds");
+				if (other_bind_pressed)
+					Render->AddRectFilled({ Pos.x + 0, Pos.y + 23 }, { Pos.x + 200, Pos.y + ImGui::GetWindowSize().y - 10 }, ImColor(15, 15, 62, (int)(b_alpha * 50)), 6);
+
+				//Render->AddLine({ Pos.x + 0, Pos.y + 23 }, { Pos.x + 200, Pos.y + 23 }, ImColor(54, 53, 54, (int)(b_alpha * 255)), 1);
+				if (specs > 0) spect += "\n";
+				if (modes > 0) mode += "\n";
+				ImVec2 size = ImGui::CalcTextSize(spect.c_str());
+				ImVec2 size2 = ImGui::CalcTextSize(mode.c_str());
+				ImGui::SetWindowSize(ImVec2(200, 23 + size.y));
+				ImGui::SetCursorPosY(24);
+				ImGui::Columns(2, "fart1", false);
+
+
+				ImGui::SetColumnWidth(0, 190 - (size2.x + 8));
+				ImGui::TextColored(ImVec4(1.f, 1.f, 1.f, alpha_menu), spect.c_str());
+				ImGui::NextColumn();
+
+				ImGui::TextColored(ImVec4(1.f, 1.f, 1.f, alpha_menu), mode.c_str());
+				ImGui::Columns(1);
+				// ImGui::Separator();
+				//ImGui::PopFont();
+			}
+			ImGui::End();
+			ImGui::PopStyleVar();
+			//	}
+		}
+	}
+}
+
+
+void misc::spectators_list()
+{
+	if (!g_cfg.misc.spectators_list)
+		return;
+
+	if (!g_ctx.local()->is_alive())
+		return;
+
+	// color_mode.m_gradient
+	const auto freq = 1.f; /// Gradient speed (curr: 100%)
+
+	const auto real_time = m_globals()->m_realtime * freq;
+	const int r = std::floor(std::sin(real_time + 0.f) * 127.f + 128.f);
+	const int g = std::floor(std::sin(real_time + 2.f) * 127.f + 128.f);
+	const int b = std::floor(std::sin(real_time + 4.f) * 127.f + 128.f);
+
+	std::vector <std::string> spectators;
+
+
+	int specs = 0;
+	int modes = 0;
+	std::string spect = "";
+	std::string mode = "";
+	ImVec2 Pos;
+	ImVec2 size_menu;
+
+	static bool window_set = false;
+	static float windowsize_x = 0;
+	static float windowsize_y = 0;
+	static float oldwindowsize_x = 300;
+	static float oldwindowsize_y = 300;
+	static float speed = 10;
+	static bool finish = false;
+	static int sub_tabs = false;
+	static float alpha_menu = 0.1f;
+
+
+	if (windowsize_x != oldwindowsize_x)
+	{
+		if (windowsize_x > oldwindowsize_x)
+		{
+			windowsize_x -= speed;
+		}
+		if (windowsize_x < oldwindowsize_x)
+		{
+			windowsize_x += speed;
+		}
+	}
+	if (windowsize_y != oldwindowsize_y)
+	{
+		if (windowsize_y > oldwindowsize_y)
+		{
+			windowsize_y -= speed;
+		}
+		if (windowsize_y < oldwindowsize_y)
+		{
+			windowsize_y += speed;
+		}
+	}
+	if (windowsize_x == oldwindowsize_x && windowsize_y == oldwindowsize_y)
+	{
+		finish = true;
+	}
+	else
+	{
+		finish = false;
+	}
+	for (int i = 1; i < m_globals()->m_maxclients; i++)
+	{
+		auto e = static_cast<player_t*>(m_entitylist()->GetClientEntity(i));
+
+		if (!e)
+			continue;
+
+		if (e->is_alive())
+			continue;
+
+		if (e->IsDormant())
+			continue;
+
+		if (e->m_hObserverTarget().Get() != g_ctx.local())
+			continue;
+
+		player_info_t player_info;
+		m_engine()->GetPlayerInfo(i, &player_info);
+		spect += player_info.szName;
+		spect += "\n";
+		specs++;
+	}
+	ImGuiStyle* Style = &ImGui::GetStyle();
+	Style->FramePadding = ImVec2(1, 1);
+	/*ImGuiStyle* Style = &ImGui::GetStyle();
+	Style->WindowBorderSize = 1;
+	Style->WindowRounding = 0;
+	Style->WindowBorderSize = 1;
+	Style->WindowMinSize = { 1,1 };
+	bool theme = true;
+	Style->Colors[ImGuiCol_WindowBg] = ImColor(33, 33, 33, 215);//zochem? ia zhe ubral bg?
+	Style->Colors[ImGuiCol_ChildBg] = ImColor(21, 20, 21, 255);
+	Style->Colors[ImGuiCol_ResizeGrip] = ImColor(42, 40, 43, 0);
+	Style->Colors[ImGuiCol_ResizeGripHovered] = ImColor(42, 40, 43, 0);
+	Style->Colors[ImGuiCol_ResizeGripActive] = ImColor(42, 40, 43, 0);
+	Style->Colors[ImGuiCol_Border] = ImColor(38, 39, 55, 215);
+	Style->Colors[ImGuiCol_Button] = ImColor(29, 125, 229, 5);
+	Style->Colors[ImGuiCol_ButtonHovered] = ImColor(29, 125, 229, 5);
+	Style->Colors[ImGuiCol_ButtonActive] = ImColor(29, 125, 229, 5);
+	Style->Colors[ImGuiCol_PopupBg] = ImColor(18, 17, 18, 255);
+	Style->FramePadding = ImVec2(1, 1);*/
+	if ((spect.size() > 0) || hooks::menu_open)
+	{
+		if (alpha_menu < 1.f)
+			alpha_menu += 0.05f;
+
+	}
+	else
+	{
+		if (alpha_menu > 0.1f)
+			alpha_menu -= 0.05f;
+
+	}
+	if ((g_cfg.misc.spectators_list)) {
+		if ((spect.size() > 0 && alpha_menu > 0.1f) || hooks::menu_open) {
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha_menu);
+			if (ImGui::Begin("Spectator list", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar))
+			{
+				auto b_alpha = alpha_menu;
+				size_menu = ImGui::GetWindowSize();
+				Pos = ImGui::GetWindowPos();
+				auto Render = ImGui::GetWindowDrawList();
+				Render->AddRectFilled({ Pos.x + 0, Pos.y + 0 }, { Pos.x + 220, Pos.y + 23 }, ImColor(15, 15, 62, (int)(b_alpha * 155)));
+				Render->AddRectFilled({ Pos.x + 0, Pos.y + 0 }, { Pos.x + 200, Pos.y + 4 }, ImColor(104, 108, 188, (int)(b_alpha * 255)));
+				ImGui::PushFont(c_menu::get().ico_keybinds);
+				auto icon = ImGui::CalcTextSize("W");
+				Render->AddText({ Pos.x + 55, Pos.y + 5 }, ImColor(255,255,255, (int)(b_alpha * 255)), "W");
+				ImGui::PopFont();
+				//ImGui::PushFont(c_menu::get().futura_small);
+				Render->AddText({ Pos.x + 55 + icon.x + 2, Pos.y + 8 }, ImColor(255, 255, 255, (int)(alpha_menu * 255)), "Spectators");
+				if (spect.size() > 0)
+					Render->AddRectFilled({ Pos.x + 0, Pos.y + 23 }, { Pos.x + 200, Pos.y + ImGui::GetWindowSize().y - 9 }, ImColor(104, 108, 188, (int)(b_alpha * 50)), 6);
+				if (specs > 0) spect += "\n";
+				if (modes > 0) mode += "\n";
+				ImVec2 size = ImGui::CalcTextSize(spect.c_str());
+				ImVec2 size2 = ImGui::CalcTextSize(mode.c_str());
+				ImGui::SetWindowSize(ImVec2(200, 23 + size.y));
+				ImGui::SetCursorPosY(25);
+				ImGui::Columns(2, "fart1", false);
+
+
+				ImGui::SetColumnWidth(0, 190 - (size2.x + 8));
+				ImGui::TextColored(ImVec4(1.f, 1.f, 1.f, alpha_menu), spect.c_str());
+				ImGui::NextColumn();
+
+				ImGui::TextColored(ImVec4(1.f, 1.f, 1.f, alpha_menu), mode.c_str());
+				ImGui::Columns(1);
+				// ImGui::Separator();
+				//ImGui::PopFont();
+			}
+			ImGui::End();
+			ImGui::PopStyleVar();
+			//	}
+		}
+	}
 }

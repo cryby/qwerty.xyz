@@ -13,12 +13,8 @@ namespace math {
 	void normalize_angles(Vector& angles);
 	float angle_distance(float firstangle, float secondangle);
 	void normalize_angle(QAngle& angles);
-	float AngleDiff(float destAngle, float srcAngle);
 	void normalize_vector(Vector& vector);
-	const matrix3x4_t& world_to_screen_matrix();
-	bool WorldToScreen(const Vector& in, Vector& out);
 	float normalize_yaw(float f);
-	float VectorDistances(const Vector& v1, const Vector& v2);
 	float normalize_pitch(float pitch);
 	float vector_normalize(Vector& v);
 	bool IsNearEqual(float v1, float v2, float Tolerance);
@@ -37,16 +33,6 @@ namespace math {
 	void VectorMA(const float* start, float scale, const float* direction, float* dest);
 	Vector cross_product(const Vector& a, const Vector& b);
 	float dot_product(const Vector& a, const Vector& b);
-	float VectorLength(const Vector& v);
-	inline float FASTSQRT(float x)
-	{
-		unsigned int i = *(unsigned int*)&x;
-
-		i += 127 << 23;
-		// approximation of square root
-		i >>= 1;
-		return *(float*)&i;
-	}
 	bool world_to_screen(const Vector& origin, Vector& screen);
 	void SmoothAngle(Vector& From, Vector& To, float Percent);
 	void rotate_triangle(std::array<Vector2D, 3>& points, float rotation);

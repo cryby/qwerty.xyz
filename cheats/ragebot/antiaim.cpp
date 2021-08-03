@@ -15,7 +15,7 @@ void antiaim::create_move(CUserCmd* m_pcmd)
 
 	type = ANTIAIM_STAND;
 
-	if (config_system.g_cfg.antiaim.antiaim_type)
+	if (g_cfg.antiaim.antiaim_type)
 		type = ANTIAIM_LEGIT;
 	else if (velocity >= 5.0f && g_ctx.globals.slowwalking)
 		type = ANTIAIM_SLOW_WALK;
@@ -24,13 +24,13 @@ void antiaim::create_move(CUserCmd* m_pcmd)
 	else if (!(g_ctx.local()->m_fFlags() & FL_ONGROUND && engineprediction::get().backup_data.flags & FL_ONGROUND))
 		type = ANTIAIM_AIR;
 
-	if (!config_system.g_cfg.ragebot.enable && type != ANTIAIM_LEGIT)
+	if (!g_cfg.ragebot.enable && type != ANTIAIM_LEGIT)
 		return;
 
 	if (condition(m_pcmd))
 		return;
 
-	if ((type == ANTIAIM_LEGIT ? config_system.g_cfg.antiaim.desync : config_system.g_cfg.antiaim.type[type].desync) && (type == ANTIAIM_LEGIT ? !config_system.g_cfg.antiaim.legit_lby_type : !config_system.g_cfg.antiaim.lby_type) && !config_system.g_cfg.misc.fast_stop && (!g_ctx.globals.weapon->is_grenade() || config_system.g_cfg.esp.on_click && !(m_pcmd->m_buttons & IN_ATTACK) && !(m_pcmd->m_buttons & IN_ATTACK2)) && engineprediction::get().backup_data.velocity.Length2D() <= 20.0f) //-V648
+	if ((type == ANTIAIM_LEGIT ? g_cfg.antiaim.desync : g_cfg.antiaim.type[type].desync) && (type == ANTIAIM_LEGIT ? !g_cfg.antiaim.legit_lby_type : !g_cfg.antiaim.lby_type) && !g_cfg.misc.fast_stop && (!g_ctx.globals.weapon->is_grenade() || g_cfg.esp.on_click && !(m_pcmd->m_buttons & IN_ATTACK) && !(m_pcmd->m_buttons & IN_ATTACK2)) && engineprediction::get().backup_data.velocity.Length2D() <= 20.0f) //-V648
 	{
 		auto speed = 1.01f;
 
@@ -68,7 +68,7 @@ float antiaim::get_pitch(CUserCmd* m_pcmd)
 
 	auto pitch = m_pcmd->m_viewangles.x;
 
-	switch (config_system.g_cfg.antiaim.type[type].pitch)
+	switch (g_cfg.antiaim.type[type].pitch)
 	{
 	case 1:
 		pitch = 89.0f;
@@ -86,13 +86,13 @@ float antiaim::get_pitch(CUserCmd* m_pcmd)
 		pitch = invert_jitter ? 89.0f : -89.0f;
 		break;
 	case 6:
-		pitch = config_system.g_cfg.misc.anti_untrusted ? 89.0f : 540.0f;
+		pitch = g_cfg.misc.anti_untrusted ? 89.0f : 540.0f;
 		break;
 	case 7:
-		pitch = config_system.g_cfg.misc.anti_untrusted ? -89.0f : -540.0f;
+		pitch = g_cfg.misc.anti_untrusted ? -89.0f : -540.0f;
 		break;
 	case 8:
-		pitch = invert_jitter ? (config_system.g_cfg.misc.anti_untrusted ? 89.0f : 540.0f) : (config_system.g_cfg.misc.anti_untrusted ? -89.0f : -540.0f);
+		pitch = invert_jitter ? (g_cfg.misc.anti_untrusted ? 89.0f : 540.0f) : (g_cfg.misc.anti_untrusted ? -89.0f : -540.0f);
 		break;
 	}
 
@@ -118,22 +118,22 @@ float antiaim::get_yaw(CUserCmd* m_pcmd)
 	auto lby_type = 0;
 
 	if (type == ANTIAIM_LEGIT)
-	{	
+	{
 		yaw = m_pcmd->m_viewangles.y;
 
-		if (!config_system.g_cfg.antiaim.desync)
+		if (!g_cfg.antiaim.desync)
 			return yaw;
 
-		if (config_system.g_cfg.antiaim.desync != 2 && (config_system.g_cfg.antiaim.flip_desync.key <= KEY_NONE || config_system.g_cfg.antiaim.flip_desync.key >= KEY_MAX))
+		if (g_cfg.antiaim.desync != 2 && (g_cfg.antiaim.flip_desync.key <= KEY_NONE || g_cfg.antiaim.flip_desync.key >= KEY_MAX))
 			flip = automatic_direction();
-		else if (config_system.g_cfg.antiaim.desync == 1)
+		else if (g_cfg.antiaim.desync == 1)
 			flip = key_binds::get().get_key_bind_state(16);
-		else if (config_system.g_cfg.antiaim.desync == 2)
+		else if (g_cfg.antiaim.desync == 2)
 			flip = invert_jitter;
 
 		desync_angle = max_desync_delta;
 
-		if (config_system.g_cfg.antiaim.legit_lby_type && g_ctx.local()->m_vecVelocity().Length() < 5.0f && g_ctx.local()->m_fFlags() & FL_ONGROUND && engineprediction::get().backup_data.flags & FL_ONGROUND)
+		if (g_cfg.antiaim.legit_lby_type && g_ctx.local()->m_vecVelocity().Length() < 5.0f && g_ctx.local()->m_fFlags() & FL_ONGROUND && engineprediction::get().backup_data.flags & FL_ONGROUND)
 			desync_angle *= 2.0f;
 
 		if (flip)
@@ -143,13 +143,20 @@ float antiaim::get_yaw(CUserCmd* m_pcmd)
 		}
 
 		yaw -= desync_angle;
-		lby_type = config_system.g_cfg.antiaim.legit_lby_type;
+		lby_type = g_cfg.antiaim.legit_lby_type;
 	}
 	else
 	{
-		/*if (manual_side == SIDE_NONE)
-			freestanding(m_pcmd);
-		else*/
+
+
+		if (manual_side == SIDE_NONE)
+		{
+			//if (g_cfg.antiaim.freestand)
+			//{
+			//	freestanding(m_pcmd);
+			//}
+		}
+		else
 			final_manual_side = manual_side;
 
 		auto base_angle = m_pcmd->m_viewangles.y + 180.0f;
@@ -159,10 +166,10 @@ float antiaim::get_yaw(CUserCmd* m_pcmd)
 		if (final_manual_side == SIDE_RIGHT)
 			base_angle += 90.0f;
 
-		if (config_system.g_cfg.antiaim.type[type].base_angle && manual_side == SIDE_NONE)
+		if (g_cfg.antiaim.type[type].base_angle && manual_side == SIDE_NONE)
 			base_angle = at_targets();
 
-		if (config_system.g_cfg.antiaim.type[type].desync != 2 && (config_system.g_cfg.antiaim.flip_desync.key <= KEY_NONE || config_system.g_cfg.antiaim.flip_desync.key >= KEY_MAX))
+		if (g_cfg.antiaim.type[type].desync != 2 && (g_cfg.antiaim.flip_desync.key <= KEY_NONE || g_cfg.antiaim.flip_desync.key >= KEY_MAX))
 		{
 			if (final_manual_side == SIDE_LEFT)
 				flip = true;
@@ -171,26 +178,26 @@ float antiaim::get_yaw(CUserCmd* m_pcmd)
 			else
 				flip = automatic_direction();
 		}
-		else if (config_system.g_cfg.antiaim.type[type].desync == 1)
+		else if (g_cfg.antiaim.type[type].desync == 1)
 			flip = key_binds::get().get_key_bind_state(16);
 
 		auto yaw_angle = 0.0f;
 
-		switch (config_system.g_cfg.antiaim.type[type].yaw)
+		switch (g_cfg.antiaim.type[type].yaw)
 		{
 		case 1:
-			yaw_angle = invert_jitter ? (float)config_system.g_cfg.antiaim.type[type].range * -0.5f : (float)config_system.g_cfg.antiaim.type[type].range * 0.5f;
+			yaw_angle = invert_jitter ? (float)g_cfg.antiaim.type[type].range * -0.5f : (float)g_cfg.antiaim.type[type].range * 0.5f;
 			break;
 		case 2:
 		{
 			if (flip)
 			{
-				auto start_angle = (float)config_system.g_cfg.antiaim.type[type].range * 0.5f;
-				auto end_angle = (float)config_system.g_cfg.antiaim.type[type].range * -0.5f;
+				auto start_angle = (float)g_cfg.antiaim.type[type].range * 0.5f;
+				auto end_angle = (float)g_cfg.antiaim.type[type].range * -0.5f;
 
 				static auto angle = start_angle;
 
-				auto angle_add_amount = (float)config_system.g_cfg.antiaim.type[type].speed * 0.5f;
+				auto angle_add_amount = (float)g_cfg.antiaim.type[type].speed * 0.5f;
 
 				if (angle - angle_add_amount >= end_angle)
 					angle -= angle_add_amount;
@@ -201,12 +208,12 @@ float antiaim::get_yaw(CUserCmd* m_pcmd)
 			}
 			else
 			{
-				auto start_angle = (float)config_system.g_cfg.antiaim.type[type].range * -0.5f;
-				auto end_angle = (float)config_system.g_cfg.antiaim.type[type].range * 0.5f;
+				auto start_angle = (float)g_cfg.antiaim.type[type].range * -0.5f;
+				auto end_angle = (float)g_cfg.antiaim.type[type].range * 0.5f;
 
 				static auto angle = start_angle;
 
-				auto angle_add_amount = (float)config_system.g_cfg.antiaim.type[type].speed * 0.5f;
+				auto angle_add_amount = (float)g_cfg.antiaim.type[type].speed * 0.5f;
 
 				if (angle + angle_add_amount <= end_angle)
 					angle += angle_add_amount;
@@ -221,21 +228,21 @@ float antiaim::get_yaw(CUserCmd* m_pcmd)
 
 		desync_angle = 0.0f;
 
-		if (config_system.g_cfg.antiaim.type[type].desync)
+		if (g_cfg.antiaim.type[type].desync)
 		{
-			if (config_system.g_cfg.antiaim.type[type].desync == 2)
+			if (g_cfg.antiaim.type[type].desync == 2)
 				flip = invert_jitter;
 
 			auto desync_delta = max_desync_delta;
 
-			if (type == ANTIAIM_STAND && config_system.g_cfg.antiaim.lby_type)
+			if (type == ANTIAIM_STAND && g_cfg.antiaim.lby_type)
 				desync_delta *= 2.0f;
 			else
 			{
 				if (!flip)
-					desync_delta = min(desync_delta, (float)config_system.g_cfg.antiaim.type[type].desync_range);
+					desync_delta = min(desync_delta, (float)g_cfg.antiaim.type[type].desync_range);
 				else
-					desync_delta = min(desync_delta, (float)config_system.g_cfg.antiaim.type[type].inverted_desync_range);
+					desync_delta = min(desync_delta, (float)g_cfg.antiaim.type[type].inverted_desync_range);
 			}
 
 			if (!flip)
@@ -246,12 +253,12 @@ float antiaim::get_yaw(CUserCmd* m_pcmd)
 
 			base_angle -= desync_delta;
 
-			if (type != ANTIAIM_STAND && type != ANTIAIM_LEGIT || !config_system.g_cfg.antiaim.lby_type)
+			if (type != ANTIAIM_STAND && type != ANTIAIM_LEGIT || !g_cfg.antiaim.lby_type)
 			{
 				if (!flip)
-					base_angle += desync_delta * (float)config_system.g_cfg.antiaim.type[type].body_lean * 0.01f;
+					base_angle += desync_delta * (float)g_cfg.antiaim.type[type].body_lean * 0.01f;
 				else
-					base_angle += desync_delta * (float)config_system.g_cfg.antiaim.type[type].inverted_body_lean * 0.01f;
+					base_angle += desync_delta * (float)g_cfg.antiaim.type[type].inverted_body_lean * 0.01f;
 			}
 
 			desync_angle = desync_delta;
@@ -262,7 +269,7 @@ float antiaim::get_yaw(CUserCmd* m_pcmd)
 		if (!desync_angle) //-V550
 			return yaw;
 
-		lby_type = config_system.g_cfg.antiaim.lby_type;
+		lby_type = g_cfg.antiaim.lby_type;
 	}
 
 	static auto sway_counter = 0;
@@ -324,7 +331,7 @@ bool antiaim::condition(CUserCmd* m_pcmd, bool dynamic_check)
 	if (!g_ctx.available())
 		return true;
 
-	if (!config_system.g_cfg.antiaim.enable)
+	if (!g_cfg.antiaim.enable)
 		return true;
 
 	if (!g_ctx.local()->is_alive()) //-V807
@@ -358,7 +365,7 @@ bool antiaim::condition(CUserCmd* m_pcmd, bool dynamic_check)
 	if (dynamic_check && freeze_check)
 		return true;
 
-	if (dynamic_check && m_pcmd->m_buttons & IN_USE && !config_system.g_cfg.antiaim.antiaim_type)
+	if (dynamic_check && m_pcmd->m_buttons & IN_USE && !g_cfg.antiaim.antiaim_type)
 		return true;
 
 	if (dynamic_check && weapon->is_grenade() && weapon->m_fThrowTime())
@@ -368,7 +375,7 @@ bool antiaim::condition(CUserCmd* m_pcmd, bool dynamic_check)
 }
 
 bool antiaim::should_break_lby(CUserCmd* m_pcmd, int lby_type)
-{	
+{
 	if (!lby_type)
 		return false;
 
@@ -407,7 +414,7 @@ float antiaim::at_targets()
 
 	for (auto i = 1; i < m_globals()->m_maxclients; i++)
 	{
-		auto e = static_cast<player_t *>(m_entitylist()->GetClientEntity(i));
+		auto e = static_cast<player_t*>(m_entitylist()->GetClientEntity(i));
 
 		if (!e->valid(true))
 			continue;

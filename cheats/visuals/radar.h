@@ -149,7 +149,7 @@ private:
 				if (!client_class)
 					continue;
 
-				if (client_class->m_ClassID == CC4 && config_system.g_cfg.radar.render_dropped_c4)
+				if (client_class->m_ClassID == CC4 && g_cfg.radar.render_dropped_c4)
 				{
 					auto owner = (player_t*)m_entitylist()->GetClientEntityFromHandle(e->m_hOwnerEntity());
 
@@ -163,7 +163,7 @@ private:
 						ImGui::GetWindowDrawList()->AddText(ImVec2(bomb_pos.x - 1, bomb_pos.y), ImColor(225, 165, 25), "C4");
 					}
 				}
-				else if (client_class->m_ClassID == CPlantedC4 && config_system.g_cfg.radar.render_planted_c4)
+				else if (client_class->m_ClassID == CPlantedC4 && g_cfg.radar.render_planted_c4)
 				{
 					Vector bomb_pos;
 
@@ -174,7 +174,7 @@ private:
 				}
 			}
 
-			if (local_player->is_alive() && config_system.g_cfg.radar.render_local)
+			if (local_player->is_alive() && g_cfg.radar.render_local)
 			{
 				Vector world_pos = local_player->GetAbsOrigin();
 				Vector map_pos = WorldToMap(world_pos);
@@ -192,10 +192,10 @@ private:
 				if (e == local_player)
 					continue;
 
-				if (e->m_iTeamNum() == local_player->m_iTeamNum() && !config_system.g_cfg.radar.render_team)
+				if (e->m_iTeamNum() == local_player->m_iTeamNum() && !g_cfg.radar.render_team)
 					continue;
 
-				if (e->m_iTeamNum() != local_player->m_iTeamNum() && !config_system.g_cfg.radar.render_enemy)
+				if (e->m_iTeamNum() != local_player->m_iTeamNum() && !g_cfg.radar.render_enemy)
 					continue;
 
 				auto team_num = e->m_iTeamNum();
@@ -211,7 +211,7 @@ private:
 
 				ImGui::GetWindowDrawList()->AddCircleFilled(ImVec2(EntityPos.x, EntityPos.y), 5, e->IsDormant() ? clr_dormant : clr, 30);
 
-				if (config_system.g_cfg.radar.render_health)
+				if (g_cfg.radar.render_health)
 				{
 					auto hp = math::clamp((float)e->m_iHealth(), 0.0f, 100.0f) / 100.0f;
 
@@ -323,7 +323,7 @@ public:
 		if (!m_bLoaded)
 			return;
 
-		if (!config_system.g_cfg.misc.ingame_radar)
+		if (!g_cfg.misc.ingame_radar)
 			return;
 
 		RenderMap();

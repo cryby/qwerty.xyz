@@ -1,6 +1,5 @@
 #pragma once
 #include <sstream>
-#define CHECK_VALID( _v ) 0
 
 constexpr auto RadPi = 3.14159265358979323846;
 constexpr auto DegPi = 180.0;
@@ -547,3 +546,17 @@ inline void VectorSubtract(const Vector &a, const Vector &b, Vector &c)
 	c.y = a.y - b.y;
 	c.z = a.z - b.z;
 }
+
+class __declspec(align(16)) vec_aligned_t : public Vector {
+public:
+	__forceinline vec_aligned_t() {}
+
+	__forceinline vec_aligned_t(const Vector& vec) {
+		x = vec.x;
+		y = vec.y;
+		z = vec.z;
+		w = 0.f;
+	}
+
+	float w;
+};

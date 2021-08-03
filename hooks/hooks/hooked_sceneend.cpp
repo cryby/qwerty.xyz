@@ -14,7 +14,7 @@ void __fastcall hooks::hooked_sceneend(void* ecx, void* edx)
 	if (!g_ctx.local())
 		return original_fn(ecx);
 
-	if (!config_system.g_cfg.player.type[ENEMY].ragdoll_chams && !config_system.g_cfg.player.type[TEAM].ragdoll_chams)
+	if (!g_cfg.player.type[ENEMY].ragdoll_chams && !g_cfg.player.type[TEAM].ragdoll_chams)
 		return original_fn(ecx);
 
 	for (auto i = 1; i <= m_entitylist()->GetHighestEntityIndex(); i++)
@@ -40,33 +40,33 @@ void __fastcall hooks::hooked_sceneend(void* ecx, void* edx)
 		if (e->m_iTeamNum() == g_ctx.local()->m_iTeamNum())
 			type = TEAM;
 		
-		if (!config_system.g_cfg.player.type[type].ragdoll_chams)
+		if (!g_cfg.player.type[type].ragdoll_chams)
 			continue;
 
 		static IMaterial* chams_materials[] =
 		{
-			m_materialsystem()->FindMaterial(crypt_str("legendware_chams"), nullptr), //-V807
-			m_materialsystem()->FindMaterial(crypt_str("legendware_metallic"), nullptr),
-			m_materialsystem()->FindMaterial(crypt_str("legendware_flat"), nullptr),
+			m_materialsystem()->FindMaterial(crypt_str("lwk_chams"), nullptr), //-V807
+			m_materialsystem()->FindMaterial(crypt_str("lwk_metallic"), nullptr),
+			m_materialsystem()->FindMaterial(crypt_str("lwk_flat"), nullptr),
 			m_materialsystem()->FindMaterial(crypt_str("models/inventory_items/dogtags/dogtags_outline"), nullptr),
 			m_materialsystem()->FindMaterial(crypt_str("models/inventory_items/trophy_majors/crystal_clear"), nullptr),
 			m_materialsystem()->FindMaterial(crypt_str("models/inventory_items/cologne_prediction/cologne_prediction_glass"), nullptr),
 			m_materialsystem()->FindMaterial(crypt_str("dev/glow_armsrace.vmt"), nullptr),
 			m_materialsystem()->FindMaterial(crypt_str("models/inventory_items/wildfire_gold/wildfire_gold_detail"), nullptr),
-			m_materialsystem()->FindMaterial(crypt_str("legendware_glow"), nullptr)
+			m_materialsystem()->FindMaterial(crypt_str("lwk_glow"), nullptr)
 		};
 
-		auto material = chams_materials[config_system.g_cfg.player.type[type].ragdoll_chams_material];
+		auto material = chams_materials[g_cfg.player.type[type].ragdoll_chams_material];
 
 		if (material && !material->IsErrorMaterial())
 		{
-			auto alpha = (float)config_system.g_cfg.player.type[type].ragdoll_chams_color.a() / 255.0f;
+			auto alpha = (float)g_cfg.player.type[type].ragdoll_chams_color.a() / 255.0f;
 
 			float ragdoll_color[3] =
 			{
-				config_system.g_cfg.player.type[type].ragdoll_chams_color[0] / 255.0f,
-				config_system.g_cfg.player.type[type].ragdoll_chams_color[1] / 255.0f,
-				config_system.g_cfg.player.type[type].ragdoll_chams_color[2] / 255.0f
+				g_cfg.player.type[type].ragdoll_chams_color[0] / 255.0f,
+				g_cfg.player.type[type].ragdoll_chams_color[1] / 255.0f,
+				g_cfg.player.type[type].ragdoll_chams_color[2] / 255.0f
 			};
 
 			m_renderview()->SetBlend(alpha);

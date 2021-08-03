@@ -31,7 +31,7 @@ int __fastcall hooks::hooked_listleavesinbox(void* ecx, void* edx, Vector& mins,
 	if (!g_ctx.local())
 		return original_fn(ecx, mins, maxs, list, list_max);
 
-	if (!config_system.g_cfg.player.type[ENEMY].chams[PLAYER_CHAMS_VISIBLE] && !config_system.g_cfg.player.type[TEAM].chams[PLAYER_CHAMS_VISIBLE] && !config_system.g_cfg.player.type[LOCAL].chams[PLAYER_CHAMS_VISIBLE] && !config_system.g_cfg.player.fake_chams_enable && !config_system.g_cfg.player.backtrack_chams)
+	if (!g_cfg.player.type[ENEMY].chams[PLAYER_CHAMS_VISIBLE] && !g_cfg.player.type[TEAM].chams[PLAYER_CHAMS_VISIBLE] && !g_cfg.player.type[LOCAL].chams[PLAYER_CHAMS_VISIBLE] && !g_cfg.player.fake_chams_enable && !g_cfg.player.backtrack_chams)
 		return original_fn(ecx, mins, maxs, list, list_max);
 
 	if (*(uint32_t*)_ReturnAddress() != 0x14244489) //-V206

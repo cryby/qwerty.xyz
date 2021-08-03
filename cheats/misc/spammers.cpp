@@ -15,14 +15,14 @@ void spammers::clan_tag()
 
 	static auto removed = false;
 
-	if (!config_system.g_cfg.misc.clantag_spammer && !removed)
+	if (!g_cfg.misc.clantag_spammer && !removed)
 	{
 		removed = true;
 		apply(crypt_str(""));
 		return;
 	}
 
-	if (config_system.g_cfg.misc.clantag_spammer)
+	if (g_cfg.misc.clantag_spammer)
 	{
 		auto nci = m_engine()->GetNetChannelInfo();
 
@@ -34,7 +34,7 @@ void spammers::clan_tag()
 		auto ticks = TIME_TO_TICKS(nci->GetAvgLatency(FLOW_OUTGOING)) + (float)m_globals()->m_tickcount; //-V807
 		auto intervals = 0.5f / m_globals()->m_intervalpertick;
 
-		auto main_time = (int)(ticks / intervals) % 19;
+		auto main_time = (int)(ticks / intervals) % 2;
 
 		if (main_time != time && !m_clientstate()->iChokedCommands)
 		{
@@ -43,64 +43,10 @@ void spammers::clan_tag()
 			switch (main_time)
 			{
 			case 0:
-				tag = crypt_str("Q        "); //-V1037
+				tag = crypt_str("LWK"); //-V1037
 				break;
 			case 1:
-				tag = crypt_str("0w        ");
-				break;
-			case 2:
-				tag = crypt_str("Qw3       ");
-				break;
-			case 3:
-				tag = crypt_str("Qwer      ");
-				break;
-			case 4:
-				tag = crypt_str("0w3rt     ");
-				break;
-			case 5:
-				tag = crypt_str("0wert7    ");
-				break;
-			case 6:
-				tag = crypt_str("Qw3rty.   ");
-				break;
-			case 7:
-				tag = crypt_str("Qwerty.X   ");
-				break;
-			case 8:
-				tag = crypt_str("Qwerty.xY   ");
-				break;
-			case 9:
-				tag = crypt_str("Qwerty.xyZ   ");
-				break;
-			case 10:
-				tag = crypt_str("werty.xYz   ");
-				break;
-			case 11:
-				tag = crypt_str("3rty.Xyz    ");
-				break;
-			case 12:
-				tag = crypt_str("rty.xYZ     ");
-				break;
-			case 13:
-				tag = crypt_str("ty.XYz      ");
-				break;
-			case 14:
-				tag = crypt_str("y.xYz    ");
-				break;
-			case 15:
-				tag = crypt_str(".XyZ         ");
-				break;
-			case 16:
-				tag = crypt_str("xYz         ");
-				break;
-			case 17:
-				tag = crypt_str("yZ         ");
-				break;
-			case 18:
-				tag = crypt_str("z         ");
-				break;
-			case 19:
-				tag = crypt_str("         ");
+				tag = crypt_str("LWK");
 				break;
 			}
 

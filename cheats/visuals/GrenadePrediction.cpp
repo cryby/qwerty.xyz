@@ -19,7 +19,7 @@ void GrenadePrediction::Tick(int buttons)
 		else
 			act = ACT_THROW;
 	}
-	else if (!config_system.g_cfg.esp.on_click)
+	else if (!g_cfg.esp.on_click)
 		act = ACT_THROW;
 }
 
@@ -138,7 +138,7 @@ void GrenadePrediction::Paint()
 	}
 
 	// we have a target for damage.
-	if (target.second && weapon->m_iItemDefinitionIndex() == WEAPON_HEGRENADE && (!config_system.g_cfg.esp.on_click || g_ctx.get_command()->m_buttons & IN_ATTACK || g_ctx.get_command()->m_buttons & IN_ATTACK2)) {
+	if (target.second && weapon->m_iItemDefinitionIndex() == WEAPON_HEGRENADE && (!g_cfg.esp.on_click || g_ctx.get_command()->m_buttons & IN_ATTACK || g_ctx.get_command()->m_buttons & IN_ATTACK2)) {
 		Vector screen;
 
 		// replace the last bounce with green.
@@ -156,7 +156,7 @@ void GrenadePrediction::Paint()
 		for (auto it = path.begin(); it != path.end(); ++it)
 		{
 			if (math::world_to_screen(prev, nadeStart) && math::world_to_screen(*it, nadeEnd))
-				render::get().line((int)nadeStart.x, (int)nadeStart.y, (int)nadeEnd.x, (int)nadeEnd.y, config_system.g_cfg.esp.grenade_prediction_tracer_color);
+				render::get().line((int)nadeStart.x, (int)nadeStart.y, (int)nadeEnd.x, (int)nadeEnd.y, g_cfg.esp.grenade_prediction_tracer_color);
 
 			prev = *it;
 		}
@@ -166,18 +166,18 @@ void GrenadePrediction::Paint()
 			Vector screen;
 
 			if (math::world_to_screen(it->first, screen))
-				render::get().rect(screen.x - 2, screen.y - 2, 4, 4, it->second == Color::Green ? Color::Green : config_system.g_cfg.esp.grenade_prediction_color);
+				render::get().rect(screen.x - 2, screen.y - 2, 4, 4, it->second == Color::Green ? Color::Green : g_cfg.esp.grenade_prediction_color);
 		}
 
 		if (math::world_to_screen(prev, nadeEnd))
-			render::get().text(fonts[GRENADES], nadeEnd.x - 8, nadeEnd.y - 5, config_system.g_cfg.esp.grenade_prediction_color, HFONT_CENTERED_X | HFONT_CENTERED_Y, weapon->get_icon());
+			render::get().text(fonts[GRENADES], nadeEnd.x - 8, nadeEnd.y - 5, g_cfg.esp.grenade_prediction_color, HFONT_CENTERED_X | HFONT_CENTERED_Y, weapon->get_icon());
 
 		Vector endpos = path[path.size() - 1];
 
 		if (weapon->m_iItemDefinitionIndex() == WEAPON_SMOKEGRENADE)
-			render::get().Draw3DFilledCircle(endpos, 144, config_system.g_cfg.esp.grenade_prediction_tracer_color);
+			render::get().Draw3DFilledCircle(endpos, 144, g_cfg.esp.grenade_prediction_tracer_color);
 		else if (weapon->m_iItemDefinitionIndex() == WEAPON_MOLOTOV || weapon->m_iItemDefinitionIndex() == WEAPON_INCGRENADE)
-			render::get().Draw3DFilledCircle(endpos, 150, config_system.g_cfg.esp.grenade_prediction_tracer_color);
+			render::get().Draw3DFilledCircle(endpos, 150, g_cfg.esp.grenade_prediction_tracer_color);
 	}
 }
 

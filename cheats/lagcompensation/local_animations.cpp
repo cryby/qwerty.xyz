@@ -5,6 +5,8 @@
 
 void local_animations::run(ClientFrameStage_t stage)
 {
+	if (m_clientstate()->iDeltaTick == -1) return;
+
 	if (!fakelag::get().condition && key_binds::get().get_key_bind_state(20))
 	{
 		if (stage == FRAME_NET_UPDATE_END)
@@ -162,7 +164,7 @@ void local_animations::update_fake_animations()
 		local_data.animstate->m_flHeadHeightOrOffsetFromHittingGroundAnimation = 1.0f;
 
 		g_ctx.local()->setup_bones_fixed(g_ctx.globals.fake_matrix, BONE_USED_BY_ANYTHING);
-		local_data.visualize_lag = config_system.g_cfg.player.visualize_lag;
+		local_data.visualize_lag = g_cfg.player.visualize_lag;
 
 		if (!local_data.visualize_lag)
 		{

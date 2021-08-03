@@ -41,7 +41,6 @@ C_CSGO g_csgo;
 #undef m_viewrenderbeams
 #undef m_soundservices
 #undef m_basefilesys
-#undef m_weaponsystem
 
 template<typename T>
 static T *get_interface(const char *mod_name, const char *interface_name, bool exact = false) {
@@ -99,6 +98,14 @@ IBaseClientDLL * C_CSGO::m_client() {
 		p_client = get_interface<IBaseClientDLL>(crypt_str("client.dll"), crypt_str("VClient0"));
 
 	return p_client;
+}
+
+IWeaponSystem* C_CSGO::m_WeaponSystem()
+{
+	if (p_WeaponSystem == nullptr)
+		p_WeaponSystem = *reinterpret_cast<IWeaponSystem**>(util::FindSignature("client.dll", "8B 35 ? ? ? ? FF 10 0F B7 C0") + 0x2);
+
+	return p_WeaponSystem;
 }
 
 IClientEntityList * C_CSGO::m_entitylist() {
@@ -307,12 +314,12 @@ IBaseFileSystem* C_CSGO::m_basefilesys() {
 	return p_basefilesys;
 }
 
-IWeaponSystem* C_CSGO::m_WeaponSystem()
+IEngineTool* C_CSGO::m_enginetool()
 {
-	if (p_WeaponSystem == nullptr)
-		p_WeaponSystem = *reinterpret_cast<IWeaponSystem**>(util::FindSignature("client.dll", "8B 35 ? ? ? ? FF 10 0F B7 C0") + 0x2);
+	if (!p_enginetool)
+		p_enginetool = get_interface< IEngineTool >("engine.dll", "VENGINETOOL003"); //newest from csgo sdk
 
-	return p_WeaponSystem;
+	return p_enginetool;
 }
 
 ILocalize * C_CSGO::m_localize() 

@@ -1,12 +1,11 @@
 // This is an independent project of an individual developer. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
-
 #include "HTTPRequest.hpp"
 #include "Clua.h"	
 #include <ShlObj_core.h>
 #include <Windows.h>
 #include <any>
-#include "..\cheats\visuals\other_esp.h"
+#include "../cheats/visuals/other_esp.h"
 #include "..\utils\csgo.hpp"
 #include "..\cheats\misc\logs.h"
 #include "..\includes.hpp"
@@ -18,7 +17,7 @@ void lua_panic(sol::optional <std::string> message)
 		return;
 
 	auto log = crypt_str("Lua error: ") + message.value_or("unknown");
-	eventlogs::get().addnew(log, Color::Yellow, false);
+	eventlogs::get().add(log, false);
 }
 
 std::string get_current_script(sol::this_state s)
@@ -42,7 +41,7 @@ namespace ns_client
 	{		
 		if (eventname != crypt_str("on_paint") && eventname != crypt_str("on_createmove") && eventname != crypt_str("on_shot"))
 		{
-			eventlogs::get().addnew(crypt_str("Lua error: invalid callback \"") + eventname + '\"', Color::Yellow, false);
+			eventlogs::get().add(crypt_str("Lua error: invalid callback \"") + eventname + '\"', false);
 			return;
 		}
 
@@ -64,7 +63,7 @@ namespace ns_client
 
 	void log(std::string text)
 	{
-		eventlogs::get().addnew(text, Color::Yellow, false);
+		eventlogs::get().add(text, false);
 	}
 }
 
@@ -227,7 +226,7 @@ namespace ns_menu
 				{
 					if (item->type != type)
 					{
-						eventlogs::get().addnew(crypt_str("Lua error: invalid config item type, must be ") + type, Color::Yellow, false);
+						eventlogs::get().add(crypt_str("Lua error: invalid config item type, must be ") + type, false);
 						return false;
 					}
 
@@ -239,7 +238,7 @@ namespace ns_menu
 
 			if (!found)
 			{
-				eventlogs::get().addnew(crypt_str("Lua error: cannot find config variable \"") + name + '\"', Color::Yellow, false);
+				eventlogs::get().add(crypt_str("Lua error: cannot find config variable \"") + name + '\"', false);
 				return false;
 			}
 		}
@@ -269,7 +268,7 @@ namespace ns_menu
 			if (find_config_item(name, crypt_str("bool")))
 				return *(bool*)config_items[name];
 
-			eventlogs::get().addnew(crypt_str("Lua error: cannot find menu variable \"") + name + '\"', Color::Yellow, false);
+			eventlogs::get().add(crypt_str("Lua error: cannot find menu variable \"") + name + '\"', false);
 			return false;
 		}
 
@@ -301,7 +300,7 @@ namespace ns_menu
 			if (find_config_item(name, crypt_str("int")))
 				return *(int*)config_items[name]; //-V206
 
-			eventlogs::get().addnew(crypt_str("Lua error: cannot find menu variable \"") + name + '\"', Color::Yellow, false);
+			eventlogs::get().add(crypt_str("Lua error: cannot find menu variable \"") + name + '\"', false);
 			return 0;
 		}
 
@@ -333,7 +332,7 @@ namespace ns_menu
 			if (find_config_item(name, crypt_str("float")))
 				return *(float*)config_items[name];
 
-			eventlogs::get().addnew(crypt_str("Lua error: cannot find menu variable \"") + name + '\"', Color::Yellow, false);
+			eventlogs::get().add(crypt_str("Lua error: cannot find menu variable \"") + name + '\"', false);
 			return 0.0f;
 		}
 
@@ -365,7 +364,7 @@ namespace ns_menu
 			if (find_config_item(name, crypt_str("Color")))
 				return *(Color*)config_items[name];
 
-			eventlogs::get().addnew(crypt_str("Lua error: cannot find menu variable \"") + name + '\"', Color::Yellow, false);
+			eventlogs::get().add(crypt_str("Lua error: cannot find menu variable \"") + name + '\"', false);
 			return Color::White;
 		}
 
@@ -750,7 +749,7 @@ namespace ns_console
 
 			if (!convars[convar_name])
 			{
-				eventlogs::get().addnew(crypt_str("Lua error: cannot find ConVar \"") + convar_name + '\"', Color::Yellow, false);
+				eventlogs::get().add(crypt_str("Lua error: cannot find ConVar \"") + convar_name + '\"', false);
 				return false;
 			}
 		}
@@ -769,7 +768,7 @@ namespace ns_console
 
 			if (!convars[convar_name])
 			{
-				eventlogs::get().addnew(crypt_str("Lua error: cannot find ConVar \"") + convar_name + '\"', Color::Yellow, false);
+				eventlogs::get().add(crypt_str("Lua error: cannot find ConVar \"") + convar_name + '\"', false);
 				return 0;
 			}
 		}
@@ -788,7 +787,7 @@ namespace ns_console
 
 			if (!convars[convar_name])
 			{
-				eventlogs::get().addnew(crypt_str("Lua error: cannot find ConVar \"") + convar_name + '\"', Color::Yellow, false);
+				eventlogs::get().add(crypt_str("Lua error: cannot find ConVar \"") + convar_name + '\"', false);
 				return 0.0f;
 			}
 		}
@@ -807,7 +806,7 @@ namespace ns_console
 
 			if (!convars[convar_name])
 			{
-				eventlogs::get().addnew(crypt_str("Lua error: cannot find ConVar \"") + convar_name + '\"', Color::Yellow, false);
+				eventlogs::get().add(crypt_str("Lua error: cannot find ConVar \"") + convar_name + '\"', false);
 				return crypt_str("");
 			}
 		}
@@ -826,7 +825,7 @@ namespace ns_console
 
 			if (!convars[convar_name])
 			{
-				eventlogs::get().addnew(crypt_str("Lua error: cannot find ConVar \"") + convar_name + '\"', Color::Yellow, false);
+				eventlogs::get().add(crypt_str("Lua error: cannot find ConVar \"") + convar_name + '\"', false);
 				return;
 			}
 		}
@@ -846,7 +845,7 @@ namespace ns_console
 
 			if (!convars[convar_name])
 			{
-				eventlogs::get().addnew(crypt_str("Lua error: cannot find ConVar \"") + convar_name + '\"', Color::Yellow, false);
+				eventlogs::get().add(crypt_str("Lua error: cannot find ConVar \"") + convar_name + '\"', false);
 				return;
 			}
 		}
@@ -866,7 +865,7 @@ namespace ns_console
 
 			if (!convars[convar_name])
 			{
-				eventlogs::get().addnew(crypt_str("Lua error: cannot find ConVar \"") + convar_name + '\"', Color::Yellow, false);
+				eventlogs::get().add(crypt_str("Lua error: cannot find ConVar \"") + convar_name + '\"', false);
 				return;
 			}
 		}
@@ -886,7 +885,7 @@ namespace ns_console
 
 			if (!convars[convar_name])
 			{
-				eventlogs::get().addnew(crypt_str("Lua error: cannot find ConVar \"") + convar_name + '\"', Color::Yellow, false);
+				eventlogs::get().add(crypt_str("Lua error: cannot find ConVar \"") + convar_name + '\"', false);
 				return;
 			}
 		}
@@ -1002,10 +1001,10 @@ namespace ns_http //new
 {
 	std::string get(sol::this_state s, std::string& link)
 	{
-		if (!config_system.g_cfg.scripts.allow_http)
+		if (!g_cfg.scripts.allow_http)
 		{
 			c_lua::get().unload_script(get_current_script_id(s));
-			eventlogs::get().addnew(crypt_str("Please, allow HTTP requests"), Color::Yellow, false);
+			eventlogs::get().add(crypt_str("Please, allow HTTP requests"), false);
 			return "";
 		}
 
@@ -1018,17 +1017,17 @@ namespace ns_http //new
 		}
 		catch (const std::exception& e)
 		{
-			eventlogs::get().addnew(crypt_str("Request failed, error: ") + std::string(e.what()), Color::Yellow, false);
+			eventlogs::get().add(crypt_str("Request failed, error: ") + std::string(e.what()), false);
 			return "";
 		}
 	}
 
 	std::string post(sol::this_state s, std::string& link, std::string& params)
 	{
-		if (!config_system.g_cfg.scripts.allow_http)
+		if (!g_cfg.scripts.allow_http)
 		{
 			c_lua::get().unload_script(get_current_script_id(s));
-			eventlogs::get().addnew(crypt_str("Please, allow HTTP requests"), Color::Yellow, false);
+			eventlogs::get().add(crypt_str("Please, allow HTTP requests"), false);
 			return "";
 		}
 		try
@@ -1039,7 +1038,7 @@ namespace ns_http //new
 		}
 		catch (const std::exception& e)
 		{
-			eventlogs::get().addnew(crypt_str("Request failed, error: ") + std::string(e.what()), Color::Yellow, false);
+			eventlogs::get().add(crypt_str("Request failed, error: ") + std::string(e.what()), false);
 			return "";
 		}
 	}
@@ -1049,10 +1048,10 @@ namespace ns_file //new
 {
 	void append(sol::this_state s, std::string& path, std::string& data)
 	{
-		if (!config_system.g_cfg.scripts.allow_file)
+		if (!g_cfg.scripts.allow_file)
 		{
 			c_lua::get().unload_script(get_current_script_id(s));
-			eventlogs::get().addnew(crypt_str("Please, allow files read or write"), Color::Yellow, false);
+			eventlogs::get().add(crypt_str("Please, allow files read or write"), false);
 			return;
 		}
 
@@ -1061,16 +1060,16 @@ namespace ns_file //new
 		if (out.is_open())
 			out << data;
 		else
-			eventlogs::get().addnew(crypt_str("Can't append to file: ") + path, Color::Yellow, false);
+			eventlogs::get().add(crypt_str("Can't append to file: ") + path, false);
 		
 		out.close();
 	}
 	void write(sol::this_state s, std::string& path, std::string& data)
 	{
-		if (!config_system.g_cfg.scripts.allow_file)
+		if (!g_cfg.scripts.allow_file)
 		{
 			c_lua::get().unload_script(get_current_script_id(s));
-			eventlogs::get().addnew(crypt_str("Please, allow files read or write"), Color::Yellow, false);
+			eventlogs::get().add(crypt_str("Please, allow files read or write"), false);
 			return;
 		}
 
@@ -1080,16 +1079,16 @@ namespace ns_file //new
 			out << data;
 
 		else
-			eventlogs::get().addnew(crypt_str("Can't write to file: ") + path, Color::Yellow, false);
+			eventlogs::get().add(crypt_str("Can't write to file: ") + path, false);
 
 		out.close();
 	}
 	std::string read(sol::this_state s, std::string& path)
 	{
-		if (!config_system.g_cfg.scripts.allow_file)
+		if (!g_cfg.scripts.allow_file)
 		{
 			c_lua::get().unload_script(get_current_script_id(s));
-			eventlogs::get().addnew(crypt_str("Please, allow files read or write"), Color::Yellow, false);
+			eventlogs::get().add(crypt_str("Please, allow files read or write"), false);
 			return "";
 		}
 
@@ -1103,7 +1102,7 @@ namespace ns_file //new
 		}
 		else
 		{
-			eventlogs::get().addnew(crypt_str("Can't read file: ") + path, Color::Yellow, false);
+			eventlogs::get().add(crypt_str("Can't read file: ") + path, false);
 			file.close();
 			return "";
 		}
@@ -1143,9 +1142,7 @@ void c_lua::initialize()
 		crypt_str("edge_jump"), 19,
 		crypt_str("fakeduck"), 20,
 		crypt_str("slowwalk"), 21,
-		crypt_str("body_aim"), 22,
-		crypt_str("edge_bug"), 23
-
+		crypt_str("body_aim"), 22
 	);
 
 	lua.new_enum(crypt_str("key_bind_mode"),
@@ -1454,7 +1451,7 @@ void c_lua::refresh_scripts()
 
 	if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, NULL, path)))
 	{
-		folder = std::string(path) + crypt_str("\\Qwerty.xyz\\Scripts\\");
+		folder = std::string(path) + crypt_str("\\LWK\\LUA\\");
 		CreateDirectory(folder.c_str(), NULL);
 
 		auto i = 0;
@@ -1513,7 +1510,7 @@ void c_lua::load_script(int id)
 				sol::error error = result;
 				auto log = crypt_str("Lua error: ") + (std::string)error.what();
 
-				eventlogs::get().addnew(log, Color::Yellow, false);
+				eventlogs::get().add(log, false);
 				error_load = true;
 				
 			}

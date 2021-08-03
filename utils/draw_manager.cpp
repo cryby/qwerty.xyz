@@ -3,7 +3,6 @@
 
 #include "..\includes.hpp"
 #include "draw_manager.h"
-#include "Render.h"
 
 vgui::HFont fonts[FONT_MAX];
 
@@ -27,47 +26,27 @@ void render::rect(int x, int y, int w, int h, Color color)
 	m_surface()->DrawSetColor(color);
 	m_surface()->DrawOutlinedRect(x, y, x + w, y + h);
 }
+void render::keybinds_text(int x, int y, Color color, const char* text, StringFlags_t flags /*= render::ALIGN_LEFT */) {
+	int w, h;
+	va_list va_alist;
+	char buffer[1024];
+	va_start(va_alist, text);
+	_vsnprintf(buffer, sizeof(buffer), text, va_alist);
+	va_end(va_alist);
+	wchar_t wbuf[1024];
 
-void render::CircularProgressBar(int x, int y, int r1, int r2, int s, int d, Color col, bool inverse)
+	MultiByteToWideChar(CP_UTF8, 0, buffer, 256, wbuf, 256);
+	m_surface()->GetTextSize(fonts[KEYBINDS], wbuf, w, h);
+	m_surface()->DrawSetTextFont(fonts[KEYBINDS]);
+	m_surface()->DrawSetTextColor(color);
 
+	if (flags & ALIGN_RIGHT)
+		x -= w;
+	if (flags & ALIGN_CENTER)
+		x -= w / 2;
 
-
-{
-
-
-
-	for (int i = s; i < s + d; i++)
-
-
-
-	{
-
-
-
-		auto rad = i * 3.1415 / 180;
-
-
-
-		if (!inverse)
-
-
-
-			line(x + cos(rad) * r1, y + sin(rad) * r1, x + cos(rad) * r2, y + sin(rad) * r2, col);
-
-
-
-		else
-
-
-
-			line(x - sin(rad) * r1, y - cos(rad) * r1, x - sin(rad) * r2, y - cos(rad) * r2, col);
-
-
-
-	}
-
-
-
+	m_surface()->DrawSetTextPos(x, y);
+	m_surface()->DrawPrintText(wbuf, wcslen(wbuf));
 }
 
 void render::rect_filled(int x, int y, int w, int h, Color color)
@@ -79,20 +58,6 @@ void render::rect_filled(int x, int y, int w, int h, Color color)
 
 	m_surface()->DrawSetColor(color);
 	m_surface()->DrawFilledRect(x, y, x + w, y + h);
-}
-
-ImDrawList* draw_list;
-ImU32 GetU32(Color _color)
-{
-	return ((_color[3] & 0xff) << 24) + ((_color[2] & 0xff) << 16) + ((_color[1] & 0xff) << 8)
-		+ (_color[0] & 0xff);
-}
-
-
-void render::draw_arc(float x, float y, float radius, float min_angle, float max_angle, float thickness, Color col)
-{
-	draw_list->PathArcTo(ImVec2(x, y), radius, DEG2RAD(min_angle), DEG2RAD(max_angle), 32);
-	draw_list->PathStroke(GetU32(col), false, thickness);
 }
 
 void render::setup_states() const {
@@ -128,7 +93,27 @@ void render::invalidate_objects()
 {
 	this->device = nullptr;
 }
+void render::draw_arc(int x, int y, int radius, int start_angle, int percent, int thickness, Color color)
+{
+	float precision = (2 * 3.14159265358979) / 180;
+	float step = 3.14159265358979 / 180;
+	float inner = radius - thickness;
+	float end_angle = (start_angle + percent) * step;
+	float start_angle1337 = (start_angle * 3.14159265358979) / 180;
 
+	for (; radius > inner; --radius) {
+		for (float angle = start_angle1337; angle < end_angle; angle += precision) {
+			float cx = round(x + radius * cos(angle));
+			float cy = round(y + radius * sin(angle));
+
+			float cx2 = round(x + radius * cos(angle + precision));
+			float cy2 = round(y + radius * sin(angle + precision));
+
+			m_surface()->DrawSetColor(color);
+			m_surface()->DrawLine(cx, cy, cx2, cy2);
+		}
+	}
+}
 void render::restore_objects(LPDIRECT3DDEVICE9 device)
 {
 	this->device = device;

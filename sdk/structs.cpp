@@ -67,22 +67,6 @@ weapon_info_t* weapon_t::get_csweapon_info()
 	return call_virtual<Fn>(this, g_ctx.indexes.at(8))(this);
 }
 
-float weapon_t::get_spread_virtual()
-{
-	if (!this) //-V704
-		return 0.0f;
-
-	return call_virtual<float(__thiscall*)(void*)>(this, g_ctx.indexes.at(10))(this);
-}
-
-float weapon_t::get_inaccuracy_virtual()
-{
-	if (!this) //-V704
-		return 0.0f;
-
-	return call_virtual<float(__thiscall*)(void*)>(this, g_ctx.indexes.at(9))(this);
-}
-
 float weapon_t::get_inaccuracy()
 {
 	if (!this) //-V704
@@ -304,11 +288,6 @@ bool weapon_t::can_double_tap()
 	return true;
 }
 
-Vector player_t::get_eye_pos()
-{
-	return m_vecOrigin() + m_vecViewOffset();
-}
-
 int weapon_t::get_max_tickbase_shift()
 {
 	if (!can_double_tap())
@@ -332,7 +311,7 @@ int weapon_t::get_max_tickbase_shift()
 	case WEAPON_BIZON:
 	case WEAPON_TEC9:
 	case WEAPON_MP7:
-		max_tickbase_shift = 5;
+		max_tickbase_shift = 6;
 		break;
 	case WEAPON_AK47:
 	case WEAPON_AUG:
@@ -341,26 +320,24 @@ int weapon_t::get_max_tickbase_shift()
 	case WEAPON_M4A1:
 	case WEAPON_M4A1_SILENCER:
 	case WEAPON_CZ75A:
-		max_tickbase_shift = 6;
+		max_tickbase_shift = 7;
 		break;
 	case WEAPON_FIVESEVEN:
 	case WEAPON_GLOCK:
 	case WEAPON_P250:
 	case WEAPON_SG553:
-		max_tickbase_shift = 7;
+		max_tickbase_shift = 8;
 		break;
 	case WEAPON_HKP2000:
 	case WEAPON_USP_SILENCER:
-		max_tickbase_shift = 8;
+		max_tickbase_shift = 9;
 		break;
 	case WEAPON_DEAGLE:
 		max_tickbase_shift = 13;
 		break;
 	case WEAPON_G3SG1:
-		max_tickbase_shift = 14;
-		break;
 	case WEAPON_SCAR20:
-		max_tickbase_shift = 14;
+		max_tickbase_shift = 13;
 		break;
 	}
 
@@ -622,6 +599,14 @@ Vector player_t::get_shoot_position()
 	return shoot_position;
 }
 
+AnimationLayer* player_t::GetAnimOverlay(int index)
+{
+	if (index < 15)
+		return &get_animlayers()[index];
+	else
+		return nullptr;
+}
+
 void player_t::modify_eye_position(Vector& eye_position)
 {
 	if (!this)
@@ -681,8 +666,6 @@ int player_t::get_hitbox_bone_id(int hitbox_id)
 	if (!hdr)
 		return -1;
 
-
-
 	auto hitbox_set = hdr->pHitboxSet(m_nHitboxSet());
 
 	if (!hitbox_set)
@@ -694,6 +677,28 @@ int player_t::get_hitbox_bone_id(int hitbox_id)
 		return -1;
 
 	return hitbox->bone;
+}
+
+Vector player_t::GetBonePos(int bone)
+{
+	matrix3x4_t boneMatrix[MAXSTUDIOBONES];
+	if (SetupBones(boneMatrix, MAXSTUDIOBONES, BONE_USED_BY_ANYTHING, 0.0f)) {
+		return boneMatrix[bone].at(3);
+	}
+	return Vector{};
+}
+
+bool player_t::CanSeePlayer(player_t* player, const Vector& pos)
+{
+	CGameTrace tr;
+	Ray_t ray;
+	CTraceFilter filter;
+	filter.pSkip = this;
+
+	ray.Init(get_shoot_position(), pos);
+	m_trace()->TraceRay(ray, MASK_SHOT | CONTENTS_GRATE, &filter, &tr);
+
+	return tr.hit_entity == player || tr.fraction > 0.97f;
 }
 
 Vector player_t::hitbox_position(int hitbox_id)
@@ -851,38 +856,6 @@ bool player_t::physics_run_think(int index)
 {
 	static auto physics_run_think_fn = reinterpret_cast <bool(__thiscall*)(void*, int)> (util::FindSignature(crypt_str("client.dll"), crypt_str("55 8B EC 83 EC 10 53 56 57 8B F9 8B 87 ? ? ? ? C1 E8 16")));
 	return physics_run_think_fn(this, index);
-}
-
-Vector player_t::GetEyePos() noexcept
-{
-	return m_vecOrigin() + m_vecViewOffset();
-}
-
-Vector player_t::GetHitboxPos(int hitbox)
-{
-	matrix3x4_t boneMatrix[MAXSTUDIOBONES];
-
-	if (this->SetupBones(boneMatrix, 128, BONE_USED_BY_HITBOX, this->m_flSimulationTime()))
-	{
-		studiohdr_t* studioHdr = m_modelinfo()->GetStudioModel(this->GetModel());
-		if (studioHdr)
-		{
-			mstudiobbox_t* hitbox_box = studioHdr->pHitboxSet(this->m_nHitboxSet())->pHitbox(hitbox);
-			if (hitbox_box)
-			{
-				Vector
-					min = Vector{},
-					max = Vector{};
-
-				math::vector_transform(hitbox_box->bbmin, boneMatrix[hitbox_box->bone], min);
-				math::vector_transform(hitbox_box->bbmax, boneMatrix[hitbox_box->bone], max);
-
-				return (min + max) / 2.0f;
-			}
-		}
-	}
-
-	return Vector{};
 }
 
 VarMapping_t* player_t::var_mapping()

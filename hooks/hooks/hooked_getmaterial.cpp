@@ -12,7 +12,7 @@ IMaterial* __fastcall hooks::hooked_getmaterial(void* ecx, void* edx, const char
 	if (!material_name)
 		return original_fn(ecx, material_name, texture_group_name, complain, complain_prefix);
 
-	if (config_system.g_cfg.player.enable && config_system.g_cfg.esp.removals[REMOVALS_SCOPE] && !strcmp(material_name, "dev/scope_bluroverlay"))
+	if (g_cfg.player.enable && g_cfg.esp.removals[REMOVALS_SCOPE] && !strcmp(material_name, "dev/scope_bluroverlay"))
 		return original_fn(ecx, "dev/clearalpha", nullptr, complain, complain_prefix);
 
 	return original_fn(ecx, material_name, texture_group_name, complain, complain_prefix);

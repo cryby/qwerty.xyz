@@ -3,7 +3,7 @@
  *
  * If you use GNU make, this file IS NOT USED!  Instead, it is created in
  * the objects directory (normally `<topdir>/objs/`) based on information
- * from `<topdir>/modules.qwerty`.
+ * from `<topdir>/modules.cfg`.
  *
  * Please read `docs/INSTALL.ANY` and `docs/CUSTOMIZE` how to compile
  * FreeType without GNU make.

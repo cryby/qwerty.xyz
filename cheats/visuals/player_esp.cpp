@@ -40,7 +40,7 @@ void playeresp::paint_traverse()
 	static auto alpha = 1.0f;
 	c_dormant_esp::get().start();
 
-	if (config_system.g_cfg.player.arrows && g_ctx.local()->is_alive())
+	if (g_cfg.player.arrows && g_ctx.local()->is_alive())
 	{
 		static auto switch_alpha = false;
 
@@ -119,14 +119,11 @@ void playeresp::paint_traverse()
 
 		esp_alpha_fade[i] = math::clamp(esp_alpha_fade[i], 0.0f, 1.0f);
 
-		if (config_system.g_cfg.player.type[type].skeleton)
+		if (g_cfg.player.type[type].skeleton)
 		{
-			auto color = config_system.g_cfg.player.type[type].skeleton_color;
+			auto color = g_cfg.player.type[type].skeleton_color;
 			color.SetAlpha(min(255.0f * esp_alpha_fade[i], color.a()));
 			
-#if RELEASE
-			draw_skeleton(e, color, e->m_CachedBoneData().Base());
-#else
 			auto records = &player_records[i]; //-V826
 
 			if (!records->empty() && g_ctx.local()->is_alive() && !e->IsDormant())
@@ -135,12 +132,11 @@ void playeresp::paint_traverse()
 
 				draw_skeleton(e, color, record->matrixes_data.main);
 				draw_skeleton(e, Color::Red, record->matrixes_data.zero);
-				draw_skeleton(e, Color::Green, record->matrixes_data.first);
-				draw_skeleton(e, Color::Blue, record->matrixes_data.second);
+				draw_skeleton(e, Color::Green, record->matrixes_data.negative);
+				draw_skeleton(e, Color::Blue, record->matrixes_data.positive);
 			}
 			else
 				draw_skeleton(e, color, e->m_CachedBoneData().Base());
-#endif
 		}
 
 		Box box;
@@ -201,9 +197,9 @@ void playeresp::paint_traverse()
 
 			if (type == ENEMY)
 			{
-				if (config_system.g_cfg.player.arrows && g_ctx.local()->is_alive())
+				if (g_cfg.player.arrows && g_ctx.local()->is_alive())
 				{
-					auto color = config_system.g_cfg.player.arrows_color;
+					auto color = g_cfg.player.arrows_color;
 					color.SetAlpha((int)(min(255.0f * esp_alpha_fade[i] * alpha, color.a())));
 
 					if (e->IsDormant())
@@ -283,7 +279,7 @@ void playeresp::draw_skeleton(player_t* e, Color color, matrix3x4_t matrix[MAXST
 
 void playeresp::draw_box(player_t* m_entity, const Box& box)
 {
-	if (!config_system.g_cfg.player.type[type].box)
+	if (!g_cfg.player.type[type].box)
 		return;
 
 	auto alpha = 255.0f * esp_alpha_fade[m_entity->EntIndex()];
@@ -297,7 +293,7 @@ void playeresp::draw_box(player_t* m_entity, const Box& box)
 		outline_alpha 
 	};
 
-	auto color = m_entity->IsDormant() ? Color(130, 130, 130, 130) : config_system.g_cfg.player.type[type].box_color;
+	auto color = m_entity->IsDormant() ? Color(130, 130, 130, 130) : g_cfg.player.type[type].box_color;
 	color.SetAlpha(min(alpha, color.a()));
 
 	render::get().rect(box.x - 1, box.y - 1, box.w + 2, box.h + 2, outline_color);
@@ -307,7 +303,7 @@ void playeresp::draw_box(player_t* m_entity, const Box& box)
 
 void playeresp::draw_health(player_t* m_entity, const Box& box, const HPInfo& hpbox)
 {
-	if (!config_system.g_cfg.player.type[type].health)
+	if (!g_cfg.player.type[type].health)
 		return;
 
 	auto alpha = (int)(255.0f * esp_alpha_fade[m_entity->EntIndex()]);
@@ -317,8 +313,8 @@ void playeresp::draw_health(player_t* m_entity, const Box& box, const HPInfo& hp
 	auto color = m_entity->IsDormant() ? Color(130, 130, 130) : Color(150, (int)min(255.0f, hpbox.hp * 225.0f / 100.0f), 0);
 	auto hp_effect_color = Color(215, 20, 20, alpha);
 
-	if (config_system.g_cfg.player.type[type].custom_health_color)
-		color = m_entity->IsDormant() ? Color(130, 130, 130) : config_system.g_cfg.player.type[type].health_color;
+	if (g_cfg.player.type[type].custom_health_color)
+		color = m_entity->IsDormant() ? Color(130, 130, 130) : g_cfg.player.type[type].health_color;
 
 	color.SetAlpha(alpha);
 	render::get().rect(box.x - 6, box.y, 4, box.h, back_color);
@@ -340,7 +336,7 @@ void playeresp::draw_health(player_t* m_entity, const Box& box, const HPInfo& hp
 	auto height = n_box.h - hpbox.hp * n_box.h / 100;
 
 	if (hpbox.hp_difference)
-		render::get().rect_filled(n_box.x, n_box.y + height - hpbox.hp_difference * n_box.h / 100, 2, hpbox.hp_difference * n_box.h / 100, color);
+		render::get().rect_filled(n_box.x, n_box.y + height - hpbox.hp_difference * n_box.h / 100, 2, hpbox.hp_difference * n_box.h / 100, hp_effect_color);
 
 	if (hpbox.hp < 100)
 		render::get().text(fonts[ESP], n_box.x + 1, n_box.y + offset, text_color, HFONT_CENTERED_X | HFONT_CENTERED_Y, std::to_string(hpbox.hp).c_str());
@@ -351,7 +347,7 @@ bool playeresp::draw_ammobar(player_t* m_entity, const Box& box)
 	if (!m_entity->is_alive())
 		return false;
 
-	if (!config_system.g_cfg.player.type[type].ammo)
+	if (!g_cfg.player.type[type].ammo)
 		return false;
 
 	auto weapon = m_entity->m_hActiveWeapon().Get();
@@ -382,7 +378,7 @@ bool playeresp::draw_ammobar(player_t* m_entity, const Box& box)
 	};
 
 	auto text_color = m_entity->IsDormant() ? Color(130, 130, 130, alpha) : Color(255, 255, 255, alpha);
-	auto color = m_entity->IsDormant() ? Color(130, 130, 130, 130) : config_system.g_cfg.player.type[type].ammobar_color;
+	auto color = m_entity->IsDormant() ? Color(130, 130, 130, 130) : g_cfg.player.type[type].ammobar_color;
 
 	color.SetAlpha(min(alpha, color.a()));
 
@@ -425,7 +421,7 @@ bool playeresp::draw_ammobar(player_t* m_entity, const Box& box)
 
 void playeresp::draw_name(player_t* m_entity, const Box& box)
 {
-	if (!config_system.g_cfg.player.type[type].name)
+	if (!g_cfg.player.type[type].name)
 		return;
 
 	static auto sanitize = [](char* name) -> std::string
@@ -449,7 +445,7 @@ void playeresp::draw_name(player_t* m_entity, const Box& box)
 	{
 		auto name = sanitize(player_info.szName);
 
-		auto color = m_entity->IsDormant() ? Color(130, 130, 130, 130) : config_system.g_cfg.player.type[type].name_color;
+		auto color = m_entity->IsDormant() ? Color(130, 130, 130, 130) : g_cfg.player.type[type].name_color;
 		color.SetAlpha(min(255.0f * esp_alpha_fade[m_entity->EntIndex()], color.a()));
 
 		render::get().text(fonts[NAME], box.x + box.w / 2, box.y - 13, color, HFONT_CENTERED_X, name.c_str());
@@ -458,7 +454,7 @@ void playeresp::draw_name(player_t* m_entity, const Box& box)
 
 void playeresp::draw_weapon(player_t* m_entity, const Box& box, bool space)
 {
-	if (!config_system.g_cfg.player.type[type].weapon[WEAPON_ICON] && !config_system.g_cfg.player.type[type].weapon[WEAPON_TEXT])
+	if (!g_cfg.player.type[type].weapon[WEAPON_ICON] && !g_cfg.player.type[type].weapon[WEAPON_TEXT])
 		return;
 
 	auto weapon = m_entity->m_hActiveWeapon().Get();
@@ -471,17 +467,22 @@ void playeresp::draw_weapon(player_t* m_entity, const Box& box, bool space)
 	if (space)
 		pos += 5;
 
-	auto color = m_entity->IsDormant() ? Color(130, 130, 130, 130) : config_system.g_cfg.player.type[type].weapon_color;
+	auto color = m_entity->IsDormant() ? Color(130, 130, 130, 130) : g_cfg.player.type[type].weapon_color;
 	color.SetAlpha(min(255.0f * esp_alpha_fade[m_entity->EntIndex()], color.a()));
 
-	if (config_system.g_cfg.player.type[type].weapon[WEAPON_TEXT])
+	if (g_cfg.player.type[type].weapon[WEAPON_TEXT])
 	{
 		render::get().text(fonts[ESP], box.x + box.w / 2, pos, color, HFONT_CENTERED_X, weapon->get_name().c_str());
 		pos += 11;
 	}
 
-	if (config_system.g_cfg.player.type[type].weapon[WEAPON_ICON])
+	if (g_cfg.player.type[type].weapon[WEAPON_ICON])
 	{
+		if (weapon->m_iItemDefinitionIndex() == WEAPON_KNIFE)
+			render::get().text(fonts[KNIFES], box.x + box.w / 2, pos, color, HFONT_CENTERED_X, "z");
+		else if (weapon->m_iItemDefinitionIndex() == WEAPON_KNIFE_T)
+			render::get().text(fonts[KNIFES], box.x + box.w / 2, pos, color, HFONT_CENTERED_X, "W");
+		else
 			render::get().text(fonts[SUBTABWEAPONS], box.x + box.w / 2, pos, color, HFONT_CENTERED_X, weapon->get_icon());
 	}
 }
@@ -495,7 +496,7 @@ void playeresp::draw_flags(player_t* e, const Box& box)
 
 	auto _x = box.x + box.w + 3, _y = box.y - 3;
 
-	if (config_system.g_cfg.player.type[type].flags[FLAGS_MONEY])
+	if (g_cfg.player.type[type].flags[FLAGS_MONEY])
 	{
 		auto color = e->IsDormant() ? Color(130, 130, 130, 130) : Color(170, 190, 80);
 		color.SetAlpha(255.0f * esp_alpha_fade[e->EntIndex()]);
@@ -504,7 +505,7 @@ void playeresp::draw_flags(player_t* e, const Box& box)
 		_y += 8;
 	}
 
-	if (config_system.g_cfg.player.type[type].flags[FLAGS_ARMOR])
+	if (g_cfg.player.type[type].flags[FLAGS_ARMOR])
 	{
 		auto color = e->IsDormant() ? Color(130, 130, 130, 130) : Color(240, 240, 240);
 		color.SetAlpha(255.0f * esp_alpha_fade[e->EntIndex()]);
@@ -526,7 +527,7 @@ void playeresp::draw_flags(player_t* e, const Box& box)
 		}
 	}
 
-	if (config_system.g_cfg.player.type[type].flags[FLAGS_KIT] && e->m_bHasDefuser())
+	if (g_cfg.player.type[type].flags[FLAGS_KIT] && e->m_bHasDefuser())
 	{
 		auto color = e->IsDormant() ? Color(130, 130, 130, 130) : Color(240, 240, 240);
 		color.SetAlpha(255.0f * esp_alpha_fade[e->EntIndex()]);
@@ -535,7 +536,7 @@ void playeresp::draw_flags(player_t* e, const Box& box)
 		_y += 8;
 	}
 
-	if (config_system.g_cfg.player.type[type].flags[FLAGS_SCOPED])
+	if (g_cfg.player.type[type].flags[FLAGS_SCOPED])
 	{
 		auto scoped = e->m_bIsScoped();
 
@@ -547,12 +548,12 @@ void playeresp::draw_flags(player_t* e, const Box& box)
 			auto color = e->IsDormant() ? Color(130, 130, 130, 130) : Color(30, 120, 235);
 			color.SetAlpha(255.0f * esp_alpha_fade[e->EntIndex()]);
 
-			render::get().text(fonts[ESP], _x, _y, color, HFONT_CENTERED_NONE, "ZOOM");
+			render::get().text(fonts[ESP], _x, _y, color, HFONT_CENTERED_NONE, "SCOPED");
 			_y += 8;
 		}
 	}
 
-	if (config_system.g_cfg.player.type[type].flags[FLAGS_FAKEDUCKING])
+	if (g_cfg.player.type[type].flags[FLAGS_FAKEDUCKING])
 	{
 		auto animstate = e->get_animation_state();
 
@@ -593,7 +594,7 @@ void playeresp::draw_flags(player_t* e, const Box& box)
 		}
 	}
 
-	if (config_system.g_cfg.player.type[type].flags[FLAGS_VULNERABLE] && weapon->is_non_aim())
+	if (g_cfg.player.type[type].flags[FLAGS_VULNERABLE] && weapon->is_non_aim())
 	{
 		auto color = e->IsDormant() ? Color(130, 130, 130, 130) : Color(205, 180, 110);
 		color.SetAlpha(255.0f * esp_alpha_fade[e->EntIndex()]);
@@ -602,7 +603,7 @@ void playeresp::draw_flags(player_t* e, const Box& box)
 		_y += 8;
 	}
 
-	if (config_system.g_cfg.player.type[type].flags[FLAGS_PING])
+	if (g_cfg.player.type[type].flags[FLAGS_PING])
 	{
 		player_info_t player_info;
 		m_engine()->GetPlayerInfo(e->EntIndex(), &player_info);
@@ -630,19 +631,19 @@ void playeresp::draw_flags(player_t* e, const Box& box)
 		}
 	}
 
-	if (config_system.g_cfg.player.type[type].flags[FLAGS_C4] && e->EntIndex() == g_ctx.globals.bomb_carrier)
+	if (g_cfg.player.type[type].flags[FLAGS_C4] && e->EntIndex() == g_ctx.globals.bomb_carrier)
 	{
 		auto color = e->IsDormant() ? Color(130, 130, 130, 130) : Color(163, 49, 93);
 		color.SetAlpha(255.0f * esp_alpha_fade[e->EntIndex()]);
 
-		render::get().text(fonts[ESP], _x, _y, color, HFONT_CENTERED_NONE, "BOMB");
+		render::get().text(fonts[ESP], _x, _y, color, HFONT_CENTERED_NONE, "C4");
 		_y += 8;
 	}
 }
 
 void playeresp::draw_lines(player_t* e)
 {
-	if (!config_system.g_cfg.player.type[type].snap_lines)
+	if (!g_cfg.player.type[type].snap_lines)
 		return;
 
 	if (!g_ctx.local()->is_alive())
@@ -656,7 +657,7 @@ void playeresp::draw_lines(player_t* e)
 	if (!math::world_to_screen(e->GetAbsOrigin(), angle))
 		return;
 
-	auto color = e->IsDormant() ? Color(130, 130, 130, 130) : config_system.g_cfg.player.type[type].snap_lines_color;
+	auto color = e->IsDormant() ? Color(130, 130, 130, 130) : g_cfg.player.type[type].snap_lines_color;
 	color.SetAlpha(min(255.0f * esp_alpha_fade[e->EntIndex()], color.a()));
 
 	render::get().line(width / 2, height, angle.x, angle.y, color);
@@ -664,10 +665,10 @@ void playeresp::draw_lines(player_t* e)
 
 void playeresp::draw_multi_points(player_t* e)
 {
-	if (!config_system.g_cfg.ragebot.enable)
+	if (!g_cfg.ragebot.enable)
 		return;
 
-	if (!config_system.g_cfg.player.show_multi_points)
+	if (!g_cfg.player.show_multi_points)
 		return;
 
 	if (!g_ctx.local()->is_alive()) //-V807
@@ -742,7 +743,7 @@ void playeresp::draw_multi_points(player_t* e)
 		if (!math::world_to_screen(point.point, screen))
 			continue;
 
-		render::get().rect_filled(screen.x - 1, screen.y - 1, 3, 3, config_system.g_cfg.player.show_multi_points_color);
+		render::get().rect_filled(screen.x - 1, screen.y - 1, 3, 3, g_cfg.player.show_multi_points_color);
 		render::get().rect(screen.x - 2, screen.y - 2, 5, 5, Color::Black);
 	}
 }

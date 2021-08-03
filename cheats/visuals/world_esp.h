@@ -17,8 +17,6 @@ public:
 	void smoke_timer(entity_t* entity);
 	void grenade_projectiles(entity_t* entity);
 	void bomb_timer(entity_t* entity);
-	void bomb_timer2(entity_t* entity);
-
 	void dropped_weapons(entity_t* entity);
 
 	bool changed = false;

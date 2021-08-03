@@ -15,10 +15,10 @@ void zeusbot::run(CUserCmd* cmd)
 	scanned_targets.clear();
 	final_target.reset();
 
-	if (!config_system.g_cfg.ragebot.enable)
+	if (!g_cfg.ragebot.enable)
 		return;
 
-	if (!config_system.g_cfg.ragebot.zeus_bot)
+	if (!g_cfg.ragebot.zeus_bot)
 		return;
 
 	if (g_ctx.globals.weapon->m_iItemDefinitionIndex() != WEAPON_TASER)
@@ -105,13 +105,13 @@ void zeusbot::scan(adjust_data* record, scan_data& data)
 		{
 			auto safe = 0.0f;
 
-			if (record->matrixes_data.zero[0].GetOrigin() == record->matrixes_data.first[0].GetOrigin() || record->matrixes_data.zero[0].GetOrigin() == record->matrixes_data.second[0].GetOrigin() || record->matrixes_data.first[0].GetOrigin() == record->matrixes_data.second[0].GetOrigin())
+			if (record->matrixes_data.zero[0].GetOrigin() == record->matrixes_data.negative[0].GetOrigin() || record->matrixes_data.zero[0].GetOrigin() == record->matrixes_data.positive[0].GetOrigin() || record->matrixes_data.negative[0].GetOrigin() == record->matrixes_data.positive[0].GetOrigin())
 				safe = 0.0f;
 			else if (!hitbox_intersection(record->player, record->matrixes_data.zero, hitbox, g_ctx.globals.eye_pos, point.point, &safe))
 				safe = 0.0f;
-			else if (!hitbox_intersection(record->player, record->matrixes_data.first, hitbox, g_ctx.globals.eye_pos, point.point, &safe))
+			else if (!hitbox_intersection(record->player, record->matrixes_data.negative, hitbox, g_ctx.globals.eye_pos, point.point, &safe))
 				safe = 0.0f;
-			else if (!hitbox_intersection(record->player, record->matrixes_data.second, hitbox, g_ctx.globals.eye_pos, point.point, &safe))
+			else if (!hitbox_intersection(record->player, record->matrixes_data.positive, hitbox, g_ctx.globals.eye_pos, point.point, &safe))
 				safe = 0.0f;
 
 			point.safe = safe;
@@ -155,8 +155,8 @@ void zeusbot::scan(adjust_data* record, scan_data& data)
 
 static bool compare_targets(const scanned_target& first, const scanned_target& second)
 {
-	if (config_system.g_cfg.player_list.high_priority[first.record->i] != config_system.g_cfg.player_list.high_priority[second.record->i])
-		return config_system.g_cfg.player_list.high_priority[first.record->i];
+	if (g_cfg.player_list.high_priority[first.record->i] != g_cfg.player_list.high_priority[second.record->i])
+		return g_cfg.player_list.high_priority[first.record->i];
 
 	return first.data.damage > second.data.damage;
 }
@@ -167,7 +167,7 @@ void zeusbot::find_best_target()
 
 	for (auto& target : scanned_targets)
 	{
-		if (target.fov > (float)config_system.g_cfg.ragebot.field_of_view)
+		if (target.fov > (float)g_cfg.ragebot.field_of_view)
 			continue;
 
 		final_target = target;
@@ -183,10 +183,10 @@ void zeusbot::fire(CUserCmd* cmd)
 
 	auto aim_angle = math::calculate_angle(g_ctx.globals.eye_pos, final_target.data.point.point).Clamp();
 
-	if (!config_system.g_cfg.ragebot.silent_aim)
+	if (!g_cfg.ragebot.silent_aim)
 		m_engine()->SetViewAngles(aim_angle);
 
-	if (!config_system.g_cfg.ragebot.autoshoot && !(cmd->m_buttons & IN_ATTACK))
+	if (!g_cfg.ragebot.autoshoot && !(cmd->m_buttons & IN_ATTACK))
 		return;
 
 	auto final_hitchance = hitchance(aim_angle);
@@ -252,18 +252,6 @@ void zeusbot::fire(CUserCmd* cmd)
 	player_info_t player_info;
 	m_engine()->GetPlayerInfo(final_target.record->i, &player_info);
 
-//#if BETA
-	std::stringstream log;
-
-	log << crypt_str("Fired shot at ") + (std::string)player_info.szName + crypt_str(": ");
-	log << crypt_str("hitchance: ") + (final_hitchance == 101 ? crypt_str("MA") : std::to_string(final_hitchance)) + crypt_str(", ");
-	log << crypt_str("hitbox: ") + get_hitbox_name(final_target.data.hitbox) + crypt_str(", ");
-	log << crypt_str("damage: ") + std::to_string(final_target.data.damage) + crypt_str(", ");
-	log << crypt_str("backtrack: ") + std::to_string(backtrack_ticks);
-
-	if (config_system.g_cfg.misc.events_to_log[EVENTLOG_HIT])
-		eventlogs::get().addnew(log.str());
-//#endif
 	cmd->m_viewangles = aim_angle;
 	cmd->m_buttons |= IN_ATTACK;
 	cmd->m_tickcount = TIME_TO_TICKS(final_target.record->simulation_time + util::get_interpolation());

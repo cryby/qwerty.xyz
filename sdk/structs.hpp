@@ -339,8 +339,6 @@ public:
     bool is_grenade();
     bool is_knife();
     bool is_non_aim();
-    float get_spread_virtual();
-    float get_inaccuracy_virtual();
     bool can_double_tap();
     int get_max_tickbase_shift();
     float get_inaccuracy();
@@ -352,25 +350,12 @@ public:
 
 class viewmodel_t;
 
-class projectile_t : public entity_t
-{
-public:
-    NETVAR(Vector, m_vInitialVelocity, crypt_str("CBaseCSGrenadeProjectile"), crypt_str("m_vInitialVelocity"));
-    NETVAR(int, m_flAnimTime, crypt_str("CBaseCSGrenadeProjectile"), crypt_str("m_flAnimTime"));
-    NETVAR(int, m_nExplodeEffectTickBegin, crypt_str("CBaseCSGrenadeProjectile"), crypt_str("m_nExplodeEffectTickBegin"));
-    NETVAR(int, m_nBody, crypt_str("CBaseCSGrenadeProjectile"), crypt_str("m_nBody"));
-    NETVAR(int, m_nForceBone, crypt_str("CBaseCSGrenadeProjectile"), crypt_str("m_nForceBone"));
-    NETVAR(Vector, m_vecVelocity, crypt_str("CBaseGrenade"), crypt_str("m_vecVelocity"));
-    NETVAR(CHandle<player_t>, m_hThrower, "CBaseGrenade", "m_hThrower");
-    NETVAR(Vector, m_vecOrigin, crypt_str("CBaseCSGrenadeProjectile"), crypt_str("m_vecOrigin"));
-    OFFSET(float, m_flSpawnTime, netvars::get().get_offset(crypt_str("CBaseCSGrenadeProjectile"), crypt_str("m_vecExplodeEffectOrigin")) + 0xC);
-};
-
 class player_t : public entity_t
 {
 public:
     NETVAR(bool, m_bClientSideAnimation, crypt_str("CBaseAnimating"), crypt_str("m_bClientSideAnimation"));
     NETVAR(bool, m_bHasDefuser, crypt_str("CCSPlayer"), crypt_str("m_bHasDefuser"));
+    NETVAR(bool, get_cycle, crypt_str("CBaseAnimating"), crypt_str("m_flCycle"));
     NETVAR(bool, m_bGunGameImmunity, crypt_str("CCSPlayer"), crypt_str("m_bGunGameImmunity"));
     NETVAR(int, m_iShotsFired, crypt_str("CCSPlayer"), crypt_str("m_iShotsFired"));
     NETVAR(Vector, m_angEyeAngles, crypt_str("CCSPlayer"), crypt_str("m_angEyeAngles[0]"));
@@ -401,6 +386,7 @@ public:
     OFFSET(float, m_flOldSimulationTime, netvars::get().get_offset(crypt_str("CBaseEntity"), crypt_str("m_flSimulationTime")) + 0x4);
     NETVAR(float, m_flDuckSpeed, crypt_str("CCSPlayer"), crypt_str("m_flDuckSpeed"));
     NETVAR(float, m_flDuckAmount, crypt_str("CCSPlayer"), crypt_str("m_flDuckAmount"));
+    NETVAR(float, stamina, crypt_str("CCSPlayer"), crypt_str("m_flStamina"));
     NETVAR(bool, m_bDucked, crypt_str("CCSPlayer"), crypt_str("m_bDucked"));
     NETVAR(bool, m_bDucking, crypt_str("CCSPlayer"), crypt_str("m_bDucking"));
     NETVAR(float, m_flHealthShotBoostExpirationTime, crypt_str("CCSPlayer"), crypt_str("m_flHealthShotBoostExpirationTime"));
@@ -433,37 +419,12 @@ public:
         return *(float*)((uintptr_t)this + 0xA360);
     }
 
-    bool player_t::IsDead()
-    {
-        if (this == nullptr || *(void**)this == nullptr)
-            return true;
-
-        return (m_lifeState());
-    }
-
-    uint32_t& m_iOcclusionFlags()
-    {
-        return *(uint32_t*)((uintptr_t)this + 0xA28);
-    }
-
-    uint32_t& m_iOcclusionFramecount()
-    {
-        return *(uint32_t*)((uintptr_t)this + 0xA30);
-    }
-    Vector get_eye_pos();
-    int last_ticks[65];
-    int GetChokedPackets();
-
     uint32_t& m_iMostRecentModelBoneCounter();
     float& m_flLastBoneSetupTime();
 
     void select_item(const char* string, int sub_type);
     bool using_standard_weapons_in_vechile();
     bool physics_run_think(int index);
-
-    Vector GetEyePos() noexcept;
-
-    Vector GetHitboxPos(int hitbox);
 
     VarMapping_t* var_mapping();
     c_baseplayeranimationstate* get_animation_state();
@@ -479,6 +440,7 @@ public:
     Vector hitbox_position(int hitbox_id);
     Vector hitbox_position_matrix(int hitbox_id, matrix3x4_t matrix[MAXSTUDIOBONES]);
     AnimationLayer* get_animlayers();
+    AnimationLayer* GetAnimOverlay(int index);
     CUtlVector <matrix3x4_t>& m_CachedBoneData();
     CBoneAccessor& m_BoneAccessor();
     void invalidate_bone_cache();
@@ -489,6 +451,8 @@ public:
     bool is_alive();
     bool valid(bool check_team, bool check_dormant = true);
     int get_move_type();
+    Vector GetBonePos(int bone);
+    bool CanSeePlayer(player_t* player, const Vector& pos);
     int animlayer_count();
     int sequence_activity(int sequence);
     float get_max_desync_delta();

@@ -54,7 +54,7 @@ void C_HookedEvents::FireGameEvent(IGameEvent* event)
 			else if (e->m_iTeamNum() == g_ctx.local()->m_iTeamNum())
 				type = TEAM;
 
-			if (config_system.g_cfg.player.type[type].footsteps)
+			if (g_cfg.player.type[type].footsteps)
 			{
 				static auto model_index = m_modelinfo()->GetModelIndex(crypt_str("sprites/physbeam.vmt"));
 
@@ -69,13 +69,13 @@ void C_HookedEvents::FireGameEvent(IGameEvent* event)
 				info.m_nHaloIndex = -1;
 				info.m_flHaloScale = 3.0f;
 				info.m_flLife = 2.0f;
-				info.m_flWidth = (float)config_system.g_cfg.player.type[type].thickness;
+				info.m_flWidth = (float)g_cfg.player.type[type].thickness;
 				info.m_flFadeLength = 1.0f;
 				info.m_flAmplitude = 0.0f;
-				info.m_flRed = (float)config_system.g_cfg.player.type[type].footsteps_color.r();
-				info.m_flGreen = (float)config_system.g_cfg.player.type[type].footsteps_color.g();
-				info.m_flBlue = (float)config_system.g_cfg.player.type[type].footsteps_color.b();
-				info.m_flBrightness = (float)config_system.g_cfg.player.type[type].footsteps_color.a();
+				info.m_flRed = (float)g_cfg.player.type[type].footsteps_color.r();
+				info.m_flGreen = (float)g_cfg.player.type[type].footsteps_color.g();
+				info.m_flBlue = (float)g_cfg.player.type[type].footsteps_color.b();
+				info.m_flBrightness = (float)g_cfg.player.type[type].footsteps_color.a();
 				info.m_flSpeed = 0.0f;
 				info.m_nStartFrame = 0.0f;
 				info.m_flFrameRate = 60.0f;
@@ -83,7 +83,7 @@ void C_HookedEvents::FireGameEvent(IGameEvent* event)
 				info.m_nFlags = FBEAM_FADEOUT;
 				info.m_vecCenter = e->GetAbsOrigin() + Vector(0.0f, 0.0f, 5.0f);
 				info.m_flStartRadius = 5.0f;
-				info.m_flEndRadius = (float)config_system.g_cfg.player.type[type].radius;
+				info.m_flEndRadius = (float)g_cfg.player.type[type].radius;
 				info.m_bRenderable = true;
 
 				auto beam_draw = m_viewrenderbeams()->CreateBeamRingPoint(info);
@@ -136,8 +136,8 @@ void C_HookedEvents::FireGameEvent(IGameEvent* event)
 		{
 			Vector position(event->GetFloat(crypt_str("x")), event->GetFloat(crypt_str("y")), event->GetFloat(crypt_str("z")));
 
-			if (config_system.g_cfg.esp.server_bullet_impacts)
-				m_debugoverlay()->BoxOverlay(position, Vector(-2.0f, -2.0f, -2.0f), Vector(2.0f, 2.0f, 2.0f), QAngle(0.0f, 0.0f, 0.0f), config_system.g_cfg.esp.server_bullet_impacts_color.r(), config_system.g_cfg.esp.server_bullet_impacts_color.g(), config_system.g_cfg.esp.server_bullet_impacts_color.b(), config_system.g_cfg.esp.server_bullet_impacts_color.a(), 4.0f);
+			if (g_cfg.esp.server_bullet_impacts)
+				m_debugoverlay()->BoxOverlay(position, Vector(-2.0f, -2.0f, -2.0f), Vector(2.0f, 2.0f, 2.0f), QAngle(0.0f, 0.0f, 0.0f), g_cfg.esp.server_bullet_impacts_color.r(), g_cfg.esp.server_bullet_impacts_color.g(), g_cfg.esp.server_bullet_impacts_color.b(), g_cfg.esp.server_bullet_impacts_color.a(), 4.0f);
 
 			aim_shot* current_shot = nullptr;
 
@@ -169,10 +169,10 @@ void C_HookedEvents::FireGameEvent(IGameEvent* event)
 					memcpy(aim::get().last_target[current_shot->last_target].record.player->m_CachedBoneData().Base(), aim::get().last_target[current_shot->last_target].record.matrixes_data.zero, aim::get().last_target[current_shot->last_target].record.player->m_CachedBoneData().Count() * sizeof(matrix3x4_t)); //-V807
 					m_trace()->ClipRayToEntity(ray, MASK_SHOT_HULL | CONTENTS_HITBOX, aim::get().last_target[current_shot->last_target].record.player, &trace_zero);
 
-					memcpy(aim::get().last_target[current_shot->last_target].record.player->m_CachedBoneData().Base(), aim::get().last_target[current_shot->last_target].record.matrixes_data.first, aim::get().last_target[current_shot->last_target].record.player->m_CachedBoneData().Count() * sizeof(matrix3x4_t)); //-V807
+					memcpy(aim::get().last_target[current_shot->last_target].record.player->m_CachedBoneData().Base(), aim::get().last_target[current_shot->last_target].record.matrixes_data.negative, aim::get().last_target[current_shot->last_target].record.player->m_CachedBoneData().Count() * sizeof(matrix3x4_t)); //-V807
 					m_trace()->ClipRayToEntity(ray, MASK_SHOT_HULL | CONTENTS_HITBOX, aim::get().last_target[current_shot->last_target].record.player, &trace_first);
 
-					memcpy(aim::get().last_target[current_shot->last_target].record.player->m_CachedBoneData().Base(), aim::get().last_target[current_shot->last_target].record.matrixes_data.second, aim::get().last_target[current_shot->last_target].record.player->m_CachedBoneData().Count() * sizeof(matrix3x4_t)); //-V807
+					memcpy(aim::get().last_target[current_shot->last_target].record.player->m_CachedBoneData().Base(), aim::get().last_target[current_shot->last_target].record.matrixes_data.positive, aim::get().last_target[current_shot->last_target].record.player->m_CachedBoneData().Count() * sizeof(matrix3x4_t)); //-V807
 					m_trace()->ClipRayToEntity(ray, MASK_SHOT_HULL | CONTENTS_HITBOX, aim::get().last_target[current_shot->last_target].record.player, &trace_second);
 				}
 
@@ -205,10 +205,10 @@ void C_HookedEvents::FireGameEvent(IGameEvent* event)
 		{
 			auto entity = static_cast<player_t*>(m_entitylist()->GetClientEntity(user_id));
 
-			if (config_system.g_cfg.player.enable && config_system.g_cfg.esp.kill_effect)
-				g_ctx.local()->m_flHealthShotBoostExpirationTime() = m_globals()->m_curtime + config_system.g_cfg.esp.kill_effect_duration;
+			if (g_cfg.player.enable && g_cfg.esp.kill_effect)
+				g_ctx.local()->m_flHealthShotBoostExpirationTime() = m_globals()->m_curtime + g_cfg.esp.kill_effect_duration;
 
-			if (config_system.g_cfg.esp.killsound)
+			if (g_cfg.esp.killsound)
 			{
 				auto headshot = event->GetBool(crypt_str("headshot"));
 
@@ -266,9 +266,9 @@ void C_HookedEvents::FireGameEvent(IGameEvent* event)
 
 		if (attacker_id == m_engine()->GetLocalPlayer() && user_id != m_engine()->GetLocalPlayer())
 		{
-			if (config_system.g_cfg.esp.hitsound && config_system.g_cfg.player.enable)
+			if (g_cfg.esp.hitsound && g_cfg.player.enable)
 			{
-				switch (config_system.g_cfg.esp.hitsound)
+				switch (g_cfg.esp.hitsound)
 				{
 				case 1:
 					m_surface()->PlaySound_(crypt_str("metallic.wav"));
@@ -409,7 +409,7 @@ void C_HookedEvents::FireGameEvent(IGameEvent* event)
 	}
 	else if (!strcmp(event_name, crypt_str("round_start")))
 	{
-		if (!config_system.g_cfg.misc.show_default_log && eventlogs::get().last_log && config_system.g_cfg.misc.log_output[EVENTLOG_OUTPUT_CONSOLE])
+		if (!g_cfg.misc.show_default_log && eventlogs::get().last_log && g_cfg.misc.log_output[EVENTLOG_OUTPUT_CONSOLE])
 		{
 			eventlogs::get().last_log = false;
 			m_cvar()->ConsolePrintf(crypt_str("-------------------------\n-------------------------\n-------------------------\n"));
@@ -440,7 +440,7 @@ void C_HookedEvents::FireGameEvent(IGameEvent* event)
 	else if (!strcmp(event_name, crypt_str("bomb_defused")))
 		g_ctx.globals.bomb_timer_enable = false;
 
-	if ((config_system.g_cfg.esp.bullet_tracer || config_system.g_cfg.esp.enemy_bullet_tracer) && config_system.g_cfg.player.enable)
+	if ((g_cfg.esp.bullet_tracer || g_cfg.esp.enemy_bullet_tracer) && g_cfg.player.enable)
 		bullettracers::get().events(event);
 
 	eventlogs::get().events(event);

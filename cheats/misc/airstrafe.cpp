@@ -17,7 +17,7 @@ void airstrafe::create_move(CUserCmd* m_pcmd) //-V2008
 	static auto cl_sidespeed = m_cvar()->FindVar(crypt_str("cl_sidespeed"));
 	auto side_speed = cl_sidespeed->GetFloat();
 
-	if (config_system.g_cfg.misc.airstrafe == 1)
+	if (g_cfg.misc.airstrafe == 1)
 	{
 		Vector engine_angles;
 		m_engine()->GetViewAngles(engine_angles);
@@ -35,7 +35,7 @@ void airstrafe::create_move(CUserCmd* m_pcmd) //-V2008
 
 		util::RotateMovement(m_pcmd, ideal_yaw_rotation);
 	}
-	else if (config_system.g_cfg.misc.airstrafe == 2)
+	else if (g_cfg.misc.airstrafe == 2)
 	{
 		static auto old_yaw = 0.0f;
 
@@ -149,7 +149,7 @@ void airstrafe::create_move(CUserCmd* m_pcmd) //-V2008
 
 		m_pcmd->m_sidemove = sin(yaw) * speed;
 	}
-	else if (config_system.g_cfg.misc.airstrafe == 3)
+	else if (g_cfg.misc.airstrafe == 3)
 	{
 		static auto old_yaw = 0.0f;
 

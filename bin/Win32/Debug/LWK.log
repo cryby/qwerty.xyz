@@ -1,0 +1,621 @@
+﻿  autowall.cpp
+  slowwalk.cpp
+  animation_system.cpp
+  local_animations.cpp
+  resolver.cpp
+  setup_bones.cpp
+  legitbot.cpp
+  menu.cpp
+  airstrafe.cpp
+  bunnyhop.cpp
+  fakelag.cpp
+  key_binds.cpp
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\autowall\autowall.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\autowall\autowall.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\autowall\autowall.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\lagcompensation\local_animations.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\lagcompensation\local_animations.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\lagcompensation\local_animations.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\misc\fakelag.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\misc\fakelag.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\misc\fakelag.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\lagcompensation\resolver.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\lagcompensation\resolver.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\lagcompensation\resolver.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\menu.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\menu.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\menu.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\lagcompensation\animation_system.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\lagcompensation\animation_system.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\lagcompensation\animation_system.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\lagcompensation\setup_bones.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\lagcompensation\setup_bones.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\lagcompensation\setup_bones.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\misc\key_binds.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\misc\key_binds.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\misc\key_binds.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\misc\airstrafe.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\misc\airstrafe.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\misc\airstrafe.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\fakewalk\slowwalk.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\fakewalk\slowwalk.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\fakewalk\slowwalk.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\legitbot\legitbot.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\legitbot\legitbot.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\legitbot\legitbot.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\misc\bunnyhop.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\misc\bunnyhop.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\misc\bunnyhop.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file cheats\autowall\autowall.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file cheats\autowall\autowall.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file cheats\autowall\autowall.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file cheats\autowall\autowall.cpp)
+C:\Users\mastr\Desktop\LWK-main\cheats\autowall\autowall.cpp(260,12): warning C4101: 'm_pEnt': unreferenced local variable
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file cheats\lagcompensation\local_animations.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file cheats\lagcompensation\local_animations.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file cheats\lagcompensation\local_animations.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file cheats\lagcompensation\local_animations.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file cheats\menu.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file cheats\menu.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file cheats\menu.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file cheats\menu.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file cheats\misc\fakelag.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file cheats\misc\fakelag.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file cheats\misc\fakelag.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file cheats\misc\fakelag.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file cheats\lagcompensation\setup_bones.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file cheats\lagcompensation\setup_bones.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file cheats\lagcompensation\setup_bones.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file cheats\lagcompensation\setup_bones.cpp)
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\setup_bones.cpp(87): warning C4409: illegal instruction size
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\setup_bones.cpp(112): warning C4409: illegal instruction size
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\setup_bones.cpp(129): warning C4409: illegal instruction size
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\setup_bones.cpp(338,120): warning C4018: '<': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file cheats\lagcompensation\resolver.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file cheats\lagcompensation\resolver.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file cheats\lagcompensation\resolver.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file cheats\lagcompensation\resolver.cpp)
+C:\Users\mastr\Desktop\LWK-main\cheats\menu.cpp(317,15): warning C4101: 'idzs': unreferenced local variable
+C:\Users\mastr\Desktop\LWK-main\cheats\menu.cpp(891,21): warning C4018: '<': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\cheats\menu.cpp(951,22): warning C4018: '>=': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\cheats\menu.cpp(962,21): warning C4018: '<': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\cheats\menu.cpp(980,21): warning C4018: '<': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\cheats\menu.cpp(1006,28): warning C4018: '>=': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file cheats\misc\airstrafe.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file cheats\misc\airstrafe.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file cheats\misc\airstrafe.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file cheats\misc\airstrafe.cpp)
+C:\Users\mastr\Desktop\LWK-main\cheats\menu.cpp(2146,25): warning C4018: '<': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\cheats\menu.cpp(2251,26): warning C4018: '<': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\cheats\menu.cpp(2255,27): warning C4018: '<': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\cheats\menu.cpp(2283,27): warning C4018: '<': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\cheats\menu.cpp(2287,28): warning C4018: '<': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\cheats\menu.cpp(2316,58): warning C4566: character represented by universal-character-name '\u0421' cannot be represented in the current code page (1250)
+C:\Users\mastr\Desktop\LWK-main\cheats\menu.cpp(2317,98): warning C4566: character represented by universal-character-name '\u0421' cannot be represented in the current code page (1250)
+C:\Users\mastr\Desktop\LWK-main\cheats\menu.cpp(2317,122): warning C4566: character represented by universal-character-name '\u0420' cannot be represented in the current code page (1250)
+C:\Users\mastr\Desktop\LWK-main\cheats\menu.cpp(2328,17): warning C4018: '<': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\cheats\menu.cpp(3103,25): warning C4018: '>=': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\cheats\menu.cpp(3128,25): warning C4018: '>=': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\cheats\menu.cpp(3149,25): warning C4018: '>=': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\cheats\menu.cpp(3170,25): warning C4018: '>=': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\cheats\menu.cpp(3189,25): warning C4018: '>=': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file cheats\lagcompensation\animation_system.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file cheats\lagcompensation\animation_system.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file cheats\lagcompensation\animation_system.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file cheats\lagcompensation\animation_system.cpp)
+C:\Users\mastr\Desktop\LWK-main\cheats\menu.cpp(3364,24): warning C4018: '>=': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(124,31): warning C4804: '<=': unsafe use of type 'bool' in operation
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(161,55): warning C4145: '&&': relational expression as switch expression; possible confusion with '&'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(165,3): warning C4808: case '2' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(168,3): warning C4808: case '3' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(171,3): warning C4808: case '4' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(174,3): warning C4808: case '5' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(177,3): warning C4808: case '6' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(180,3): warning C4808: case '7' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(183,3): warning C4808: case '8' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(186,3): warning C4808: case '9' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(189,3): warning C4808: case '10' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(192,3): warning C4808: case '11' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(195,3): warning C4808: case '12' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(198,3): warning C4808: case '13' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(201,3): warning C4808: case '14' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(204,3): warning C4808: case '15' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(207,3): warning C4808: case '16' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(210,3): warning C4808: case '17' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(213,3): warning C4808: case '18' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(216,3): warning C4808: case '19' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(219,3): warning C4808: case '20' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(222,3): warning C4808: case '21' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(225,3): warning C4808: case '22' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(228,3): warning C4808: case '23' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(114,17): warning C4101: 'preserver_anim_layers': unreferenced local variable
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(368,56): warning C4145: '&&': relational expression as switch expression; possible confusion with '&'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(275,3): warning C4808: case '2' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(297,3): warning C4808: case '2' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(307,3): warning C4808: case '2' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(317,3): warning C4808: case '2' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(339,3): warning C4808: case '2' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(362,3): warning C4808: case '2' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(372,4): warning C4808: case '2' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(375,4): warning C4808: case '3' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(378,4): warning C4808: case '4' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(381,4): warning C4808: case '5' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(384,4): warning C4808: case '6' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(411,55): warning C4145: '&&': relational expression as switch expression; possible confusion with '&'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(421,55): warning C4145: '&&': relational expression as switch expression; possible confusion with '&'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(415,3): warning C4808: case '2' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(425,3): warning C4808: case '2' is not a valid value for switch condition of type 'bool'
+C:\Users\mastr\Desktop\LWK-main\cheats\lagcompensation\resolver.cpp(394,16): warning C4101: 'player_info': unreferenced local variable
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file cheats\fakewalk\slowwalk.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file cheats\fakewalk\slowwalk.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file cheats\fakewalk\slowwalk.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file cheats\fakewalk\slowwalk.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file cheats\misc\key_binds.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file cheats\misc\key_binds.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file cheats\misc\key_binds.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file cheats\misc\key_binds.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file cheats\legitbot\legitbot.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file cheats\legitbot\legitbot.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file cheats\legitbot\legitbot.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file cheats\legitbot\legitbot.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file cheats\misc\bunnyhop.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file cheats\misc\bunnyhop.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file cheats\misc\bunnyhop.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file cheats\misc\bunnyhop.cpp)
+  logs.cpp
+  misc.cpp
+  prediction_system.cpp
+  spammers.cpp
+  aim.cpp
+  antiaim.cpp
+  knifebot.cpp
+  zeusbot.cpp
+  bullet_tracers.cpp
+  dormant_esp.cpp
+  GrenadePrediction.cpp
+  nightmode.cpp
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\misc\logs.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\misc\logs.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\misc\logs.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\misc\misc.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\misc\misc.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\misc\misc.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\misc\prediction_system.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\misc\prediction_system.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\misc\prediction_system.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\ragebot\aim.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\ragebot\aim.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\ragebot\aim.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\misc\spammers.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\misc\spammers.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\misc\spammers.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\ragebot\zeusbot.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\ragebot\zeusbot.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\ragebot\zeusbot.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\ragebot\antiaim.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\ragebot\antiaim.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\ragebot\antiaim.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\ragebot\knifebot.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\ragebot\knifebot.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\ragebot\knifebot.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\visuals\bullet_tracers.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\visuals\bullet_tracers.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\visuals\bullet_tracers.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\visuals\nightmode.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\visuals\nightmode.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\visuals\nightmode.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\visuals\dormant_esp.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\visuals\dormant_esp.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\visuals\dormant_esp.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\visuals\GrenadePrediction.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\visuals\GrenadePrediction.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\visuals\GrenadePrediction.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file cheats\misc\prediction_system.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file cheats\misc\prediction_system.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file cheats\misc\prediction_system.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file cheats\misc\prediction_system.cpp)
+C:\Users\mastr\Desktop\LWK-main\cheats\misc\prediction_system.cpp(5,10): fatal error C1083: Cannot open include file: 'cheats/lagcompensation/animation_system.h': No such file or directory
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file cheats\ragebot\aim.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file cheats\ragebot\aim.cpp)
+  other_esp.cpp
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file cheats\ragebot\aim.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file cheats\ragebot\aim.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file cheats\ragebot\zeusbot.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file cheats\ragebot\zeusbot.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file cheats\ragebot\zeusbot.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file cheats\ragebot\zeusbot.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file cheats\misc\spammers.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file cheats\misc\spammers.cpp)
+C:\Users\mastr\Desktop\LWK-main\cheats\ragebot\aim.cpp(140,22): warning C4018: '<': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file cheats\misc\spammers.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file cheats\misc\spammers.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file cheats\ragebot\antiaim.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file cheats\ragebot\antiaim.cpp)
+C:\Users\mastr\Desktop\LWK-main\cheats\ragebot\aim.cpp(178,22): warning C4018: '<': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file cheats\ragebot\antiaim.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file cheats\ragebot\antiaim.cpp)
+C:\Users\mastr\Desktop\LWK-main\cheats\ragebot\aim.cpp(210,22): warning C4018: '<': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file cheats\misc\misc.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file cheats\misc\misc.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file cheats\misc\misc.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file cheats\misc\misc.cpp)
+C:\Users\mastr\Desktop\LWK-main\cheats\visuals\world_esp.h(7,10): warning C4099: 'Box': type name first seen using 'struct' now seen using 'class' (compiling source file cheats\misc\misc.cpp)
+C:\Users\mastr\Desktop\LWK-main\utils\util.hpp(19): message : see declaration of 'Box' (compiling source file cheats\misc\misc.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file cheats\misc\logs.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file cheats\misc\logs.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file cheats\misc\logs.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file cheats\misc\logs.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file cheats\visuals\bullet_tracers.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file cheats\visuals\bullet_tracers.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file cheats\visuals\bullet_tracers.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file cheats\visuals\bullet_tracers.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file cheats\ragebot\knifebot.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file cheats\ragebot\knifebot.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file cheats\ragebot\knifebot.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file cheats\ragebot\knifebot.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file cheats\visuals\GrenadePrediction.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file cheats\visuals\GrenadePrediction.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file cheats\visuals\GrenadePrediction.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file cheats\visuals\GrenadePrediction.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file cheats\visuals\nightmode.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file cheats\visuals\nightmode.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file cheats\visuals\nightmode.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file cheats\visuals\nightmode.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file cheats\visuals\dormant_esp.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file cheats\visuals\dormant_esp.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file cheats\visuals\dormant_esp.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file cheats\visuals\dormant_esp.cpp)
+C:\Users\mastr\Desktop\LWK-main\cheats\visuals\nightmode.cpp(64,21): warning C4018: '<': signed/unsigned mismatch
+  player_esp.cpp
+  world_esp.cpp
+  configs.cpp
+  hooks.cpp
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\visuals\other_esp.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\visuals\other_esp.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\visuals\other_esp.cpp)
+  hooked_beginframe.cpp
+  hooked_createmove.cpp
+  hooked_dme.cpp
+  hooked_drawfog.cpp
+  hooked_events.cpp
+  hooked_findmdl.cpp
+  hooked_fsn.cpp
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file cheats\visuals\other_esp.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file cheats\visuals\other_esp.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file cheats\visuals\other_esp.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file cheats\visuals\other_esp.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\visuals\player_esp.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\visuals\player_esp.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\visuals\player_esp.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\visuals\world_esp.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\visuals\world_esp.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file cheats\visuals\world_esp.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file configs\configs.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file configs\configs.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file configs\configs.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_beginframe.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_beginframe.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_beginframe.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_dme.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_dme.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_dme.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_drawfog.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_drawfog.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_drawfog.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_createmove.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_createmove.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_createmove.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_findmdl.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_findmdl.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_findmdl.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_events.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_events.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_events.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_fsn.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_fsn.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_fsn.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file hooks\hooks.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file hooks\hooks.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file hooks\hooks.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file hooks\hooks.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file cheats\visuals\world_esp.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file cheats\visuals\world_esp.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file cheats\visuals\world_esp.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file cheats\visuals\world_esp.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file cheats\visuals\player_esp.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file cheats\visuals\player_esp.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file cheats\visuals\player_esp.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file cheats\visuals\player_esp.cpp)
+C:\Users\mastr\Desktop\LWK-main\cheats\visuals\world_esp.h(7,10): warning C4099: 'Box': type name first seen using 'struct' now seen using 'class' (compiling source file cheats\visuals\world_esp.cpp)
+C:\Users\mastr\Desktop\LWK-main\utils\util.hpp(19): message : see declaration of 'Box' (compiling source file cheats\visuals\world_esp.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file configs\configs.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file configs\configs.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file configs\configs.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file configs\configs.cpp)
+  hooked_getmaterial.cpp
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file hooks\hooks\hooked_dme.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file hooks\hooks\hooked_dme.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file hooks\hooks\hooked_dme.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file hooks\hooks\hooked_dme.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file hooks\hooks\hooked_beginframe.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file hooks\hooks\hooked_beginframe.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file hooks\hooks\hooked_beginframe.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file hooks\hooks\hooked_beginframe.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file hooks\hooks\hooked_createmove.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file hooks\hooks\hooked_createmove.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file hooks\hooks\hooked_createmove.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file hooks\hooks\hooked_createmove.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file hooks\hooks\hooked_drawfog.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file hooks\hooks\hooked_drawfog.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file hooks\hooks\hooked_drawfog.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file hooks\hooks\hooked_drawfog.cpp)
+C:\Users\mastr\Desktop\LWK-main\hooks\hooks\hooked_createmove.cpp(402,35): warning C4018: '>': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\hooks\hooks\hooked_createmove.cpp(412,39): warning C4018: '>': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\configs\configs.cpp(314,21): warning C4018: '<': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file hooks\hooks\hooked_findmdl.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file hooks\hooks\hooked_findmdl.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file hooks\hooks\hooked_findmdl.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file hooks\hooks\hooked_findmdl.cpp)
+C:\Users\mastr\Desktop\LWK-main\configs\configs.cpp(495,21): warning C4018: '<': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file hooks\hooks\hooked_events.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file hooks\hooks\hooked_events.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file hooks\hooks\hooked_events.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file hooks\hooks\hooked_events.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file hooks\hooks\hooked_fsn.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file hooks\hooks\hooked_fsn.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file hooks\hooks\hooked_fsn.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file hooks\hooks\hooked_fsn.cpp)
+C:\Users\mastr\Desktop\LWK-main\cheats\visuals\world_esp.h(7,10): warning C4099: 'Box': type name first seen using 'struct' now seen using 'class' (compiling source file hooks\hooks\hooked_fsn.cpp)
+C:\Users\mastr\Desktop\LWK-main\utils\util.hpp(19): message : see declaration of 'Box' (compiling source file hooks\hooks\hooked_fsn.cpp)
+  hooked_ishltv.cpp
+  hooked_listleavesinbox.cpp
+  hooked_lockcursor.cpp
+  hooked_overrideview.cpp
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_getmaterial.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_getmaterial.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_getmaterial.cpp)
+  hooked_painttraverse.cpp
+  hooked_postscreeneffects.cpp
+  hooked_runcommand.cpp
+  hooked_sceneend.cpp
+  hooked_senddatagram.cpp
+  hooked_player.cpp
+  hooked_isconnected.cpp
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file hooks\hooks\hooked_getmaterial.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file hooks\hooks\hooked_getmaterial.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file hooks\hooks\hooked_getmaterial.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file hooks\hooks\hooked_getmaterial.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_ishltv.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_ishltv.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_ishltv.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_listleavesinbox.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_listleavesinbox.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_listleavesinbox.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_overrideview.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_overrideview.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_overrideview.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_painttraverse.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_painttraverse.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_painttraverse.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_postscreeneffects.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_postscreeneffects.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_postscreeneffects.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_lockcursor.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_lockcursor.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_lockcursor.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_sceneend.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_sceneend.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_sceneend.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_runcommand.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_runcommand.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_runcommand.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_isconnected.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_isconnected.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_isconnected.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_senddatagram.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_senddatagram.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_senddatagram.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_player.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_player.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_player.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file hooks\hooks\hooked_ishltv.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file hooks\hooks\hooked_ishltv.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file hooks\hooks\hooked_ishltv.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file hooks\hooks\hooked_ishltv.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file hooks\hooks\hooked_listleavesinbox.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file hooks\hooks\hooked_listleavesinbox.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file hooks\hooks\hooked_listleavesinbox.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file hooks\hooks\hooked_listleavesinbox.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file hooks\hooks\hooked_painttraverse.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file hooks\hooks\hooked_painttraverse.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file hooks\hooks\hooked_painttraverse.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file hooks\hooks\hooked_painttraverse.cpp)
+  hooked_trace.cpp
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file hooks\hooks\hooked_overrideview.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file hooks\hooks\hooked_overrideview.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file hooks\hooks\hooked_overrideview.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file hooks\hooks\hooked_overrideview.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file hooks\hooks\hooked_postscreeneffects.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file hooks\hooks\hooked_postscreeneffects.cpp)
+C:\Users\mastr\Desktop\LWK-main\cheats\visuals\world_esp.h(7,10): warning C4099: 'Box': type name first seen using 'struct' now seen using 'class' (compiling source file hooks\hooks\hooked_painttraverse.cpp)
+C:\Users\mastr\Desktop\LWK-main\cheats\visuals\player_esp.h(6): message : see declaration of 'Box' (compiling source file hooks\hooks\hooked_painttraverse.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file hooks\hooks\hooked_postscreeneffects.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file hooks\hooks\hooked_postscreeneffects.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file hooks\hooks\hooked_lockcursor.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file hooks\hooks\hooked_lockcursor.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file hooks\hooks\hooked_lockcursor.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file hooks\hooks\hooked_lockcursor.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file hooks\hooks\hooked_isconnected.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file hooks\hooks\hooked_isconnected.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file hooks\hooks\hooked_isconnected.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file hooks\hooks\hooked_isconnected.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file hooks\hooks\hooked_runcommand.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file hooks\hooks\hooked_runcommand.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file hooks\hooks\hooked_runcommand.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file hooks\hooks\hooked_runcommand.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file hooks\hooks\hooked_sceneend.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file hooks\hooks\hooked_sceneend.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file hooks\hooks\hooked_sceneend.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file hooks\hooks\hooked_sceneend.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file hooks\hooks\hooked_senddatagram.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file hooks\hooks\hooked_senddatagram.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file hooks\hooks\hooked_senddatagram.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file hooks\hooks\hooked_senddatagram.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file hooks\hooks\hooked_player.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file hooks\hooks\hooked_player.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file hooks\hooks\hooked_player.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file hooks\hooks\hooked_player.cpp)
+  vfunc_hook.cpp
+  code_editor.cpp
+  imgui.cpp
+  imgui_freetype.cpp
+  imgui_widgets.cpp
+  Clua.cpp
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_trace.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_trace.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\hooks\hooked_trace.cpp)
+  main.cpp
+  SkinChanger.cpp
+  Convar.cpp
+  structs.cpp
+  csgo.cpp
+C:\Users\mastr\Desktop\LWK-main\ImGui\imgui_freetype.cpp(29,10): fatal error C1083: Cannot open include file: 'ft2build.h': No such file or directory
+  ctx.cpp
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file hooks\hooks\hooked_trace.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file hooks\hooks\hooked_trace.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file hooks\hooks\hooked_trace.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file hooks\hooks\hooked_trace.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file ImGui\imgui.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file ImGui\imgui.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file ImGui\imgui.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\vfunc_hook.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\vfunc_hook.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file hooks\vfunc_hook.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file ImGui\code_editor.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file ImGui\code_editor.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file ImGui\code_editor.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file utils\csgo.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file utils\csgo.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file utils\csgo.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file ImGui\imgui_widgets.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file ImGui\imgui_widgets.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file ImGui\imgui_widgets.cpp)
+C:\Users\mastr\Desktop\LWK-main\lua\Clua.cpp(8,10): fatal error C1083: Cannot open include file: '..\..\cheats\visuals\other_esp.h': No such file or directory
+  draw_manager.cpp
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file nSkinz\SkinChanger.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file nSkinz\SkinChanger.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file nSkinz\SkinChanger.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file main.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file main.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file main.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file sdk\structs.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file sdk\structs.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file sdk\structs.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file hooks\vfunc_hook.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file hooks\vfunc_hook.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file hooks\vfunc_hook.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file hooks\vfunc_hook.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file ImGui\imgui.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file ImGui\imgui.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file ImGui\code_editor.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file ImGui\code_editor.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file ImGui\imgui.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file ImGui\imgui.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file ImGui\code_editor.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file ImGui\code_editor.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file utils\ctx.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file utils\ctx.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file utils\ctx.cpp)
+C:\Users\mastr\Desktop\LWK-main\ImGui\code_editor.cpp(87,28): warning C4018: '<': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\ImGui\code_editor.cpp(462,16): warning C4018: '>=': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\ImGui\code_editor.cpp(495,25): warning C4018: '>=': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\ImGui\code_editor.cpp(500,11): warning C4018: '<': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\ImGui\code_editor.cpp(513,12): warning C4018: '>=': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\ImGui\code_editor.cpp(532,12): warning C4018: '>=': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\ImGui\code_editor.cpp(543,12): warning C4018: '>=': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\ImGui\code_editor.cpp(759,22): warning C4018: '<': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\ImGui\code_editor.cpp(1026,22): warning C4018: '<': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\ImGui\code_editor.cpp(1637,37): warning C4018: '>=': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\ImGui\code_editor.cpp(1646,14): warning C4018: '>=': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\ImGui\code_editor.cpp(1648,37): warning C4018: '<': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\ImGui\code_editor.cpp(1886,18): warning C4018: '<': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\ImGui\code_editor.cpp(2276,22): warning C4018: '<': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\ImGui\code_editor.cpp(2300,40): warning C4018: '<': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\ImGui\code_editor.cpp(2354,49): warning C4018: '<': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\ImGui\code_editor.cpp(2407,46): warning C4018: '<': signed/unsigned mismatch
+  math.cpp
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file ImGui\imgui_widgets.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file ImGui\imgui_widgets.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file ImGui\imgui_widgets.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file ImGui\imgui_widgets.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file nSkinz\SkinChanger.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file nSkinz\SkinChanger.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file nSkinz\SkinChanger.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file nSkinz\SkinChanger.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file main.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file main.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file main.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file main.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file utils\csgo.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file utils\csgo.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file utils\csgo.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file utils\csgo.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file sdk\structs.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file sdk\structs.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file sdk\structs.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file sdk\structs.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file utils\ctx.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file utils\ctx.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file utils\ctx.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file utils\ctx.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file sdk\misc\Convar.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file sdk\misc\Convar.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file sdk\misc\Convar.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file sdk\misc\Convar.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\UtlBuffer.hpp(23,24): warning C4099: 'typedescription_t': type name first seen using 'struct' now seen using 'class' (compiling source file sdk\misc\Convar.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file sdk\misc\Convar.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file utils\draw_manager.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file utils\draw_manager.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file utils\draw_manager.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file utils\math.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file utils\math.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file utils\math.cpp)
+  md5.cpp
+  netmanager.cpp
+  recv.cpp
+  util.cpp
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file utils\draw_manager.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file utils\draw_manager.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file utils\draw_manager.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file utils\draw_manager.cpp)
+C:\Users\mastr\Desktop\LWK-main\utils\draw_manager.cpp(262,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\utils\draw_manager.cpp(303,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\mastr\Desktop\LWK-main\utils\md5.cpp(312,3): error C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file utils\math.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file utils\math.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file utils\math.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file utils\math.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file utils\netmanager.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file utils\netmanager.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file utils\netmanager.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file utils\recv.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file utils\recv.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file utils\recv.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(115,44): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file utils\util.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(116,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file utils\util.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\math\VMatrix.hpp(117,38): warning C4244: '=': conversion from 'double' to 'float', possible loss of data (compiling source file utils\util.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file utils\netmanager.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file utils\netmanager.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file utils\netmanager.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file utils\netmanager.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file utils\recv.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file utils\recv.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file utils\recv.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file utils\recv.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\KeyValues.hpp(16,22): warning C4099: 'IBaseFileSystem': type name first seen using 'struct' now seen using 'class' (compiling source file utils\util.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\interfaces\ILocalize.hpp(33): message : see declaration of 'IBaseFileSystem' (compiling source file utils\util.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(66,1): warning C4099: 'typedescription_t': type name first seen using 'class' now seen using 'struct' (compiling source file utils\util.cpp)
+C:\Users\mastr\Desktop\LWK-main\sdk\misc\datamap.h(65): message : see declaration of 'typedescription_t' (compiling source file utils\util.cpp)

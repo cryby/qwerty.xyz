@@ -25,8 +25,6 @@ public:
 	void penetration_reticle();
 	void indicators();
 	void draw_indicators();
-	void DrawArrows();
-	void draw_velocity();
 	void hitmarker_paint();
 	void damage_marker_paint();
 	void spread_crosshair(LPDIRECT3DDEVICE9 device);

@@ -18,20 +18,7 @@ static const char* player_model_index_t[] =
 	"models/player/custom_player/legacy/tm_leet_varianti.mdl",
 	"models/player/custom_player/legacy/tm_balkan_variantg.mdl",
 	"models/player/custom_player/legacy/tm_balkan_varianth.mdl",
-	"models/player/custom_player/legacy/tm_leet_variantf.mdl",
-	"models/player/custom_player/legacy/tm_professional_varg.mdl",
-	"models/player/custom_player/legacy/tm_professional_varf.mdl",
-	"models/player/custom_player/legacy/tm_professional_varf.mdl",
-	"models/player/custom_player/legacy/tm_professional_varf1.mdl",
-	"models/player/custom_player/legacy/tm_professional_varj.mdl",
-	"models/player/custom_player/legacy/tm_professional_varf2.mdl",
-	"models/player/custom_player/legacy/tm_professional_varf3.mdl",
-	"models/player/custom_player/legacy/tm_professional_varf4.mdl",
-	"models/player/custom_player/legacy/tm_professional_varh.mdl",
-	"models/player/custom_player/legacy/tm_phoenix_varianti.mdl",
-	"models/player/custom_player/legacy/tm_balkan_variantk.mdl",
-	"models/player/custom_player/legacy/tm_balkan_variantl.mdl",
-
+	"models/player/custom_player/legacy/tm_leet_variantf.mdl"
 };
 
 static const char* player_model_index_ct[] =
@@ -44,15 +31,7 @@ static const char* player_model_index_ct[] =
 	"models/player/custom_player/legacy/ctm_st6_variantg.mdl",
 	"models/player/custom_player/legacy/ctm_st6_variantm.mdl",
 	"models/player/custom_player/legacy/ctm_st6_varianti.mdl",
-	"models/player/custom_player/legacy/ctm_fbi_variantb.mdl",
-	"models/player/custom_player/legacy/ctm_swat_varianti.mdl",
-	"models/player/custom_player/legacy/ctm_swat_varianth.mdl",
-	"models/player/custom_player/legacy/ctm_swat_variante.mdl",
-	"models/player/custom_player/legacy/ctm_swat_variantg.mdl",
-	"models/player/custom_player/legacy/ctm_swat_variantj.mdl",
-	"models/player/custom_player/legacy/ctm_swat_variantf.mdl",
-	"models/player/custom_player/legacy/ctm_st6_variantl.mdl",
-	"models/player/custom_player/legacy/ctm_st6_variantj.mdl"
+	"models/player/custom_player/legacy/ctm_fbi_variantb.mdl"
 };
 
 Memory memory;
@@ -276,7 +255,7 @@ void SkinChanger::run(ClientFrameStage_t stage) noexcept
 
 	static auto backup_model_index = -1;
 
-	if (config_system.g_cfg.player.enable)
+	if (g_cfg.player.enable)
 	{
 		const char** player_model_index = nullptr;
 		auto player_model = 0;
@@ -285,11 +264,11 @@ void SkinChanger::run(ClientFrameStage_t stage) noexcept
 		{
 		case 2:
 			player_model_index = player_model_index_t;
-			player_model = config_system.g_cfg.player.player_model_t;
+			player_model = g_cfg.player.player_model_t;
 			break;
 		case 3:
 			player_model_index = player_model_index_ct;
-			player_model = config_system.g_cfg.player.player_model_ct;
+			player_model = g_cfg.player.player_model_ct;
 			break;
 		}
 

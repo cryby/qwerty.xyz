@@ -355,7 +355,7 @@ namespace util
 
 	bool get_backtrack_matrix(player_t* e, matrix3x4_t* matrix)
 	{
-		if (!config_system.g_cfg.ragebot.enable && !config_system.g_cfg.legitbot.enabled)
+		if (!g_cfg.ragebot.enable && !g_cfg.legitbot.enabled)
 			return false;
 
 		auto nci = m_engine()->GetNetChannelInfo();
@@ -448,7 +448,7 @@ namespace util
 		static auto cl_forwardspeed = m_cvar()->FindVar(crypt_str("cl_forwardspeed"));
 		static auto cl_sidespeed = m_cvar()->FindVar(crypt_str("cl_sidespeed"));
 
-		if (config_system.g_cfg.ragebot.slow_teleport)
+		if (g_cfg.ragebot.slow_teleport)
 		{
 			cmd->m_forwardmove = 0.0f;
 			cmd->m_sidemove = 0.0f;

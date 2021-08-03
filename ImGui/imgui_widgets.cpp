@@ -671,7 +671,7 @@ bool ImGui::ContentTab(const char* label, bool active, const ImVec2& size_arg, I
 
     // Render
     const ImVec4 text_dis = ImVec4(202 / 255.f, 202 / 255.f, 202 / 255.f, 1.f);
-    const ImVec4 text_act = ImVec4(0.f, 143.f, 255.f, 1.f);
+    const ImVec4 text_act = ImVec4(126 / 255.f, 131 / 255.f, 219 / 255.f, 1.f);
     const ImVec4 text_hov = ImVec4(255 / 255.f, 255 / 255.f, 255 / 255.f, 1.f);
 
     float deltatime = 1.5f * ImGui::GetIO().DeltaTime;
@@ -804,7 +804,8 @@ bool ImGui::MainTab(const char* label, ImFont* icon_font, const char* icon, bool
     const ImVec4 text_act = ImVec4(255 / 255.f, 255 / 255.f, 255 / 255.f, 1.f);
 
     const ImVec4 icon_dis = ImVec4(202 / 255.f, 202 / 255.f, 202 / 255.f, 1.f);
-    const ImVec4 icon_act = ImVec4(126 / 255.f, 131 / 255.f, 219 / 255.f, 1.f);
+    //const ImVec4 icon_act = ImVec4(126 / 255.f, 131 / 255.f, 219 / 255.f, 1.f);
+    const ImVec4 icon_act = ImVec4(25 / 255.f, 25 / 255.f, 255 / 255.f, 1.f);
 
     float deltatime = 1.5f * ImGui::GetIO().DeltaTime;
 
@@ -943,7 +944,7 @@ bool ImGui::MainTab(const char* label, ImFont* icon_font, const char* icon, bool
     PushStyleColor(ImGuiCol_Text, it_icon->second);
 
     PushFont(icon_font);
-    RenderTextClipped(bb.Min + ImVec2(size_arg.x * 0.05f, -3 * c_menu::get().dpi_scale), bb.Max, icon, NULL, &icon_size, ImVec2(0.f, 0.27f), &bb);
+    RenderTextClipped(bb.Min + ImVec2(size_arg.x * 0.05f, 5 * c_menu::get().dpi_scale), bb.Max, icon, NULL, &icon_size, ImVec2(0.f, 0.27f), &bb);
     PopFont();
 
     PopStyleColor();
@@ -995,8 +996,8 @@ bool ImGui::KeybindButton(const char* label, const char* unique_id, const ImVec2
     }
     it_hover->second = math::clamp(it_hover->second + (3.f * ImGui::GetIO().DeltaTime * ((hovered || clicked) ? 1.f : -1.f)), 0.0f, 1.f);
 
-    const ImVec4 hover_act = ImVec4(12.f, 111.f, 168.f, 0.f);
-    const ImVec4 hover_dis = ImVec4(12.f, 111.f, 168.f, 0.f);
+    const ImVec4 hover_act = ImVec4(202 / 255.f, 202 / 255.f, 202 / 255.f, 1.f);
+    const ImVec4 hover_dis = ImVec4(255 / 255.f, 255 / 255.f, 255 / 255.f, 1.f);
 
     float deltatime = 1.5f * ImGui::GetIO().DeltaTime;
     static std::map<ImGuiID, ImVec4> hover_color;
@@ -1065,7 +1066,7 @@ bool ImGui::KeybindButton(const char* label, const char* unique_id, const ImVec2
     const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
 
     RenderFrame(bb.Min, bb.Max, col, true, 2.f * c_menu::get().dpi_scale);
-    ImGui::GetWindowDrawList()->AddRect(bb.Min, bb.Max, GetColorU32(ImVec4(255 / 255.f, 0 / 255.f, 0 / 255.f, it_hover->second)), 2.f * c_menu::get().dpi_scale);
+    ImGui::GetWindowDrawList()->AddRect(bb.Min, bb.Max, GetColorU32(ImVec4(126 / 255.f, 131 / 255.f, 219 / 255.f, it_hover->second)), 2.f * c_menu::get().dpi_scale);
 
     PushStyleColor(ImGuiCol_Text, it_hcolor->second);
     RenderTextClipped(bb.Min + style.FramePadding, bb.Max - style.FramePadding, label, NULL, &label_size, style.ButtonTextAlign, &bb);
@@ -1213,15 +1214,15 @@ bool ImGui::CustomButton(const char* label, const char* label_id, const ImVec2& 
     const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
 
     const ImVec4 text_act = ImVec4(255 / 255.f, 255 / 255.f, 255 / 255.f, 1.f);
-    const ImVec4 icon_act = ImVec4(0.f, 143.f, 255.f, 1.f);
+    const ImVec4 icon_act = ImVec4(126 / 255.f, 131 / 255.f, 219 / 255.f, 1.f);
 
     RenderFrame(bb.Min, bb.Max, col, true, 2.f * c_menu::get().dpi_scale);
 
     window->DrawList->PushClipRect(bb.Min, bb.Max, false);
-    ImGui::GetWindowDrawList()->AddCircleFilled(it_circle->second.pos, it_circle->second.radius, GetColorU32(ImVec4(255 / 255.f, 0 / 255.f, 0 / 255.f, it_circle->second.alpha)), 60);
+    ImGui::GetWindowDrawList()->AddCircleFilled(it_circle->second.pos, it_circle->second.radius, GetColorU32(ImVec4(126 / 255.f, 131 / 255.f, 219 / 255.f, it_circle->second.alpha)), 60);
     window->DrawList->PopClipRect();
 
-    ImGui::GetWindowDrawList()->AddRect(bb.Min, bb.Max, GetColorU32(ImVec4(255 / 255.f, 0 / 255.f, 0 / 255.f, it_hover->second)), 2.f * c_menu::get().dpi_scale);
+    ImGui::GetWindowDrawList()->AddRect(bb.Min, bb.Max, GetColorU32(ImVec4(126 / 255.f, 131 / 255.f, 219 / 255.f, it_hover->second)), 2.f * c_menu::get().dpi_scale);
 
     if (use_icon)
     {
@@ -1513,8 +1514,8 @@ bool ImGui::ScrollbarEx(const ImRect& bb_frame, ImGuiID id, ImGuiAxis axis, floa
     float deltatime = 1.5f * ImGui::GetIO().DeltaTime;
 
     // Render
-    ImVec4 hover_dis = ImVec4(0.f, 143.f, 255.f, 1.f);
-    ImVec4 hover_act = ImVec4(255 / 255.f, 255 / 255.f, 255 / 255.f, 1.f);
+    ImVec4 hover_dis = ImVec4(126 / 255.f, 131 / 255.f, 219 / 255.f, 1.f);
+    ImVec4 hover_act = ImVec4(147 / 255.f, 157 / 255.f, 249 / 255.f, 1.f);
 
     static std::map<ImGuiID, ImVec4> hover_color;
     auto it_hcolor = hover_color.find(id);
@@ -1704,10 +1705,10 @@ bool ImGui::Checkbox(const char* label, bool* v)
         it_hover->second = math::clamp(it_hover->second + (3.f * ImGui::GetIO().DeltaTime), 0.0f, 1.f);
 
     const ImVec4 text_dis = style.Colors[ImGuiCol_Text];
-    const ImVec4 text_act = ImVec4(12.f, 111.f, 168.f, 0.f);
+    const ImVec4 text_act = ImVec4(244 / 255.f, 244 / 255.f, 244 / 255.f, 1.f);
 
-    const ImVec4 hover_act = ImVec4(12.f, 111.f, 168.f, 0.f);
-    const ImVec4 hover_dis = ImVec4(12.f, 111.f, 168.f, 0.f);
+    const ImVec4 hover_act = ImVec4(202 / 255.f, 202 / 255.f, 202 / 255.f, 1.f);
+    const ImVec4 hover_dis = ImVec4(177 / 255.f, 243 / 255.f, 244 / 255.f, 1.f);
 
     static std::map<ImGuiID, ImVec4> hover_color;
     auto it_hcolor = hover_color.find(id);
@@ -1846,10 +1847,12 @@ bool ImGui::Checkbox(const char* label, bool* v)
         it_filled->second = math::clamp(it_filled->second + (2.2f * ImGui::GetIO().DeltaTime * ((*v) ? 1.f : -1.f)), 0.0f, 1.f);
 
     const ImRect check_bb(pos, pos + ImVec2(square_sz, square_sz));
+    const float pad = ImMax(1.0f, IM_FLOOR(square_sz / 6.0f));
 
     window->DrawList->AddRect(check_bb.Min, check_bb.Max, GetColorU32(ImVec4(it_hcolor->second.x, it_hcolor->second.y, it_hcolor->second.z, it_hover->second)), 2.f * c_menu::get().dpi_scale, 15, 0.7f);
 
-    window->DrawList->AddRectFilled(check_bb.Min, check_bb.Max, GetColorU32(ImVec4(0.f, 143.f, 255.f, it_filled->second)), 2.f * c_menu::get().dpi_scale);
+    //window->DrawList->AddRectFilled(check_bb.Min, check_bb.Max, GetColorU32(ImVec4(126 / 255.f, 131 / 255.f, 219 / 255.f, it_filled->second)), 2.f * c_menu::get().dpi_scale);
+    window->DrawList->RenderCheckMark(check_bb.Min + ImVec2(pad, pad), GetColorU32(ImVec4(89 / 255.f, 184 / 255.f, 228 / 255.f, it_filled->second)), square_sz - pad * 2.f * c_menu::get().dpi_scale);
 
 
     ImGui::PushStyleColor(ImGuiCol_Text, it_text->second);
@@ -1859,7 +1862,7 @@ bool ImGui::Checkbox(const char* label, bool* v)
 
     ImGui::PopStyleColor();
 
-    if (config_system.g_cfg.scripts.developer_mode && ImGui::IsItemHovered())
+    if (g_cfg.scripts.developer_mode && ImGui::IsItemHovered())
     {
         for (auto& item : cfg_manager->items)
         {
@@ -2315,8 +2318,8 @@ bool ImGui::BeginCombo(const char* label, const char* preview_value, ImGuiComboF
 
     const ImU32 frame_col = GetColorU32(hovered ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg);
 
-    const ImVec4 hover_act = ImVec4(0.f, 143.f, 255.f, 1.f);
-    const ImVec4 hover_dis = ImVec4(32 / 255.f, 32 / 255.f, 32 / 255.f, 0.4f);;
+    const ImVec4 hover_act = ImVec4(126 / 255.f, 131 / 255.f, 219 / 255.f, 1.f);
+    const ImVec4 hover_dis = ImVec4(74 / 255.f, 79 / 255.f, 143 / 255.f, 0.4f);;
 
     float deltatime = 1.5f * ImGui::GetIO().DeltaTime;
 
@@ -2398,7 +2401,7 @@ bool ImGui::BeginCombo(const char* label, const char* preview_value, ImGuiComboF
         }
     }
 
-    const ImVec4 arrow_act = ImVec4(0.f, 143.f, 255.f, 1.f);
+    const ImVec4 arrow_act = ImVec4(126 / 255.f, 131 / 255.f, 219 / 255.f, 1.f);
     const ImVec4 arrow_dis = ImVec4(150 / 255.f, 150 / 255.f, 150 / 255.f, 1.f);;
     static std::map<ImGuiID, ImVec4> arrow_col_animation;
     auto it_arrow_col = arrow_col_animation.find(id);
@@ -2555,7 +2558,7 @@ bool ImGui::BeginCombo(const char* label, const char* preview_value, ImGuiComboF
     if (!popup_open)
         it_open->second = 0.01f;
 
-    if (config_system.g_cfg.scripts.developer_mode && ImGui::IsItemHovered())
+    if (g_cfg.scripts.developer_mode && ImGui::IsItemHovered())
     {
         for (auto& item : cfg_manager->items)
         {
@@ -3812,9 +3815,9 @@ bool ImGui::SliderScalar(const char* label, ImGuiDataType data_type, void* p_dat
     // Draw frame
    
     const ImU32 frame_col = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : g.HoveredId == id ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg);
-    const ImVec4 hover_act = ImVec4(0.f, 143.f, 255.f, 1.f);
-    const ImVec4 hover_dis = ImVec4(0.f, 143.f, 255.f, 1.f);
-    const ImVec4 hover_off = ImVec4(32 / 255.f, 32 / 255.f, 32 / 255.f, 0.4f);
+    const ImVec4 hover_act = ImVec4(89 / 255.f, 184 / 255.f, 228 / 255.f, 1.f);
+    const ImVec4 hover_dis = ImVec4(177 / 255.f, 243 / 255.f, 244 / 255.f, 1.f);
+    const ImVec4 hover_off = ImVec4(177 / 255.f, 243 / 255.f, 244 / 255.f, 0.4f);
 
 
     float deltatime = 1.5f * ImGui::GetIO().DeltaTime;
@@ -3970,8 +3973,11 @@ bool ImGui::SliderScalar(const char* label, ImGuiDataType data_type, void* p_dat
         MarkItemEdited(id);
 
     // Render grab
-    if (grab_bb.Max.x > grab_bb.Min.x)
-        window->DrawList->AddCircleFilled(ImVec2(math::clamp(grab_bb.Min.x + ((grab_bb.Max.x - grab_bb.Min.x) / 2), frame_bb.Min.x + ((grab_bb.Max.x - grab_bb.Min.x)), frame_bb.Max.x - ((grab_bb.Max.x - grab_bb.Min.x))), (grab_bb.Min.y + ((grab_bb.Max.y - grab_bb.Min.y) / 2))), (grab_bb.Max.y - grab_bb.Min.y) * (1.35f / min(c_menu::get().dpi_scale, 1.55f)), GetColorU32(it_grab->second), 40);
+    if (grab_bb.Max.x > grab_bb.Min.x) {
+        RenderFrame(ImVec2(frame_bb.Min.x, frame_bb.Min.y + ((frame_bb.Max.y - frame_bb.Min.y) / 2.f)) - ImVec2(-2.5, 2.5), ImVec2(grab_bb.Min.x, frame_bb.Max.y - ((frame_bb.Max.y - frame_bb.Min.y) / 2.f)) + ImVec2(1.5, 2.5), GetColorU32(it_grab->second), false, style.FrameRounding);
+        //window->DrawList->AddCircleFilled(ImVec2(math::clamp(grab_bb.Min.x + ((grab_bb.Max.x - grab_bb.Min.x) / 2), frame_bb.Min.x + ((grab_bb.Max.x - grab_bb.Min.x)), frame_bb.Max.x - ((grab_bb.Max.x - grab_bb.Min.x))), (grab_bb.Min.y + ((grab_bb.Max.y - grab_bb.Min.y) / 2))), (grab_bb.Max.y - grab_bb.Min.y)* (1.35f / min(c_menu::get().dpi_scale, 1.55f)), GetColorU32(it_grab->second), 40);
+    }
+   
 
     // Display value using user-provided display format so user can add prefix/suffix/decorations to the value.
     char value_buf[64];
@@ -3988,7 +3994,7 @@ bool ImGui::SliderScalar(const char* label, ImGuiDataType data_type, void* p_dat
     if (label_size.x > 0.0f)
         RenderText(ImVec2(frame_bb.Min.x, frame_bb.Min.y - CalcTextSize(label).y - (4 * c_menu::get().dpi_scale)), label);
 
-    if (config_system.g_cfg.scripts.developer_mode && ImGui::IsItemHovered())
+    if (g_cfg.scripts.developer_mode && ImGui::IsItemHovered())
     {
         for (auto& item : cfg_manager->items)
         {
@@ -5941,7 +5947,7 @@ bool ImGui::ColorEdit(const char* label, Color* newcolor, ImGuiColorEditFlags fl
     if (value_changed)
         MarkItemEdited(window->DC.LastItemId);
 
-    if (config_system.g_cfg.scripts.developer_mode && ImGui::IsItemHovered())
+    if (g_cfg.scripts.developer_mode && ImGui::IsItemHovered())
     {
         for (auto& item : cfg_manager->items)
         {
@@ -5961,11 +5967,13 @@ bool ImGui::ColorEdit(const char* label, Color* newcolor, ImGuiColorEditFlags fl
 // Edit colors components (each component in 0.0f..1.0f range).
 // See enum ImGuiColorEditFlags_ for available options. e.g. Only access 3 floats if ImGuiColorEditFlags_NoAlpha flag is set.
 // With typical options: Left-click on colored square to open color picker. Right-click to open option menu. CTRL-Click over input fields to edit them and TAB to go to next item.
-bool ImGui::ColorEdit4(const char* label, float col[4], ImGuiColorEditFlags flags, bool is_solo)
+bool ImGui::ColorEdit4(const char* label, float col[4], ImGuiColorEditFlags flags)
 {
     ImGuiWindow* window = GetCurrentWindow();
     if (window->SkipItems)
         return false;
+
+    SetCursorPosY(GetCursorPosY() - 2 * c_menu::get().dpi_scale);
 
     ImGuiContext& g = *GImGui;
     const ImGuiStyle& style = g.Style;
@@ -6033,20 +6041,75 @@ bool ImGui::ColorEdit4(const char* label, float col[4], ImGuiColorEditFlags flag
     if ((flags & (ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_DisplayHSV)) != 0 && (flags & ImGuiColorEditFlags_NoInputs) == 0)
     {
         // RGB/HSV 0..255 Sliders
+        const float w_item_one  = ImMax(1.0f, IM_FLOOR((w_inputs - (style.ItemInnerSpacing.x) * (components-1)) / (float)components));
+        const float w_item_last = ImMax(1.0f, IM_FLOOR(w_inputs - (w_item_one + style.ItemInnerSpacing.x) * (components-1)));
+
+        const bool hide_prefix = (w_item_one <= CalcTextSize((flags & ImGuiColorEditFlags_Float) ? "M:0.000" : "M:000").x);
+        static const char* ids[4] = { "##X", "##Y", "##Z", "##W" };
+        static const char* fmt_table_int[3][4] =
+        {
+            {   "%3d",   "%3d",   "%3d",   "%3d" }, // Short display
+            { "R:%3d", "G:%3d", "B:%3d", "A:%3d" }, // Long display for RGBA
+            { "H:%3d", "S:%3d", "V:%3d", "A:%3d" }  // Long display for HSVA
+        };
+        static const char* fmt_table_float[3][4] =
+        {
+            {   "%0.3f",   "%0.3f",   "%0.3f",   "%0.3f" }, // Short display
+            { "R:%0.3f", "G:%0.3f", "B:%0.3f", "A:%0.3f" }, // Long display for RGBA
+            { "H:%0.3f", "S:%0.3f", "V:%0.3f", "A:%0.3f" }  // Long display for HSVA
+        };
+        const int fmt_idx = hide_prefix ? 0 : (flags & ImGuiColorEditFlags_DisplayHSV) ? 2 : 1;
+
+        for (int n = 0; n < components; n++)
+        {
+            if (n > 0)
+                SameLine(0, style.ItemInnerSpacing.x);
+            SetNextItemWidth((n + 1 < components) ? w_item_one : w_item_last);
+
+            // FIXME: When ImGuiColorEditFlags_HDR flag is passed HS values snap in weird ways when SV values go below 0.
+            if (flags & ImGuiColorEditFlags_Float)
+            {
+                value_changed |= DragFloat(ids[n], &f[n], 1.0f/255.0f, 0.0f, hdr ? 0.0f : 1.0f, fmt_table_float[fmt_idx][n]);
+                value_changed_as_float |= value_changed;
+            }
+            else
+            {
+                value_changed |= DragInt(ids[n], &i[n], 1.0f, 0, hdr ? 0 : 255, fmt_table_int[fmt_idx][n]);
+            }
+            if (!(flags & ImGuiColorEditFlags_NoOptions))
+                OpenPopupContextItem("context");
+        }
     }
     else if ((flags & ImGuiColorEditFlags_DisplayHex) != 0 && (flags & ImGuiColorEditFlags_NoInputs) == 0)
     {
-
+        // RGB Hexadecimal Input
+        char buf[64];
+        if (alpha)
+            ImFormatString(buf, IM_ARRAYSIZE(buf), "#%02X%02X%02X%02X", ImClamp(i[0],0,255), ImClamp(i[1],0,255), ImClamp(i[2],0,255), ImClamp(i[3],0,255));
+        else
+            ImFormatString(buf, IM_ARRAYSIZE(buf), "#%02X%02X%02X", ImClamp(i[0],0,255), ImClamp(i[1],0,255), ImClamp(i[2],0,255));
+        SetNextItemWidth(w_inputs);
+        if (InputText("##Text", buf, IM_ARRAYSIZE(buf), ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase))
+        {
+            value_changed = true;
+            char* p = buf;
+            while (*p == '#' || ImCharIsBlankA(*p))
+                p++;
+            i[0] = i[1] = i[2] = i[3] = 0;
+            if (alpha)
+                sscanf(p, "%02X%02X%02X%02X", (unsigned int*)&i[0], (unsigned int*)&i[1], (unsigned int*)&i[2], (unsigned int*)&i[3]); // Treat at unsigned (%X is unsigned)
+            else
+                sscanf(p, "%02X%02X%02X", (unsigned int*)&i[0], (unsigned int*)&i[1], (unsigned int*)&i[2]);
+        }
+        if (!(flags & ImGuiColorEditFlags_NoOptions))
+            OpenPopupContextItem("context");
     }
 
     ImGuiWindow* picker_active_window = NULL;
     if (!(flags & ImGuiColorEditFlags_NoSmallPreview))
     {
         const float button_offset_x = ((flags & ImGuiColorEditFlags_NoInputs) || (style.ColorButtonPosition == ImGuiDir_Left)) ? 0.0f : w_inputs + style.ItemInnerSpacing.x;
-        if (is_solo)
-            window->DC.CursorPos = ImVec2(pos.x + 87 + button_offset_x, pos.y);
-        else
-            window->DC.CursorPos = ImVec2(pos.x + button_offset_x, pos.y);
+        window->DC.CursorPos = ImVec2(pos.x + button_offset_x, pos.y);
 
         const ImVec4 col_v4(col[0], col[1], col[2], alpha ? col[3] : 1.0f);
         if (ColorButton("##ColorButton", col_v4, flags))
@@ -6056,11 +6119,11 @@ bool ImGui::ColorEdit4(const char* label, float col[4], ImGuiColorEditFlags flag
                 // Store current color and open a picker
                 g.ColorPickerRef = col_v4;
                 OpenPopup("picker");
-                SetNextWindowPos(window->DC.LastItemRect.GetBL() + ImVec2(-1, style.ItemSpacing.y));
+                SetNextWindowPos(window->DC.LastItemRect.GetBL() + ImVec2(-1,style.ItemSpacing.y));
             }
         }
         if (!(flags & ImGuiColorEditFlags_NoOptions))
-            OpenPopupOnItemClick("context");
+            OpenPopupContextItem("context");
 
         if (BeginPopup("picker"))
         {
@@ -6073,7 +6136,7 @@ bool ImGui::ColorEdit4(const char* label, float col[4], ImGuiColorEditFlags flag
             ImGuiColorEditFlags picker_flags_to_forward = ImGuiColorEditFlags__DataTypeMask | ImGuiColorEditFlags__PickerMask | ImGuiColorEditFlags__InputMask | ImGuiColorEditFlags_HDR | ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_AlphaBar;
             ImGuiColorEditFlags picker_flags = (flags_untouched & picker_flags_to_forward) | ImGuiColorEditFlags__DisplayMask | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_AlphaPreviewHalf;
             SetNextItemWidth(square_sz * 12.0f); // Use 256 + bar sizes?
-            value_changed |= ColorPicker4("##picker", col, picker_flags, &g.ColorPickerRef.x);
+            value_changed |= ColorPicker4("##picker", col, flags, &g.ColorPickerRef.x);
             EndPopup();
         }
     }
@@ -6081,7 +6144,7 @@ bool ImGui::ColorEdit4(const char* label, float col[4], ImGuiColorEditFlags flag
     if (label != label_display_end && !(flags & ImGuiColorEditFlags_NoLabel))
     {
         const float text_offset_x = (flags & ImGuiColorEditFlags_NoInputs) ? w_button : w_full + style.ItemInnerSpacing.x;
-        window->DC.CursorPos = ImVec2(pos.x - 185 + text_offset_x, pos.y + style.FramePadding.y);
+        window->DC.CursorPos = ImVec2(pos.x + text_offset_x, pos.y + style.FramePadding.y);
         TextEx(label, label_display_end);
     }
 
@@ -7347,7 +7410,7 @@ bool ImGui::CustomSelectable(const char* label, bool selected, ImGuiSelectableFl
     if (selected != was_selected) //-V547
         window->DC.LastItemStatusFlags |= ImGuiItemStatusFlags_ToggledSelection;
 
-    const ImVec4 text_act = ImVec4(0.f, 143.f, 255.f, 1.f);
+    const ImVec4 text_act = ImVec4(126 / 255.f, 131 / 255.f, 219 / 255.f, 1.f);
     const ImVec4 text_hov = ImVec4(251 / 255.f, 251 / 255.f, 251 / 255.f, 1.f);
     const ImVec4 text_dis = ImVec4(202 / 255.f, 202 / 255.f, 202 / 255.f, 1.f);
     float deltatime = 1.5f * ImGui::GetIO().DeltaTime;
@@ -7533,7 +7596,7 @@ bool ImGui::Selectable(const char* label, bool selected, ImGuiSelectableFlags fl
     if (selected != was_selected) //-V547
         window->DC.LastItemStatusFlags |= ImGuiItemStatusFlags_ToggledSelection;
 
-    const ImVec4 text_act = ImVec4(0.f, 143.f, 255.f, 1.f);
+    const ImVec4 text_act = ImVec4(126 / 255.f, 131 / 255.f, 219 / 255.f, 1.f);
     const ImVec4 text_hov = ImVec4(251 / 255.f, 251 / 255.f, 251 / 255.f, 1.f);
     const ImVec4 text_dis = ImVec4(202 / 255.f, 202 / 255.f, 202 / 255.f, 1.f);
     float deltatime = 1.5f * ImGui::GetIO().DeltaTime;

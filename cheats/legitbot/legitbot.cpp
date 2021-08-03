@@ -34,12 +34,12 @@ void legit_bot::do_smooth(const Vector& currentAngle, const Vector& aimAngle, Ve
 
 	static auto recoil_scale = m_cvar()->FindVar("weapon_recoil_scale")->GetFloat();
 	aim_punch = g_ctx.local()->m_aimPunchAngle() * recoil_scale;
-	aim_punch *= (config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].rcs / 100.f);
+	aim_punch *= (g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].rcs / 100.f);
 
 	Vector delta = aimAngle - (currentAngle + aim_punch);
 	math::normalize_angles(delta);
 
-	if (config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].smooth_type == 1) {
+	if (g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].smooth_type == 1) {
 		float randomize = math::random_float(-0.2f, 0.2f);
 		smooth_value = (m_globals()->m_intervalpertick * 64.0f) * (smooth_value + (randomize * smooth_value));
 		smooth_value = math::clamp(smooth_value, m_globals()->m_intervalpertick * 64.0f * smooth_t, 13.f);
@@ -78,7 +78,7 @@ bool in_smoke(const Vector& in, const Vector& out)
 
 void legit_bot::createmove(CUserCmd* cmd)
 {
-	if (!config_system.g_cfg.legitbot.enabled)
+	if (!g_cfg.legitbot.enabled)
 		return;
 
 	// rata-ta-ta-ta range
@@ -124,7 +124,7 @@ void legit_bot::createmove(CUserCmd* cmd)
 	calc_smooth();
 
 	// my pistols do pew-pew
-	if (config_system.g_cfg.legitbot.autopistol)
+	if (g_cfg.legitbot.autopistol)
 		auto_pistol(cmd);
 
 	if (target_switch_delay > m_globals()->m_realtime)
@@ -133,7 +133,7 @@ void legit_bot::createmove(CUserCmd* cmd)
 		target = nullptr;
 		autofire_delay = 0;
 
-		if ((key_binds::get().get_key_bind_state(1) || key_binds::get().get_key_bind_state(0)) && !config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].rcs_type)
+		if ((key_binds::get().get_key_bind_state(1) || key_binds::get().get_key_bind_state(0)) && !g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].rcs_type)
 			do_rcs(cmd);
 
 		return;
@@ -148,7 +148,7 @@ void legit_bot::createmove(CUserCmd* cmd)
 		target = nullptr;
 
 	// rata-ta-ta-ta control
-	if ((key_binds::get().get_key_bind_state(1) || key_binds::get().get_key_bind_state(0)) && !config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].rcs_type)
+	if ((key_binds::get().get_key_bind_state(1) || key_binds::get().get_key_bind_state(0)) && !g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].rcs_type)
 		should_do_rcs = true;
 
 	if (!target)
@@ -174,7 +174,7 @@ void legit_bot::createmove(CUserCmd* cmd)
 	}
 
 	// point to rata-ta-ta-ta
-	auto is_silent = !g_ctx.local()->m_iShotsFired() && config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].silent_fov;
+	auto is_silent = !g_ctx.local()->m_iShotsFired() && g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].silent_fov;
 	point = Vector(0, 0, 0);
 	find_best_point(cmd, fov_t);
 
@@ -187,7 +187,7 @@ void legit_bot::createmove(CUserCmd* cmd)
 
 		if (is_silent)
 		{
-			find_best_point(cmd, config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].silent_fov);
+			find_best_point(cmd, g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].silent_fov);
 			if (point == Vector(0, 0, 0))
 				return;
 		}
@@ -196,7 +196,7 @@ void legit_bot::createmove(CUserCmd* cmd)
 	}
 
 	// is enemy in smoke?
-	if (!config_system.g_cfg.legitbot.do_if_enemy_in_smoke && in_smoke(g_ctx.globals.eye_pos, target->hitbox_position(0)))
+	if (!g_cfg.legitbot.do_if_enemy_in_smoke && in_smoke(g_ctx.globals.eye_pos, target->hitbox_position(0)))
 	{
 		autofire_delay = 0;
 
@@ -207,7 +207,7 @@ void legit_bot::createmove(CUserCmd* cmd)
 	}
 
 	// are we flashed?
-	if (!config_system.g_cfg.legitbot.do_if_local_flashed && g_ctx.local()->m_flFlashDuration() >= 0.1f)
+	if (!g_cfg.legitbot.do_if_local_flashed && g_ctx.local()->m_flFlashDuration() >= 0.1f)
 	{
 		autofire_delay = 0;
 
@@ -218,7 +218,7 @@ void legit_bot::createmove(CUserCmd* cmd)
 	}
 
 	// is local in air?
-	if (!config_system.g_cfg.legitbot.do_if_local_in_air && !(g_ctx.local()->m_fFlags() & FL_ONGROUND))
+	if (!g_cfg.legitbot.do_if_local_in_air && !(g_ctx.local()->m_fFlags() & FL_ONGROUND))
 	{
 		if (should_do_rcs)
 			do_rcs(cmd);
@@ -226,7 +226,7 @@ void legit_bot::createmove(CUserCmd* cmd)
 		return;
 	}
 
-	if (!g_ctx.local()->m_iShotsFired() && key_binds::get().get_key_bind_state(0) && autofire_delay < config_system.g_cfg.legitbot.autofire_delay)
+	if (!g_ctx.local()->m_iShotsFired() && key_binds::get().get_key_bind_state(0) && autofire_delay < g_cfg.legitbot.autofire_delay)
 	{
 		autofire_delay += 1;
 		return;
@@ -236,7 +236,7 @@ void legit_bot::createmove(CUserCmd* cmd)
 
 	auto weapon = g_ctx.globals.weapon;
 
-	if (config_system.g_cfg.legitbot.autoscope && (!g_ctx.local()->m_bIsScoped() || (started_scope && scope_delay > 9)) && weapon->is_sniper())
+	if (g_cfg.legitbot.autoscope && (!g_ctx.local()->m_bIsScoped() || (started_scope && scope_delay > 9)) && weapon->is_sniper())
 	{
 		cmd->m_buttons |= IN_ATTACK2;
 		cmd->m_buttons &= ~IN_ATTACK;
@@ -252,7 +252,7 @@ void legit_bot::createmove(CUserCmd* cmd)
 
 	// are we not in scope or not ready to shoot after scope and we dont use autoscope?
 	if (weapon->is_sniper() &&
-		config_system.g_cfg.legitbot.sniper_in_zoom_only && !config_system.g_cfg.legitbot.autoscope && !g_ctx.local()->m_bIsScoped())
+		g_cfg.legitbot.sniper_in_zoom_only && !g_cfg.legitbot.autoscope && !g_ctx.local()->m_bIsScoped())
 	{
 		if (should_do_rcs)
 			do_rcs(cmd);
@@ -260,9 +260,9 @@ void legit_bot::createmove(CUserCmd* cmd)
 		return;
 	}
 
-	auto is_silent_s = !g_ctx.local()->m_iShotsFired() && config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].silent_fov && target_fov <= config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].silent_fov;
+	auto is_silent_s = !g_ctx.local()->m_iShotsFired() && g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].silent_fov && target_fov <= g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].silent_fov;
 
-	if (config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].auto_stop)
+	if (g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].auto_stop)
 		cmd->m_forwardmove = cmd->m_sidemove = 0;
 
 	aim_angle = math::calculate_angle(g_ctx.globals.eye_pos, point).Clamp();
@@ -278,41 +278,41 @@ void legit_bot::createmove(CUserCmd* cmd)
 	if (!is_silent_s)
 		m_engine()->SetViewAngles(cmd->m_viewangles);
 
-	if (config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].rcs_type || should_do_rcs)
+	if (g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].rcs_type || should_do_rcs)
 		do_rcs(cmd);
 
-	auto hitchanced = hitchance(target, aim_angle, point, targets[target->EntIndex()].hitbox) >= config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].autofire_hitchance;
+	auto hitchanced = hitchance(target, aim_angle, point, targets[target->EntIndex()].hitbox) >= g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].autofire_hitchance;
 
 	if (key_binds::get().get_key_bind_state(0) && g_ctx.globals.weapon->can_fire(true) && hitchanced)
 		cmd->m_buttons |= IN_ATTACK;
 
 	if (cmd->m_buttons & IN_ATTACK && !started_unscope)
-		if (g_ctx.globals.weapon->is_sniper() && config_system.g_cfg.legitbot.unscope)
+		if (g_ctx.globals.weapon->is_sniper() && g_cfg.legitbot.unscope)
 			started_unscope = true;
 }
 
 void legit_bot::calc_fov()
 {
 	if (g_ctx.local()->m_iShotsFired() < 2)
-		fov_t = config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].fov;
+		fov_t = g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].fov;
 
-	else if (g_ctx.local()->m_iShotsFired() >= 2 && config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].custom_rcs_fov > 0.f)
-		fov_t = config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].custom_rcs_fov;
+	else if (g_ctx.local()->m_iShotsFired() >= 2 && g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].custom_rcs_fov > 0.f)
+		fov_t = g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].custom_rcs_fov;
 
 	else
-		fov_t = config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].fov;
+		fov_t = g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].fov;
 }
 
 void legit_bot::calc_smooth()
 {
 	if (g_ctx.local()->m_iShotsFired() < 2)
-		smooth_t = config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].smooth;
+		smooth_t = g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].smooth;
 
-	else if (g_ctx.local()->m_iShotsFired() >= 2 && config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].custom_rcs_smooth >= 1.f)
-		smooth_t = config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].custom_rcs_smooth;
+	else if (g_ctx.local()->m_iShotsFired() >= 2 && g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].custom_rcs_smooth >= 1.f)
+		smooth_t = g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].custom_rcs_smooth;
 
 	else
-		smooth_t = config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].smooth;
+		smooth_t = g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].smooth;
 }
 
 void legit_bot::do_rcs(CUserCmd* cmd)
@@ -321,7 +321,7 @@ void legit_bot::do_rcs(CUserCmd* cmd)
 	static Vector prev_punch = { 0.0f, 0.0f, 0.0f };
 
 	if (weapon->m_iItemDefinitionIndex() == WEAPON_REVOLVER
-		|| config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].rcs <= 0
+		|| g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].rcs <= 0
 		|| weapon->is_non_aim()
 		|| g_ctx.local()->m_iShotsFired() < 2)
 	{
@@ -334,7 +334,7 @@ void legit_bot::do_rcs(CUserCmd* cmd)
 	aim_punch = g_ctx.local()->m_aimPunchAngle() * recoil_scale;
 
 	// rcs in %
-	aim_punch *= (config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].rcs / 100.f);
+	aim_punch *= (g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].rcs / 100.f);
 
 	auto rcs = cmd->m_viewangles += (prev_punch - aim_punch);
 	math::normalize_angles(rcs);
@@ -367,12 +367,12 @@ void legit_bot::find_best_point(CUserCmd* cmd, float fov_v)
 {
 	static auto recoil_scale = m_cvar()->FindVar("weapon_recoil_scale")->GetFloat();
 	aim_punch = g_ctx.local()->m_aimPunchAngle() * recoil_scale;
-	aim_punch *= (config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].rcs / 100.f);
+	aim_punch *= (g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].rcs / 100.f);
 
 	auto best_fov = fov_v;
 
 	// if nearest aimbot method
-	if (config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].priority == 0)
+	if (g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].priority == 0)
 	{
 		for (auto bone : { HITBOX_HEAD, HITBOX_PELVIS, HITBOX_CHEST, HITBOX_UPPER_CHEST, HITBOX_STOMACH })
 		{
@@ -385,7 +385,7 @@ void legit_bot::find_best_point(CUserCmd* cmd, float fov_v)
 			math::normalize_angles(ang);
 			distance = g_ctx.globals.eye_pos.DistTo(bone_pos);
 
-			if (config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].fov_type == 1)
+			if (g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].fov_type == 1)
 				fov = dynamic_fov_to(distance, ang, cmd->m_viewangles + aim_punch);
 			else
 				fov = static_fov_to(cmd->m_viewangles + aim_punch, ang);
@@ -395,10 +395,10 @@ void legit_bot::find_best_point(CUserCmd* cmd, float fov_v)
 
 			auto fire_data = autowall::get().wall_penetration(g_ctx.globals.eye_pos, bone_pos, target);
 
-			if (!fire_data.visible && !config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].awall_dmg)
+			if (!fire_data.visible && !g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].awall_dmg)
 				continue;
 
-			if (!fire_data.visible && config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].awall_dmg > 0 && fire_data.damage < config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].awall_dmg)
+			if (!fire_data.visible && g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].awall_dmg > 0 && fire_data.damage < g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].awall_dmg)
 				continue;
 
 			best_fov = fov;
@@ -407,7 +407,7 @@ void legit_bot::find_best_point(CUserCmd* cmd, float fov_v)
 			targets[target->EntIndex()].hitbox = bone;
 		}
 	}
-	else if (config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].priority == 1) // head only
+	else if (g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].priority == 1) // head only
 	{
 		float distance = 0.f;
 		float fov = FLT_MAX;
@@ -418,7 +418,7 @@ void legit_bot::find_best_point(CUserCmd* cmd, float fov_v)
 		math::normalize_angles(ang);
 		distance = g_ctx.globals.eye_pos.DistTo(bone_pos);
 
-		if (config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].fov_type == 1)
+		if (g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].fov_type == 1)
 			fov = dynamic_fov_to(distance, ang, cmd->m_viewangles + aim_punch);
 		else
 			fov = static_fov_to(cmd->m_viewangles + aim_punch, ang);
@@ -428,10 +428,10 @@ void legit_bot::find_best_point(CUserCmd* cmd, float fov_v)
 
 		auto fire_data = autowall::get().wall_penetration(g_ctx.globals.eye_pos, bone_pos, target);
 
-		if (!fire_data.visible && !config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].awall_dmg)
+		if (!fire_data.visible && !g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].awall_dmg)
 			return;
 
-		if (!fire_data.visible && config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].awall_dmg > 0 && fire_data.damage < config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].awall_dmg)
+		if (!fire_data.visible && g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].awall_dmg > 0 && fire_data.damage < g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].awall_dmg)
 			return;
 
 		best_fov = fov;
@@ -439,7 +439,7 @@ void legit_bot::find_best_point(CUserCmd* cmd, float fov_v)
 		target_fov = fov;
 		targets[target->EntIndex()].hitbox = 0;
 	}
-	else if (config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].priority == 2) // nearest body
+	else if (g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].priority == 2) // nearest body
 	{
 		for (auto bone : { HITBOX_PELVIS, HITBOX_CHEST, HITBOX_UPPER_CHEST, HITBOX_STOMACH }) {
 			float distance = 0.f;
@@ -451,7 +451,7 @@ void legit_bot::find_best_point(CUserCmd* cmd, float fov_v)
 			math::normalize_angles(ang);
 			distance = g_ctx.globals.eye_pos.DistTo(bone_pos);
 
-			if (config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].fov_type == 1)
+			if (g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].fov_type == 1)
 				fov = dynamic_fov_to(distance, ang, cmd->m_viewangles + aim_punch);
 			else
 				fov = static_fov_to(cmd->m_viewangles + aim_punch, ang);
@@ -461,10 +461,10 @@ void legit_bot::find_best_point(CUserCmd* cmd, float fov_v)
 
 			auto fire_data = autowall::get().wall_penetration(g_ctx.globals.eye_pos, bone_pos, target);
 
-			if (!fire_data.visible && !config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].awall_dmg)
+			if (!fire_data.visible && !g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].awall_dmg)
 				continue;
 
-			if (!fire_data.visible && config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].awall_dmg > 0 && fire_data.damage < config_system.g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].awall_dmg)
+			if (!fire_data.visible && g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].awall_dmg > 0 && fire_data.damage < g_cfg.legitbot.weapon[g_ctx.globals.current_weapon].awall_dmg)
 				continue;
 
 			best_fov = fov;
@@ -492,7 +492,7 @@ void legit_bot::find_target()
 		if (IsNotTarget(e))
 			continue;
 
-		if (!config_system.g_cfg.legitbot.friendly_fire && e->m_iTeamNum() == g_ctx.local()->m_iTeamNum())
+		if (!g_cfg.legitbot.friendly_fire && e->m_iTeamNum() == g_ctx.local()->m_iTeamNum())
 			continue;
 
 		Vector engine_angles;

@@ -19,12 +19,6 @@
 #include "..\..\cheats\ragebot\zeusbot.h"
 #include "..\..\cheats\lagcompensation\local_animations.h"
 #include "..\..\cheats\lagcompensation\animation_system.h"
-#include "../../cheats/legitbot/backtrack.h"
-#include "../../cheats/movement/movementrecorder.h"
-
-float final_feet_yaw[65];
-float old_feet_yaw[65];
-float eye_lby_delta[65];
 
 using CreateMove_t = bool(__thiscall*)(IClientMode*, float, CUserCmd*);
 
@@ -77,9 +71,6 @@ bool __stdcall hooks::hooked_createmove(float smt, CUserCmd* m_pcmd)
 		m_pcmd->m_upmove = 0.0f;
 	}
 
-	if (key_binds::get().get_key_bind_state(25)) //-V807
-		misc::get().blockbot(m_pcmd);
-
 	static auto should_recharge = false;
 
 	if (should_recharge)
@@ -120,10 +111,10 @@ bool __stdcall hooks::hooked_createmove(float smt, CUserCmd* m_pcmd)
 		m_pcmd->m_buttons &= ~IN_ATTACK2;
 	}
 
-	if (m_pcmd->m_buttons & IN_ATTACK2 && config_system.g_cfg.ragebot.enable && g_ctx.globals.weapon->m_iItemDefinitionIndex() == WEAPON_REVOLVER)
+	if (m_pcmd->m_buttons & IN_ATTACK2 && g_cfg.ragebot.enable && g_ctx.globals.weapon->m_iItemDefinitionIndex() == WEAPON_REVOLVER)
 		m_pcmd->m_buttons &= ~IN_ATTACK2;
 
-	if (config_system.g_cfg.ragebot.enable && !g_ctx.globals.weapon->can_fire(true))
+	if (g_cfg.ragebot.enable && !g_ctx.globals.weapon->can_fire(true))
 	{
 		if (m_pcmd->m_buttons & IN_ATTACK && !g_ctx.globals.weapon->is_non_aim() && g_ctx.globals.weapon->m_iItemDefinitionIndex() != WEAPON_REVOLVER)
 			m_pcmd->m_buttons &= ~IN_ATTACK;
@@ -154,7 +145,7 @@ bool __stdcall hooks::hooked_createmove(float smt, CUserCmd* m_pcmd)
 	g_ctx.globals.double_tap_fire = false;
 	g_ctx.globals.force_send_packet = false;
 	g_ctx.globals.exploits = misc::get().double_tap_key || misc::get().hide_shots_key;
-	g_ctx.globals.current_weapon = g_ctx.globals.weapon->get_weapon_group(config_system.g_cfg.ragebot.enable);
+	g_ctx.globals.current_weapon = g_ctx.globals.weapon->get_weapon_group(g_cfg.ragebot.enable);
 	g_ctx.globals.slowwalking = false;
 	g_ctx.globals.original_forwardmove = m_pcmd->m_forwardmove;
 	g_ctx.globals.original_sidemove = m_pcmd->m_sidemove;
@@ -163,65 +154,9 @@ bool __stdcall hooks::hooked_createmove(float smt, CUserCmd* m_pcmd)
 
 	auto wish_angle = m_pcmd->m_viewangles;
 
-	if (config_system.g_cfg.legitbot.legit_resolver)
-	{
-		for (int i = 1; i <= m_globals()->m_maxclients; i++) {
-			auto entity = reinterpret_cast<player_t*>(m_entitylist()->GetClientEntity(i));
-
-			if (!entity
-				|| !g_ctx.local()
-				|| !entity->is_alive()
-				|| entity == g_ctx.local()
-				|| entity->m_iTeamNum() == g_ctx.local()->m_iTeamNum())
-				continue;
-
-			player_info_t player_info;
-			m_engine()->GetPlayerInfo(entity->EntIndex(), &player_info);
-
-			if (player_info.fakeplayer) // skip bots
-				continue;
-
-			auto anim_state = entity->get_animation_state();
-
-			if (!anim_state)
-				return;
-
-			// dont forget to include fakelag checks, 
-			// some p2cs require up to 3 ticks in order to lby desync,
-			// but you can do it with just 1
-
-			// take their feetyaw and normaclampalize for extra safety
-			final_feet_yaw[entity->EntIndex()] = std::clamp(math::normalize_yaw(anim_state->m_flGoalFeetYaw), -180.f, 180.f);
-
-			// can be used in the future if u want
-			old_feet_yaw[entity->EntIndex()] = std::clamp(math::normalize_yaw(old_feet_yaw[entity->EntIndex()]), -180.f, 180.f);
-
-			// calculate their lby delta men!
-			eye_lby_delta[entity->EntIndex()] = math::normalize_yaw(entity->m_angEyeAngles().y - entity->m_flLowerBodyYawTarget());
-
-			// make sure their lby is broken and their standing. once again p2cs can do things differently,
-			// they usually jitter their speed between 0.0f and 1.1f so make sure we are above that interval.
-			// Other cheats that actually flick to break lby can be checked with 0.0f speed
-			if (fabs(eye_lby_delta[entity->EntIndex()]) > 35.f && entity->m_vecVelocity().Length2D() <= 2.f /* && choking[entity->index()] */)
-			{
-				// now we go, clamped their feetyaw to max range using the opposite of their lby delta, 
-				// pretty basic, but its really all you gotta do
-				final_feet_yaw[entity->EntIndex()] += std::clamp(eye_lby_delta[entity->EntIndex()], -58.f, 58.f);
-
-				// maybe we can save set this old_feet_yaw for future usage,
-				// possibly saving their standing desync angle and using it while moving afterwards
-				old_feet_yaw[entity->EntIndex()] = final_feet_yaw[entity->EntIndex()];
-			}
-
-			// finally set their feet_yaw
-			anim_state->m_flGoalFeetYaw = final_feet_yaw[entity->EntIndex()];
-		}
-
-	}
-
 	misc::get().fast_stop(m_pcmd);
 
-	if (config_system.g_cfg.misc.bunnyhop)
+	if (g_cfg.misc.bunnyhop)
 		bunnyhop::get().create_move();
 
 	misc::get().SlideWalk(m_pcmd);
@@ -232,7 +167,7 @@ bool __stdcall hooks::hooked_createmove(float smt, CUserCmd* m_pcmd)
 
 	GrenadePrediction::get().Tick(m_pcmd->m_buttons);
 
-	if (config_system.g_cfg.misc.crouch_in_air && !(g_ctx.local()->m_fFlags() & FL_ONGROUND))
+	if (g_cfg.misc.crouch_in_air && !(g_ctx.local()->m_fFlags() & FL_ONGROUND))
 		m_pcmd->m_buttons |= IN_DUCK;
 
 	engineprediction::get().prediction_data.reset(); //-V807
@@ -243,30 +178,16 @@ bool __stdcall hooks::hooked_createmove(float smt, CUserCmd* m_pcmd)
 
 	g_ctx.globals.eye_pos = g_ctx.local()->get_shoot_position();
 
-	if (config_system.g_cfg.misc.airstrafe)
+	if (g_cfg.misc.airstrafe)
 		airstrafe::get().create_move(m_pcmd);
 
 	if (key_binds::get().get_key_bind_state(19) && engineprediction::get().backup_data.flags & FL_ONGROUND && !(g_ctx.local()->m_fFlags() & FL_ONGROUND)) //-V807
 		m_pcmd->m_buttons |= IN_JUMP;
 
-	if (key_binds::get().get_key_bind_state(23)) //-V807
-		misc::get().edgebug(m_pcmd);
-
-	if (key_binds::get().get_key_bind_state(24)) //-V807
-		misc::get().jumpbug(m_pcmd);
-
-	g_MovementRecorder.MovementR(m_pcmd);
-	g_MovementRecorder.MovementP(m_pcmd);
-
 	if (key_binds::get().get_key_bind_state(21))
 		slowwalk::get().create_move(m_pcmd);
 
-	if (key_binds::get().get_key_bind_state(25))
-	{
-		m_pcmd->m_command_number = m_pcmd->m_tickcount = INT_MAX;
-	}
-
-	if (config_system.g_cfg.ragebot.enable && !g_ctx.globals.weapon->is_non_aim() && engineprediction::get().backup_data.flags & FL_ONGROUND && g_ctx.local()->m_fFlags() & FL_ONGROUND)
+	if (g_cfg.ragebot.enable && !g_ctx.globals.weapon->is_non_aim() && engineprediction::get().backup_data.flags & FL_ONGROUND && g_ctx.local()->m_fFlags() & FL_ONGROUND)
 		slowwalk::get().create_move(m_pcmd, 0.95f + 0.003125f * (16 - m_clientstate()->iChokedCommands));
 
 	if (!should_recharge)
@@ -291,10 +212,6 @@ bool __stdcall hooks::hooked_createmove(float smt, CUserCmd* m_pcmd)
 
 	aim::get().run(m_pcmd);
 	legit_bot::get().createmove(m_pcmd);
-
-	if (config_system.g_cfg.legitbot.backtrackl) {
-		NewBacktrack::Get().LegitBacktrack(m_pcmd);
-	}
 
 	zeusbot::get().run(m_pcmd);
 	knifebot::get().run(m_pcmd);
@@ -345,7 +262,7 @@ bool __stdcall hooks::hooked_createmove(float smt, CUserCmd* m_pcmd)
 		{
 			static auto weapon_recoil_scale = m_cvar()->FindVar(crypt_str("weapon_recoil_scale"));
 
-			if (config_system.g_cfg.ragebot.enable)
+			if (g_cfg.ragebot.enable)
 				m_pcmd->m_viewangles -= g_ctx.local()->m_aimPunchAngle() * weapon_recoil_scale->GetFloat();
 
 			if (!g_ctx.globals.fakeducking)
@@ -414,7 +331,7 @@ bool __stdcall hooks::hooked_createmove(float smt, CUserCmd* m_pcmd)
 		for (auto current : c_lua::get().hooks.getHooks(crypt_str("on_createmove")))
 			current.func();
 
-	if (config_system.g_cfg.misc.anti_untrusted)
+	if (g_cfg.misc.anti_untrusted)
 		math::normalize_angles(m_pcmd->m_viewangles);
 	else
 	{
@@ -523,7 +440,7 @@ bool __stdcall hooks::hooked_createmove(float smt, CUserCmd* m_pcmd)
 	if (g_ctx.send_packet && g_ctx.globals.should_send_packet)
 		g_ctx.globals.should_send_packet = false;
 
-	if (config_system.g_cfg.misc.buybot_enable && g_ctx.globals.should_buy)
+	if (g_cfg.misc.buybot_enable && g_ctx.globals.should_buy)
 	{
 		--g_ctx.globals.should_buy;
 
@@ -531,7 +448,7 @@ bool __stdcall hooks::hooked_createmove(float smt, CUserCmd* m_pcmd)
 		{
 			std::string buy;
 
-			switch (config_system.g_cfg.misc.buybot1)
+			switch (g_cfg.misc.buybot1)
 			{
 			case 1:
 				buy += crypt_str("buy g3sg1; ");
@@ -544,7 +461,7 @@ bool __stdcall hooks::hooked_createmove(float smt, CUserCmd* m_pcmd)
 				break;
 			}
 
-			switch (config_system.g_cfg.misc.buybot2)
+			switch (g_cfg.misc.buybot2)
 			{
 			case 1:
 				buy += crypt_str("buy elite; ");
@@ -554,16 +471,16 @@ bool __stdcall hooks::hooked_createmove(float smt, CUserCmd* m_pcmd)
 				break;
 			}
 
-			if (config_system.g_cfg.misc.buybot3[BUY_ARMOR])
+			if (g_cfg.misc.buybot3[BUY_ARMOR])
 				buy += crypt_str("buy vesthelm; buy vest; ");
 
-			if (config_system.g_cfg.misc.buybot3[BUY_TASER])
+			if (g_cfg.misc.buybot3[BUY_TASER])
 				buy += crypt_str("buy taser; ");
 
-			if (config_system.g_cfg.misc.buybot3[BUY_GRENADES])
+			if (g_cfg.misc.buybot3[BUY_GRENADES])
 				buy += crypt_str("buy molotov; buy hegrenade; buy smokegrenade; buy flashbang; buy flashbang; buy decoy; ");
 
-			if (config_system.g_cfg.misc.buybot3[BUY_DEFUSER])
+			if (g_cfg.misc.buybot3[BUY_DEFUSER])
 				buy += crypt_str("buy defuser; ");
 
 			m_engine()->ExecuteClientCmd(buy.c_str());

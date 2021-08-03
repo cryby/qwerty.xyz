@@ -279,5 +279,3 @@ public:
 		return call_virtual< Fn >(this, 115)(this);
 	}
 };
-
-

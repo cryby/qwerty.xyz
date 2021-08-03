@@ -16,19 +16,6 @@ const char* LegitHitbox[] =
 	"Upper chest"
 };
 
-const char* d_warning_mode[] =
-{
-	"nigga",
-	"nigga1",
-	"nigga2"
-};
-
-const char* warning_mode[] = {
-"Beam",
-"Rainbow beam",
-"Line",
-};
-
 const char* LegitSelection[] =
 {
 	"Near crosshair",
@@ -150,17 +137,20 @@ const char* desync[] =
 	"Static",
 	"Jitter"
 };
-const char* blockbot_type_cb[] =
-{
-	"Match Speed",
-	"Maximum"
-};
 
 const char* lby_type[] =
 {
 	"Normal",
 	"Opposite",
 	"Sway"
+};
+
+const char* proj_combo[] =
+{
+	"Icon",
+	"Text",
+	"Box",
+	"Glow"
 };
 
 const char* weaponplayer[] =
@@ -342,56 +332,6 @@ const char* fakelags[] =
 	"Dynamic",
 	"Fluctuate"
 };
-const char* mmregions[48] = {
-		"Warsaw [Poland]",
-	"Atlanta [U.S. South]",
-	"Mumbai [India]",
-	"Guangzhou [China]",
-	"Guangzhou #2 [China]",
-	"Guangzhou #3 [China]",
-	"Guangzhou #4 [China]",
-	"Dubai [United Arab Emirates]",
-	"Seattle [U.S. North]",
-	"Frankfurt [Switzerland]",
-	"Sao Paulo [Brazil]",
-	"Hong Kong [China]",
-	"Washington D.C [U.S. East]",
-	"Cape Town [South Africa]",
-	"Los Angeles [U.S. West]",
-	"London [United Kingdom]",
-	"Lima [Peru]",
-	"Berlin [Germany]",
-	"Chennai [India]",
-	"Madrid [Spain]",
-	"Manila [Phillipines]",
-	"Oklahoma City [Canada]",
-	"Chicago [U.S.]",
-	"Paris [France]",
-	"Guangzhou #5 [China]",
-	"Tianjin [China]",
-	"Hebei [China]",
-	"Wuhan [China]",
-	"Jiaxing [China]",
-	"Santiago [Chile]",
-	"Seoul [South Korea]",
-	"Singapore [Australia]",
-	"Shanghai [China]",
-	"Shanghai #2 [China]",
-	"Shanghai #3 [China]",
-	"Shanghai #4 [China]",
-	"Nakashibetsu [Japan]",
-	"Moscow [Russia]",
-	"Moscow #2 [Russia]",
-	"Sydney [Australia]",
-	"Beijing [China]",
-	"Beijing #2 [China]",
-	"Beijing #3 [China]",
-	"Beijing #4 [China]",
-	"Tokyo [Japan]",
-	"Tokyo #2 [Japan]",
-	"Vienna [Austria]",
-	"Amsterdam [Netherlands]"
-};
 
 const char* lagstrigger[] =
 {
@@ -426,35 +366,9 @@ const char* player_model_t[] =
 	"Prof. Shahmat",
 	"Rezan The Ready",
 	"Doctor Romanov",
-	"Mr. Muhlik",
-	"Safecracker Voltzmann",
-	"Darryl Miami",
-	"Darryl Silent",
-	"Number K",
-	"Getaway Sally",
-	"Skullhead",
-	"Royale",
-	"Loudmouth",
-	"Little Kev",
-	"street soldier",
-	"rezan the redshirt",
-	"dragomir"
+	"Mr. Muhlik"
 };
 
-const char* player_teams[] =
-{
-	"Enemy",
-	"Team",
-	"Local"
-};
-const char* proj_combo[] =
-{
-	"Icon",
-	"Text",
-	"Box",
-	"Glow",
-	"Warning"
-};
 const char* player_model_ct[] =
 {
 	"None",
@@ -466,13 +380,5 @@ const char* player_model_ct[] =
 	"Buckshot",
 	"McCoy",
 	"Commander Ricksaw",
-	"Agent Ava",
-	"Sergant Bombson",
-	"Bio-Haz Specialist",
-	"Jamison",
-	"Kask",
-	"Chem-Haz Specialist",
-	"1st lieutenant farlow",
-	"mccoy",
-	"buckshot"
+	"Agent Ava"
 };
