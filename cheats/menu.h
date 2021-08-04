@@ -188,7 +188,7 @@ private:
 
 	int active_tab_index;
 	ImGuiStyle style;
-	int width = 850, height = 560;
+	int width = 715, height = 650;
 	float child_height;
 
 	float preview_alpha = 1.f;

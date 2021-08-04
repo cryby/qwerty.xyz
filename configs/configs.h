@@ -355,20 +355,7 @@ inline MovementRecorder GetMrecorder;
 	class c_config
 	{
 	public:
-		void run(const char*) noexcept;
-		void refresh() noexcept;
-		void load(size_t) noexcept;
-		void save(size_t) const noexcept;
-		void add(const char*) noexcept;
-		void remove(size_t) noexcept;
-		void rename(size_t, const char*) noexcept;
-		void reset() noexcept;
-
-
-		constexpr auto& get_configs() noexcept {
-			return configs;
-		}
-		struct
+		struct Config
 		{
 			struct Legitbot_t
 			{
@@ -804,26 +791,5 @@ inline MovementRecorder GetMrecorder;
 			std::string new_config_name;
 			std::string new_script_name;
 		} g_cfg;
-
-		std::vector<std::string> configs;
-	private:
-		std::filesystem::path path;
-	public:
-		void run2(const char*) noexcept;
-		void load2(size_t) noexcept;
-		void save2(size_t) const noexcept;
-		void add2(const char*) noexcept;
-		void remove2(size_t) noexcept;
-		void rename2(size_t, const char*) noexcept;
-		void reset2() noexcept;
-
-
-		constexpr auto& get_configs2() noexcept {
-			return configs2;
-		}
-
-	private:
-		std::filesystem::path path2;
-		std::vector<std::string> configs2;
 	}; 
 	inline c_config config_system;

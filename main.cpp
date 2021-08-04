@@ -57,7 +57,7 @@ DWORD WINAPI main(PVOID base)
 		exit(0);
 	else if (License.CheckLicense())
 	{*/
-	Beep(1055, 450);
+	/*Beep(1055, 450);
 	Beep(1055, 550);
 	Beep(815, 500);
 	Beep(863, 350);
@@ -71,9 +71,9 @@ DWORD WINAPI main(PVOID base)
 	Beep(875, 432);
 	Beep(959, 432);
 	Beep(875, 432);
-	Beep(815, 400);
+	Beep(815, 400);*/
 
-	std::filesystem::path path3;
+	/*std::filesystem::path path3;
 	PWSTR pathToDocuments3;
 	if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Documents, 0, NULL, &pathToDocuments3))) {
 		path3 = pathToDocuments3;
@@ -81,7 +81,7 @@ DWORD WINAPI main(PVOID base)
 		CoTaskMemFree(pathToDocuments3);
 	}
 	std::filesystem::create_directory(path3);
-
+	*/
 		g_ctx.signatures =
 		{
 			crypt_str("A1 ? ? ? ? 50 8B 08 FF 51 0C"),
@@ -140,7 +140,6 @@ DWORD WINAPI main(PVOID base)
 			//FreeConsole();
 			//return EXIT_SUCCESS;
 		//}
-
 		//shonax
 		static TCHAR path[MAX_PATH];
 		std::string folder;

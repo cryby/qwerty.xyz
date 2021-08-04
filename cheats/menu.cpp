@@ -14,12 +14,6 @@
 CHAR my_documents[MAX_PATH];
 HRESULT result = SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, my_documents);
 
-constexpr auto& config_items = config_system.get_configs();
-static int current_config = -1;
-
-constexpr auto& config_items2 = config_system.get_configs2();
-static int current_config2 = -1;
-bool OpenConfig = false;
 
 #define IMAGE_X 110
 #define IMAGE_Y 245
@@ -949,7 +943,7 @@ IDirect3DTexture9* get_skin_preview(const char* weapon_name, const std::string& 
 void c_menu::menu_setup(ImGuiStyle& style) //-V688
 {
 	ImGui::StyleColorsClassic(); // colors setup
-	ImGui::SetNextWindowSize(ImVec2(815, 550), ImGuiCond_Once); // window pos setup
+	ImGui::SetNextWindowSize(ImVec2(715, 650), ImGuiCond_Once); // window pos setup
 	ImGui::SetNextWindowBgAlpha(0.1f); // window bg alpha setup
 
 	styles.WindowPadding = style.WindowPadding;
@@ -2594,20 +2588,20 @@ namespace ImGui
 		bool hovered, held;
 		bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, 0);
 
-		if (selected)
-			window->DrawList->AddRectFilled(bb.Min, bb.Max, ImColor(30, 30, 30));
+		//if (selected)
+			//window->DrawList->AddRectFilled(bb.Min, bb.Max, ImColor(30, 30, 30));
 
-		if (selected)
-			window->DrawList->AddRectFilled({ bb.Max.x,bb.Max.y }, { bb.Max.x - 3,bb.Min.y }, ImColor(0.f, 143.f, 255.f));
+		//if (selected)
+			//window->DrawList->AddRectFilled({ bb.Max.x,bb.Max.y }, { bb.Max.x - 3,bb.Min.y }, ImColor(0.f, 143.f, 255.f));
 
 		//ImGui::PushFont(c_menu::get().bigxd);
 		//window->DrawList->AddText(ImVec2(bb.Min.x + 35, bb.Min.y + 13), ImColor(32.f / 255.f, 32.f / 255.f, 32.f / 255.f, 255.f / 255.f), label);
 		//ImGui::PopFont();
 
-		window->DrawList->AddText(ImVec2(bb.Min.x + 35, bb.Min.y + 20), ImColor(100 / 255.f, 100 / 255.f, 100 / 255.f, 255.f / 255.f), desc);
+		//window->DrawList->AddText(ImVec2(bb.Min.x + 35, bb.Min.y + 20), ImColor(255.f, 255.f, 255.f), desc);
 
 		ImGui::PushFont(c_menu::get().icons);
-		window->DrawList->AddText(ImVec2(bb.Min.x + 5, bb.Min.y + size_arg.y / 2 - ImGui::CalcTextSize(icon).y / 2), ImColor(0.f, 143.f, 255.f), icon);
+		window->DrawList->AddText(ImVec2(bb.Min.x + 5, bb.Min.y + size_arg.y / 2 - ImGui::CalcTextSize(icon).y / 2), ImColor(83, 86, 88), icon);
 		ImGui::PopFont();
 
 		return pressed;
@@ -2640,14 +2634,14 @@ namespace ImGui
 		bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, 0);
 
 		if (selected)
-			window->DrawList->AddRectFilled({ bb.Min.x,bb.Min.y }, { bb.Max.x,bb.Max.y }, ImColor(30, 30, 30));
-
-		if (selected)
-			window->DrawList->AddRectFilled({ bb.Max.x,bb.Max.y }, { bb.Max.x - 3,bb.Min.y }, ImColor(0.f, 143.f, 255.f));
+			window->DrawList->AddRectFilled({ bb.Min.x - 15,bb.Min.y}, { bb.Max.x - 15,bb.Max.y}, ImColor(33, 33, 33), 15.f);
 
 		//ImGui::PushFont(c_menu::get().bigxd);
-		window->DrawList->AddText(ImVec2(bb.Min.x + 5, bb.Min.y + size_arg.y / 2 - ImGui::CalcTextSize(label).y / 2), ImColor(255 / 255.f, 255 / 255.f, 255 / 255.f, 255.f / 255.f), label);
+		window->DrawList->AddText(ImVec2(bb.Min.x + 5, bb.Min.y + size_arg.y / 2 - ImGui::CalcTextSize(label).y / 2), ImColor(83, 86, 88), label);
 		//ImGui::PopFont();
+
+		if (selected)
+			window->DrawList->AddText(ImVec2(bb.Min.x + 5, bb.Min.y + size_arg.y / 2 - ImGui::CalcTextSize(label).y / 2), ImColor(255, 255, 255), label);
 
 
 		return pressed;
@@ -2742,90 +2736,115 @@ void c_menu::render2(bool is_open) {
 	static int last_tab = Active_Tab;
 	static bool preview_reverse = false;
 
-	if (ImGui::Begin(crypt_str("Qwerty.xyz"), nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar))
+	if (ImGui::Begin(crypt_str("Qwerty.xyz"), nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoBackground))
 	{
 
-		auto p = ImGui::GetWindowPos();
+	auto p = ImGui::GetWindowPos();
 
-		// main dpi update logic
-		// KEYWORD : DPI_FIND
-	
+	// main dpi update logic
+	// KEYWORD : DPI_FIND
 
-		int child;
-		auto player = config_system.g_cfg.player.teams;
 
-		if(last_tab != active_tab || preview_reverse)
+	int child;
+	auto player = config_system.g_cfg.player.teams;
+
+	if (last_tab != active_tab || preview_reverse)
+	{
+		if (!preview_reverse)
 		{
-			if (!preview_reverse)
-			{
-				if (preview_alpha == 1.f) //-V550
-					preview_reverse = true;
+			if (preview_alpha == 1.f) //-V550
+				preview_reverse = true;
 
-				preview_alpha = math::clamp(preview_alpha + (4.f * ImGui::GetIO().DeltaTime), 0.01f, 1.f);
-			}
-			else
-			{
-				last_tab = active_tab;
-				if (preview_alpha == 0.01f) //-V550
-				{
-					preview_reverse = false;
-				}
-
-				preview_alpha = math::clamp(preview_alpha - (4.f * ImGui::GetIO().DeltaTime), 0.01f, 1.f);
-			}
+			preview_alpha = math::clamp(preview_alpha + (4.f * ImGui::GetIO().DeltaTime), 0.01f, 1.f);
 		}
 		else
-			preview_alpha = math::clamp(preview_alpha - (4.f * ImGui::GetIO().DeltaTime), 0.0f, 1.f);
-
-		ImGui::BeginChild("##Full", ImVec2{ 815, 550 }, false);
 		{
+			last_tab = active_tab;
+			if (preview_alpha == 0.01f) //-V550
+			{
+				preview_reverse = false;
+			}
 
-			Style->Colors[ImGuiCol_ChildBg] = ImColor(20, 20, 20);
-			/*ImGui::BeginChild("##Name", ImVec2{815, 20}, false);
+			preview_alpha = math::clamp(preview_alpha - (4.f * ImGui::GetIO().DeltaTime), 0.01f, 1.f);
+		}
+	}
+	else
+		preview_alpha = math::clamp(preview_alpha - (4.f * ImGui::GetIO().DeltaTime), 0.0f, 1.f);
+
+
+	Style->ChildRounding = 6;
+	Style->WindowRounding = 6;
+
+	ImGui::BeginChild("##Full", ImVec2{ 715, 640 }, false);
+	{
+
+
+		//ImGui::SetCursorPos(ImVec2{ -10, -15 });
+
+		Style->Colors[ImGuiCol_ChildBg] = ImColor(78, 189, 253);
+
+		ImGui::SetNextWindowSize(ImVec2{ 110, 650 });
+		Style->WindowRounding = 10;
+		Style->ChildRounding = 10;
+
+		ImGui::Begin(crypt_str("Test"), nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoBackground);
+		{
+			ImGui::BeginChild("##Side", ImVec2{ 100, 640 }, false, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 			{
-				ImGui::SetCursorPos(ImVec2{ 380, 1 });
-				ImGui::PushFont(c_menu::get().futura_small); ImGui::TextColored(ImColor(255, 255, 255), "Qwerty.xyz"); ImGui::PopFont();
-			}*/
-			ImGui::BeginChild("##Up", ImVec2{ 110, 550 }, false);
-			{
-				ImGui::SetCursorPos(ImVec2{ 10, 15 });
-				//ImGui::PushFont(c_menu::get().futura_large); ImGui::TextColored(ImColor(255, 255, 255), "Qwerty.xyz"); ImGui::PopFont();
-				ImGui::SetCursorPos(ImVec2{ 25, 15 });
+
+				ImGui::SetCursorPos(ImVec2{ 5,	5 });
 				//ImGui::Image(texture, ImVec2(900, 681));
-				ImGui::Image(logotype, ImVec2(50.f, 50.f)); //Когда сделать картинку в байты тогда раскомменти, а то так краш будет
+				ImGui::Image(logotype, ImVec2(90.f, 90.f)); //Когда сделать картинку в байты тогда раскомменти, а то так краш будет
 				//ImGui::Image(TextureImage, ImVec2(0.f, 0.f));
+				ImGui::SetCursorPos(ImVec2{ 5, 30 });
 				ImGui::SetCursorPos(ImVec2{ 50, 50 });
 				//ImGui::PushFont(c_menu::get().futura_large); ImGui::TextColored(ImColor(255, 255, 255), "Qwerty.xyz"); ImGui::PopFont();
-				
-				#if BETA
-				ImGui::SetCursorPos(ImVec2{ 10, 430 });
-				ImGui::PushFont(c_menu::get().futura); ImGui::TextColored(ImColor(255, 255, 255), "BETA"); ImGui::PopFont();
-				#endif
 
-				ImGui::SetCursorPos(ImVec2{ 10, 80 });
-				if (ImGui::Tab("1", "Rage", "Rage",  ImVec2{ 85, 50 }, Active_Tab == 1 ? true : false))
+				//#if BETA
+				//ImGui::SetCursorPos(ImVec2{ -200, 430 });
+				//ImGui::PushFont(c_menu::get().futura); ImGui::TextColored(ImColor(255, 255, 255), "BETA"); ImGui::PopFont();
+				//#endif
+
+				ImGui::SetCursorPos(ImVec2{ 30, 80 });
+				if (ImGui::Tab("1", "Rage", "Rage", ImVec2{ 85, 50 }, Active_Tab == 1 ? true : false))
 					Active_Tab = 1;
 
-				ImGui::SetCursorPos(ImVec2{ 10, 140 });
-				if (ImGui::Tab("2", "Legit", "Legit",  ImVec2{ 85, 50 }, Active_Tab == 2 ? true : false))
+				ImGui::SetCursorPos(ImVec2{ 30, 140 });
+				if (ImGui::Tab("2", "Legit", "Legit", ImVec2{ 85, 50 }, Active_Tab == 2 ? true : false))
 					Active_Tab = 2;
 
-				ImGui::SetCursorPos(ImVec2{ 10, 200 });
-				if (ImGui::Tab("3", "Visuals", "Visuals",  ImVec2{ 85, 50 }, Active_Tab == 3 ? true : false))
+				ImGui::SetCursorPos(ImVec2{ 30, 200 });
+				if (ImGui::Tab("3", "Visuals", "Visuals", ImVec2{ 85, 50 }, Active_Tab == 3 ? true : false))
 					Active_Tab = 3;
 
-				ImGui::SetCursorPos(ImVec2{ 10, 260 });
-				if (ImGui::Tab("4", "Skins", "Skins",  ImVec2{ 85, 50 }, Active_Tab == 4 ? true : false))
+				ImGui::SetCursorPos(ImVec2{ 30, 260 });
+				if (ImGui::Tab("4", "Skins", "Skins", ImVec2{ 85, 50 }, Active_Tab == 4 ? true : false))
 					Active_Tab = 4;
 
-				ImGui::SetCursorPos(ImVec2{ 10, 320 });
-				if (ImGui::Tab("5", "Misc", "Misc",  ImVec2{ 85, 50 }, Active_Tab == 5 ? true : false))
+				ImGui::SetCursorPos(ImVec2{ 30, 320 });
+				if (ImGui::Tab("5", "Misc", "Misc", ImVec2{ 85, 50 }, Active_Tab == 5 ? true : false))
 					Active_Tab = 5;
-				ImGui::SetCursorPos(ImVec2{ 10, 380 });
-				if (ImGui::Tab("6", "Movement", "Beta",  ImVec2{ 85, 50 }, Active_Tab == 6 ? true : false))
+				ImGui::SetCursorPos(ImVec2{ 30, 380 });
+				if (ImGui::Tab("6", "Movement", "Beta", ImVec2{ 85, 50 }, Active_Tab == 6 ? true : false))
+					Active_Tab = 6;
+				ImGui::SetCursorPos(ImVec2{ 31, 500 });
+				if (ImGui::Tab("7", "Settings", "Settings", ImVec2{ 85, 50 }, Active_Tab == 6 ? true : false))
+					Active_Tab = 6;
+				ImGui::SetCursorPos(ImVec2{ 30, 560 });
+				if (ImGui::Tab("8", "User", "User", ImVec2{ 85, 50 }, Active_Tab == 6 ? true : false))
 					Active_Tab = 6;
 			}
 			ImGui::EndChild();
+		}
+		ImGui::End();
+		
+
+
+		Style->ChildRounding = 5;
+
+		Style->Colors[ImGuiCol_ChildBg] = ImColor(83, 86, 88);
+
+		ImGui::SetCursorPos(ImVec2{ 25, 15 });
 
 			if (Active_Tab == 1) // Rage | Đĺéäć
 			{
@@ -3064,26 +3083,26 @@ void c_menu::render2(bool is_open) {
 					ImGui::PopStyleVar(3);
 				}
 				Style->ChildRounding = 5;
-				ImGui::SetCursorPos(ImVec2{ 130, 25 });
-				ImGui::BeginChild("##Main", ImVec2{ 655, 45 }, false, NoMove);
+				ImGui::SetCursorPos(ImVec2{ 60, 25 });
+				ImGui::BeginChild("##Main", ImVec2{ 655, 45 }, false, NoMove | ImGuiWindowFlags_NoBackground);
 				{
 					ImGui::SetCursorPos(ImVec2{ 15, 10 });
-					if (ImGui::SubTab("			General", ImVec2(180, 25), Active_Rage_Tab == 1 ? true : false))
+					if (ImGui::SubTab("	General", ImVec2(180, 25), Active_Rage_Tab == 1 ? true : false))
 						Active_Rage_Tab = 1;
 
 					ImGui::SetCursorPos(ImVec2{ 230, 10 });
-					if (ImGui::SubTab("			Weapons", ImVec2(180, 25), Active_Rage_Tab == 2 ? true : false))
+					if (ImGui::SubTab("	Weapons", ImVec2(180, 25), Active_Rage_Tab == 2 ? true : false))
 						Active_Rage_Tab = 2;
 
 					ImGui::SetCursorPos(ImVec2{ 450, 10 });
-					if (ImGui::SubTab("			Player list", ImVec2(180, 25), Active_Rage_Tab == 3 ? true : false))
+					if (ImGui::SubTab("	Player list", ImVec2(180, 25), Active_Rage_Tab == 3 ? true : false))
 						Active_Rage_Tab = 3;
 				}
 				ImGui::EndChild();
 			}
 			else if (Active_Tab == 2) // Legit | Ëĺăčň
 			{
-
+				
 				auto cur_window = ImGui::GetCurrentWindow();
 				ImVec2 w_pos = cur_window->Pos;
 				ImGuiStyle* Style = &ImGui::GetStyle();
@@ -3120,23 +3139,23 @@ void c_menu::render2(bool is_open) {
 				ImGui::PopStyleVar(3);
 
 				Style->ChildRounding = 5;
-				ImGui::SetCursorPos(ImVec2{ 130, 25 });
-				ImGui::BeginChild("##Main", ImVec2{ 655, 45 }, false, NoMove);
+				ImGui::SetCursorPos(ImVec2{ 60, 25 });
+				ImGui::BeginChild("##Main", ImVec2{ 655, 45 }, false, NoMove | ImGuiWindowFlags_NoBackground );
 				{
 					ImGui::SetCursorPos(ImVec2{ 15, 10 });
-					if (ImGui::SubTab("			General", ImVec2(140, 25), Active_Legit_Tab == 1 ? true : false))
+					if (ImGui::SubTab("	General", ImVec2(140, 25), Active_Legit_Tab == 1 ? true : false))
 						Active_Legit_Tab = 1;
 
 					ImGui::SetCursorPos(ImVec2{ 175, 10 });
-					if (ImGui::SubTab("			RSC", ImVec2(140, 25), Active_Legit_Tab == 2 ? true : false))
+					if (ImGui::SubTab("	RSC", ImVec2(140, 25), Active_Legit_Tab == 2 ? true : false))
 						Active_Legit_Tab = 2;
 
 					ImGui::SetCursorPos(ImVec2{ 335, 10 });
-					if (ImGui::SubTab("			Trigger", ImVec2(140, 25), Active_Legit_Tab == 3 ? true : false))
+					if (ImGui::SubTab("	Trigger", ImVec2(140, 25), Active_Legit_Tab == 3 ? true : false))
 						Active_Legit_Tab = 3;
 
 					ImGui::SetCursorPos(ImVec2{ 495, 10 });
-					if (ImGui::SubTab("			Others", ImVec2(140, 25), Active_Legit_Tab == 4 ? true : false))
+					if (ImGui::SubTab("	Others", ImVec2(140, 25), Active_Legit_Tab == 4 ? true : false))
 						Active_Legit_Tab = 4;
 				}
 				ImGui::EndChild();
@@ -3179,7 +3198,7 @@ void c_menu::render2(bool is_open) {
 				ImGui::End();
 				ImGui::PopStyleVar(3);
 
-				/*
+				
 
 				enum esp_info_position
 				{
@@ -3205,7 +3224,7 @@ void c_menu::render2(bool is_open) {
 				static bool enabled = true;
 				ImGui::SetNextWindowSize(ImVec2(280, 430));
 				//ffs i dont find showborder here maybe u can find it on old imgui or i dont know where it is
-				ImGui::Begin("ESP Preview", &enabled, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+				/*ImGui::Begin("ESP Preview", &enabled, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 				{
 					ImGui::SetCursorPos(ImVec2{ 5, 50 });
 					ImGui::Image(esptype, ImVec2(280.f, 330.f));
@@ -3244,33 +3263,32 @@ void c_menu::render2(bool is_open) {
 				ImGui::End();
 				info.clear();*/
 
-
 				Style->ChildRounding = 5;
-				ImGui::SetCursorPos(ImVec2{ 130, 25 });
-				ImGui::BeginChild("##Main", ImVec2{ 655, 45 }, false, NoMove);
+				ImGui::SetCursorPos(ImVec2{ 60, 25 });
+				ImGui::BeginChild("##Main", ImVec2{ 655, 45 }, false, NoMove | ImGuiWindowFlags_NoBackground );
 				{
 					ImGui::SetCursorPos(ImVec2{ 15, 10 });
-					if (ImGui::SubTab("		ESP", ImVec2(90, 25), Active_Visuals_Tab == 1 ? true : false))
+					if (ImGui::SubTab("ESP", ImVec2(90, 25), Active_Visuals_Tab == 1 ? true : false))
 						Active_Visuals_Tab = 1;
 
 					ImGui::SetCursorPos(ImVec2{ 115, 10 });
-					if (ImGui::SubTab("	   Glow", ImVec2(90, 25), Active_Visuals_Tab == 2 ? true : false))
+					if (ImGui::SubTab("Glow", ImVec2(90, 25), Active_Visuals_Tab == 2 ? true : false))
 						Active_Visuals_Tab = 2;
 
 					ImGui::SetCursorPos(ImVec2{ 215, 10 });
-					if (ImGui::SubTab("	   Chams", ImVec2(90, 25), Active_Visuals_Tab == 3 ? true : false))
+					if (ImGui::SubTab("Chams", ImVec2(90, 25), Active_Visuals_Tab == 3 ? true : false))
 						Active_Visuals_Tab = 3;
 
 					ImGui::SetCursorPos(ImVec2{ 315, 10 });
-					if (ImGui::SubTab("	   Radar", ImVec2(90, 25), Active_Visuals_Tab == 4 ? true : false))
+					if (ImGui::SubTab("Radar", ImVec2(90, 25), Active_Visuals_Tab == 4 ? true : false))
 						Active_Visuals_Tab = 4;
 
 					ImGui::SetCursorPos(ImVec2{ 415, 10 });
-					if (ImGui::SubTab("	   World", ImVec2(90, 25), Active_Visuals_Tab == 6 ? true : false))
+					if (ImGui::SubTab("World", ImVec2(90, 25), Active_Visuals_Tab == 6 ? true : false))
 						Active_Visuals_Tab = 6;
 
 					ImGui::SetCursorPos(ImVec2{ 515, 10 });
-					if (ImGui::SubTab("	   Others", ImVec2(90, 25), Active_Visuals_Tab == 5 ? true : false))
+					if (ImGui::SubTab("Others", ImVec2(90, 25), Active_Visuals_Tab == 5 ? true : false))
 						Active_Visuals_Tab = 5;
 				}
 				ImGui::EndChild();
@@ -3278,19 +3296,19 @@ void c_menu::render2(bool is_open) {
 			else if (Active_Tab == 4) // Changers | ×ĺíäćĺđű (Číâĺíňŕđü, ďđîôčëü)
 			{
 				Style->ChildRounding = 5;
-				ImGui::SetCursorPos(ImVec2{ 130, 25 });
-				ImGui::BeginChild("##Main", ImVec2{ 655, 45 }, false, NoMove);
+				ImGui::SetCursorPos(ImVec2{ 60, 25 });
+				ImGui::BeginChild("##Main", ImVec2{ 655, 45 }, false, NoMove | ImGuiWindowFlags_NoBackground );
 				{
 					ImGui::SetCursorPos(ImVec2{ 15, 10 });
-					if (ImGui::SubTab("			Inventory", ImVec2(180, 25), Active_Changer_Tab == 1 ? true : false))
+					if (ImGui::SubTab(" Inventory", ImVec2(180, 25), Active_Changer_Tab == 1 ? true : false))
 						Active_Changer_Tab = 1;
 
 					ImGui::SetCursorPos(ImVec2{ 230, 10 });
-					if (ImGui::SubTab("			Profile", ImVec2(180, 25), Active_Changer_Tab == 2 ? true : false))
+					if (ImGui::SubTab(" Profile", ImVec2(180, 25), Active_Changer_Tab == 2 ? true : false))
 						Active_Changer_Tab = 2;
 
 					ImGui::SetCursorPos(ImVec2{ 450, 10 });
-					if (ImGui::SubTab("			Character", ImVec2(180, 25), Active_Changer_Tab == 3 ? true : false))
+					if (ImGui::SubTab(" Character", ImVec2(180, 25), Active_Changer_Tab == 3 ? true : false))
 						Active_Changer_Tab = 3;
 				}
 				ImGui::EndChild();
@@ -3298,23 +3316,23 @@ void c_menu::render2(bool is_open) {
 			else if (Active_Tab == 5) // Misc | Ěčńę
 			{
 				Style->ChildRounding = 5;
-				ImGui::SetCursorPos(ImVec2{ 130, 25 });
-				ImGui::BeginChild("##Main", ImVec2{ 655, 45 }, false, NoMove);
+				ImGui::SetCursorPos(ImVec2{ 60, 25 });
+				ImGui::BeginChild("##Main", ImVec2{ 655, 45 }, false, NoMove | ImGuiWindowFlags_NoBackground );
 				{
 					ImGui::SetCursorPos(ImVec2{ 15, 10 });
-					if (ImGui::SubTab("			Main", ImVec2(140, 25), Active_Misc_Tab == 1 ? true : false))
+					if (ImGui::SubTab(" Main", ImVec2(140, 25), Active_Misc_Tab == 1 ? true : false))
 						Active_Misc_Tab = 1;
 
 					ImGui::SetCursorPos(ImVec2{ 175, 10 });
-					if (ImGui::SubTab("			Misc", ImVec2(140, 25), Active_Misc_Tab == 2 ? true : false))
+					if (ImGui::SubTab(" Misc", ImVec2(140, 25), Active_Misc_Tab == 2 ? true : false))
 						Active_Misc_Tab = 2;
 
 					ImGui::SetCursorPos(ImVec2{ 335, 10 });
-					if (ImGui::SubTab("			Configs", ImVec2(140, 25), Active_Misc_Tab == 3 ? true : false))
+					if (ImGui::SubTab("	Configs", ImVec2(140, 25), Active_Misc_Tab == 3 ? true : false))
 						Active_Misc_Tab = 3;
 
 					ImGui::SetCursorPos(ImVec2{ 495, 10 });
-					if (ImGui::SubTab("			Lua", ImVec2(140, 25), Active_Misc_Tab == 4 ? true : false))
+					if (ImGui::SubTab(" Lua", ImVec2(140, 25), Active_Misc_Tab == 4 ? true : false))
 						Active_Misc_Tab = 4;
 				}
 				ImGui::EndChild();
@@ -3322,35 +3340,36 @@ void c_menu::render2(bool is_open) {
 			else if (Active_Tab == 6)
 			{
 				Style->ChildRounding = 5;
-				ImGui::SetCursorPos(ImVec2{ 130, 25 });
-				ImGui::BeginChild("##Main", ImVec2{ 655, 45 }, false, NoMove);
+				ImGui::SetCursorPos(ImVec2{ 60, 25 });
+				ImGui::BeginChild("##Main", ImVec2{ 655, 45 }, false, NoMove | ImGuiWindowFlags_NoBackground );
 				{
 					ImGui::SetCursorPos(ImVec2{ 15, 10 });
-					if (ImGui::SubTab("		Movement Recorder", ImVec2(180, 25), Active_Movement_Tab == 1 ? true : false))
+					if (ImGui::SubTab("	Movement Recorder", ImVec2(180, 25), Active_Movement_Tab == 1 ? true : false))
 						Active_Movement_Tab = 1;
 
 					ImGui::SetCursorPos(ImVec2{ 230, 10 });
-					if (ImGui::SubTab("			Grenade Helper", ImVec2(180, 25), Active_Movement_Tab == 2 ? true : false))
+					if (ImGui::SubTab("	Grenade Helper", ImVec2(180, 25), Active_Movement_Tab == 2 ? true : false))
 						Active_Movement_Tab = 2;
 
 					ImGui::SetCursorPos(ImVec2{ 450, 10 });
-					if (ImGui::SubTab("			 Information", ImVec2(180, 25), Active_Movement_Tab == 3 ? true : false))
+					if (ImGui::SubTab("	Information", ImVec2(180, 25), Active_Movement_Tab == 3 ? true : false))
 						Active_Movement_Tab = 3;
 				}
 				ImGui::EndChild();
 			}
-			ImGui::SetCursorPos(ImVec2{ 180, 100 });
+			ImGui::SetCursorPos(ImVec2{ 75, 100 });
 			Style->ChildRounding = 10;
-		
-			ImGui::BeginChild("##Draw Function", ImVec2{ 560, 450 }, false, NoScroll);
+			
+			Style->Colors[ImGuiCol_ChildBg] = ImColor(30, 30, 30);
+			ImGui::BeginChild("##Draw Function", ImVec2{650, 540}, false, NoScroll);
 			{
-				ImGui::SetCursorPos(ImVec2{ 10, 10 });
-				ImGui::BeginChild("##Function", ImVec2{ 560, 450 }, false), NoScroll;
+				ImGui::SetCursorPos(ImVec2{ 0, 0 });
+				ImGui::BeginChild("##Function", ImVec2{ 650, 530 }, false), NoScroll;
 				{
 					if (Active_Tab == 1 && Active_Rage_Tab == 1) //Rage | General
 					{
 						ImGui::Columns(2, nullptr, false);
-						ImGui::BeginChild("it3ems", { 300, 430 });
+						ImGui::BeginChild("it3ems", { 300, 530 });
 						{
 
 							ImGui::SetCursorPos({ 2,2 });
@@ -3394,7 +3413,7 @@ void c_menu::render2(bool is_open) {
 						}
 						ImGui::EndChild();
 						ImGui::NextColumn();
-						ImGui::BeginChild("item6s2", { 300, 430 });
+						ImGui::BeginChild("item6s2", { 300, 530 });
 						{
 
 							ImGui::SetCursorPos({ 0,0 });
@@ -3498,7 +3517,7 @@ void c_menu::render2(bool is_open) {
 
 
 						ImGui::Columns(2, nullptr, false);
-						ImGui::BeginChild("it3ems", { 300, 430 });
+						ImGui::BeginChild("it3ems", { 300, 530 });
 						{
 
 							ImGui::SetCursorPos({ 2,2 });
@@ -3550,7 +3569,7 @@ void c_menu::render2(bool is_open) {
 						}
 						ImGui::EndChild();
 						ImGui::NextColumn();
-						ImGui::BeginChild("item6s2", { 300, 430 });
+						ImGui::BeginChild("item6s2", { 300, 530 });
 						{
 
 							ImGui::SetCursorPos({ 0,0 });
@@ -3599,7 +3618,7 @@ void c_menu::render2(bool is_open) {
 						static auto current_player = 0;
 						ImGui::Columns(2, nullptr, false);
 						child_title(crypt_str("Players"));
-						ImGui::BeginChild("it3ems", { 300, 430 });
+						ImGui::BeginChild("it3ems", { 300, 530 });
 						{
 
 							ImGui::SetCursorPos({ 1,1 });
@@ -3624,7 +3643,7 @@ void c_menu::render2(bool is_open) {
 						ImGui::EndChild();
 						ImGui::NextColumn();
 						child_title(crypt_str("Settings"));
-						ImGui::BeginChild("item6s2", { 300, 430 });
+						ImGui::BeginChild("item6s2", { 300, 530 });
 						{
 
 							ImGui::SetCursorPos({ 10,10 });
@@ -3662,7 +3681,7 @@ void c_menu::render2(bool is_open) {
 
 						ImGui::Columns(2, nullptr, false);
 						child_title(crypt_str("Legit"));
-						ImGui::BeginChild("it3emsl", { 300, 430 });
+						ImGui::BeginChild("it3emsl", { 300, 530 });
 						{
 
 							ImGui::SetCursorPos({ 1,1 });
@@ -3699,7 +3718,7 @@ void c_menu::render2(bool is_open) {
 						ImGui::EndChild();
 						ImGui::NextColumn();
 						child_title(crypt_str("Settings"));
-						ImGui::BeginChild("item6s2l2", { 300, 430 });
+						ImGui::BeginChild("item6s2l2", { 300, 530 });
 						{
 
 							ImGui::SetCursorPos({ 10,10 });
@@ -3742,7 +3761,7 @@ void c_menu::render2(bool is_open) {
 					else if (Active_Tab == 2 && Active_Legit_Tab == 2) //Legit | RSC
 					{
 						ImGui::Columns(2, nullptr, false);
-						ImGui::BeginChild("it3ems", { 300, 430 });
+						ImGui::BeginChild("it3ems", { 300, 530 });
 						{
 							const char* legit_weapons[6] = { crypt_str("Deagle"), crypt_str("Pistols"), crypt_str("Rifles"), crypt_str("SMGs"), crypt_str("Snipers"), crypt_str("Heavy") };
 							const char* hitbox_legit[3] = { crypt_str("Nearest"), crypt_str("Head"), crypt_str("Body") };
@@ -3768,7 +3787,7 @@ void c_menu::render2(bool is_open) {
 						}
 						ImGui::EndChild();
 						ImGui::NextColumn();
-						ImGui::BeginChild("item6s2", { 300, 430 });
+						ImGui::BeginChild("item6s2", { 300, 530 });
 						{
 
 							ImGui::SetCursorPos({ 0,0 });
@@ -3786,82 +3805,10 @@ void c_menu::render2(bool is_open) {
 					{
 					ImGui::Columns(2, nullptr, false);
 					child_title(crypt_str("Recorder"));
-					ImGui::BeginChild("it3ems", { 300, 430 });
+					ImGui::BeginChild("it3ems", { 300, 530 });
 					{
 						padding(8, 8);
 
-						ImGui::BeginGroup();
-						{
-
-
-							ImGui::Checkbox("Movement recorder", &config_system.g_cfg.misc.enable_movement); padding(8, 2);
-							if (config_system.g_cfg.misc.enable_movement)
-							{
-								draw_keybind(crypt_str("Recorder"), &config_system.g_cfg.misc.recorder, crypt_str("##RECORDER_KEY")); padding(8, 2);
-								draw_keybind(crypt_str("Player"), &config_system.g_cfg.misc.playing, crypt_str("##PLAYER_KEY")); padding(8, 2);
-
-								ImGui::Checkbox("Show the first path", &config_system.g_cfg.misc.showfirstpath); padding(8, 2);
-								ImGui::SameLine(100); ImGui::ColorEdit4("##teste", &config_system.g_cfg.misc.showfirstpath_color); padding(8, 2);
-
-								ImGui::Checkbox("Show path", &config_system.g_cfg.misc.showpath); padding(8, 2);
-								ImGui::SameLine(100); ImGui::ColorEdit4("##show_path", &config_system.g_cfg.misc.pathcolor); padding(8, 2);
-
-								ImGui::Checkbox("Show 3D circle", &config_system.g_cfg.misc.show3dcircle); padding(8, 2);
-								ImGui::SameLine(100); ImGui::ColorEdit4("##show_3dcircle", &config_system.g_cfg.misc.circle3d); padding(8, 2);
-
-								if (config_system.g_cfg.misc.show3dcircle)
-								{
-
-									padding(6, 8); ImGui::SliderInt("Show circle distance", &config_system.g_cfg.misc.showcircle, 0, 5000); padding(8, 2);
-								}
-
-								padding(6, 8); ImGui::SliderFloat("Smooth", &config_system.g_cfg.misc.smooth, 10, 60); padding(8, 2);
-
-
-								if (static_cast<size_t>(current_config2) >= config_items2.size())
-									current_config2 = -1;
-
-								static char buffer[16];
-								padding(8, 2);
-								if (ImGui::Combo("Configs", &current_config2, [](void* data, int idx, const char** out_text) {
-									auto& vector = *static_cast<std::vector<std::string>*>(data);
-									*out_text = vector[idx].c_str();
-									return true;
-									}, &config_items2, config_items2.size(), 5) && current_config2 != -1)
-									strcpy(buffer, config_items2[current_config2].c_str());
-									ImGui::PushID(0);
-									ImGui::PushItemWidth(178);
-									padding(8, 2); if (ImGui::InputText("", buffer, IM_ARRAYSIZE(buffer), ImGuiInputTextFlags_EnterReturnsTrue)) {
-										if (current_config2 != -1)
-											config_system.rename2(current_config2, buffer);
-									}
-									ImGui::PopID();
-									ImGui::SameLine();
-									if (ImGui::CustomButton(("Create"), "##1", ImVec2(80, 18))) {
-										config_system.add2(buffer);
-									}
-
-
-									if (current_config2 != -1)
-									{
-
-										padding(8, 2);
-										if (ImGui::CustomButton(("Load Config"), "##2", ImVec2(80, 18))) {
-											config_system.load2(current_config2);
-										}
-										ImGui::SameLine();
-										if (ImGui::CustomButton(("Save Config"), "##3", ImVec2(80, 18))) {
-											config_system.save2(current_config2);
-										}
-										ImGui::SameLine();
-										if (ImGui::CustomButton(("Remove Config"), "##4", ImVec2(80, 18))) {
-											config_system.remove2(current_config2);
-										}
-
-									}
-							}
-							ImGui::EndGroup();
-						}
 					}
 					ImGui::EndChild();
 
@@ -4052,7 +3999,7 @@ void c_menu::render2(bool is_open) {
 					{
 
 						ImGui::Columns(2, nullptr, false);
-						ImGui::BeginChild("it3ems", { 300, 430 });
+						ImGui::BeginChild("it3ems", { 300, 530 });
 						{
 
 							ImGui::SetCursorPos({ 2,2 });
@@ -4164,7 +4111,7 @@ void c_menu::render2(bool is_open) {
 						}
 						ImGui::EndChild();
 						ImGui::NextColumn();
-						ImGui::BeginChild("item6s2", { 300, 430 });
+						ImGui::BeginChild("item6s2", { 300, 530 });
 						{
 
 							ImGui::SetCursorPos({ 0,0 });
@@ -4264,12 +4211,12 @@ void c_menu::render2(bool is_open) {
 									ImGui::ColorEdit(crypt_str("##grenade_glow_color"), &config_system.g_cfg.esp.grenade_glow_color, ALPHA);
 								}
 
-								/*if (config_system.g_cfg.esp.grenade_esp[GRENADE_WARNING])
+								if (config_system.g_cfg.esp.grenade_esp[GRENADE_WARNING])
 								{
 									ImGui::Text(crypt_str("Warning color "));
 									ImGui::SameLine();
 									ImGui::ColorEdit(crypt_str("##grenade_warning_color"), &config_system.g_cfg.esp.grenade_warning_color, ALPHA);
-								}*/
+								}
 
 								ImGui::Checkbox(crypt_str("Fire timer"), &config_system.g_cfg.esp.molotov_timer);
 								ImGui::SameLine();
@@ -4340,7 +4287,7 @@ void c_menu::render2(bool is_open) {
 
 						//tab_end();
 						ImGui::Columns(2, nullptr, false);
-						ImGui::BeginChild("it3ems", { 300, 430 });
+						ImGui::BeginChild("it3ems", { 300, 530 });
 						{
 
 							ImGui::SetCursorPos({ 2,2 });
@@ -4451,7 +4398,7 @@ void c_menu::render2(bool is_open) {
 						}
 						ImGui::EndChild();
 						ImGui::NextColumn();
-						ImGui::BeginChild("item6s2", { 300, 430 });
+						ImGui::BeginChild("item6s2", { 300, 530 });
 						{
 
 							ImGui::SetCursorPos({ 0,0 });
@@ -4528,7 +4475,7 @@ void c_menu::render2(bool is_open) {
 					else if (Active_Tab == 3 && Active_Visuals_Tab == 5) //Visuals | Others
 					{
 						ImGui::Columns(2, nullptr, false);
-						ImGui::BeginChild("it3ems", { 300, 430 });
+						ImGui::BeginChild("it3ems", { 300, 530 });
 						{
 
 							ImGui::SetCursorPos({ 2,2 });
@@ -4578,7 +4525,7 @@ void c_menu::render2(bool is_open) {
 						}
 						ImGui::EndChild();
 						ImGui::NextColumn();
-						ImGui::BeginChild("item6s2", { 300, 430 });
+						ImGui::BeginChild("item6s2", { 300, 530 });
 						{
 
 							ImGui::SetCursorPos({ 0,0 });
@@ -5020,7 +4967,7 @@ void c_menu::render2(bool is_open) {
 					if (Active_Tab == 5 && Active_Misc_Tab == 1) //Misc | Main
 					{
 							ImGui::Columns(2, nullptr, false);
-							ImGui::BeginChild("it3ems", { 300, 430 });
+							ImGui::BeginChild("it3ems", { 300, 530 });
 							{
 
 								ImGui::SetCursorPos({ 2,2 });
@@ -5071,7 +5018,7 @@ void c_menu::render2(bool is_open) {
 							}
 							ImGui::EndChild();
 							ImGui::NextColumn();
-							ImGui::BeginChild("item6s2", { 300, 430 });
+							ImGui::BeginChild("item6s2", { 300, 530 });
 							{
 
 								ImGui::SetCursorPos({ 0,0 });
@@ -5110,7 +5057,7 @@ void c_menu::render2(bool is_open) {
 
 
 						ImGui::Columns(2, nullptr, false);
-						ImGui::BeginChild("it3ems", { 300, 430 });
+						ImGui::BeginChild("it3ems", { 300, 530 });
 						{
 
 							ImGui::SetCursorPos({ 2,2 });
@@ -5141,7 +5088,7 @@ void c_menu::render2(bool is_open) {
 						}
 						ImGui::EndChild();
 						ImGui::NextColumn();
-						ImGui::BeginChild("item6s2", { 300, 430 });
+						ImGui::BeginChild("item6s2", { 300, 530 });
 						{
 
 							ImGui::SetCursorPos({ 0,0 });
@@ -5173,54 +5120,8 @@ void c_menu::render2(bool is_open) {
 						child_title(crypt_str("Configs"));
 						ImGui::Spacing();
 
-						/*ImGui::SetCursorPos(ImVec2{370, 60});
-						ImGui::BeginChild("##Maein", ImVec2{ 300, 240 }, false, NoMove);
-						{
 
-							IDirect3DTexture9* image;
-							image = steam_image();
-
-							ImGui::Image(image, ImVec2(75, 75));
-							ImGui::Text("Current user: %s\nTime ingame: %f\nTime in real: %s\nTickrate: %d\nFps: %d\nServer time: %f\nSteam level: %d\nPrealpha build", SteamFriends->GetPersonaName(), m_globals()->m_realtime, zGetTimeString().c_str(), zgettickrate(), zgetfps(), m_globals()->m_curtime, SteamUser->GetPlayerSteamLevel());
-
-						}
-						ImGui::EndChild();
-						ImGui::SetCursorPos(ImVec2{ 370, 285 });
-						ImGui::BeginChild("##eMain", ImVec2{ 300, 260 }, false, NoMove);
-						{
-							enum k_EFriendFlags
-							{
-								k_EFriendFlagNone = 0x00,
-								k_EFriendFlagBlocked = 0x01,
-								k_EFriendFlagFriendshipRequested = 0x02,
-								k_EFriendFlagImmediate = 0x04,			// "regular" friend
-								k_EFriendFlagClanMember = 0x08,
-								k_EFriendFlagOnGameServer = 0x10,
-								//	k_EFriendFlagHasPlayedWith	= 0x20,
-								//	k_EFriendFlagFriendOfFriend	= 0x40,
-								k_EFriendFlagRequestingFriendship = 0x80,
-								k_EFriendFlagRequestingInfo = 0x100,
-								k_EFriendFlagAll = 0xFFFF,
-							};
-							static auto friends = SteamFriends->GetFriendCount(k_EFriendFlagAll);
-
-
-							for (static auto i = 0; i < 1; friends_images = new IDirect3DTexture9 * [friends], i++); //creates
-
-
-							for (static auto i = 0; i < friends; friends_images[i] = steam_image_friends(SteamFriends->GetFriendByIndex(i, k_EFriendFlagAll)), i++);
-
-							for (auto i = 0; i < friends; i++)
-							{
-								ImGui::Image(friends_images[i], ImVec2(48, 48));
-								ImGui::SameLine();
-								ImGui::Text("%s Steam level %d", SteamFriends->GetFriendPersonaName(SteamFriends->GetFriendByIndex(i, k_EFriendFlagAll)),
-									SteamFriends->GetFriendSteamLevel(SteamFriends->GetFriendByIndex(i, k_EFriendFlagAll)));
-							}
-						}
-						ImGui::EndChild();*/
-
-						ImGui::BeginChild("item6s2", { 300, 430 });
+						ImGui::BeginChild("item6s2", { 300, 530 });
 						{
 
 							ImGui::PushItemWidth(220);
@@ -5389,7 +5290,7 @@ void c_menu::render2(bool is_open) {
 					{
 					ImGui::Columns(2, nullptr, false);
 					child_title(crypt_str("Scripts"));
-					ImGui::BeginChild("it3ems", { 300, 430 });
+					ImGui::BeginChild("it3ems", { 300, 530 });
 					{
 
 						//	ImGui::SetCursorPos({ 1,1 });
@@ -5572,7 +5473,7 @@ void c_menu::render2(bool is_open) {
 						}
 						else if (Active_Tab == 6 && Active_Movement_Tab == 3) //Changers | Character
 						{
-							/*ImGui::SetCursorPos(ImVec2{370, 60});
+							ImGui::SetCursorPos(ImVec2{370, 60});
 							ImGui::BeginChild("##Maein", ImVec2{ 300, 240 }, false, NoMove);
 							{
 
@@ -5617,7 +5518,7 @@ void c_menu::render2(bool is_open) {
 										SteamFriends->GetFriendSteamLevel(SteamFriends->GetFriendByIndex(i, k_EFriendFlagAll)));
 								}
 							}
-							ImGui::EndChild();*/
+							ImGui::EndChild();
 						}
 
 						ImGui::EndGroup();
@@ -5626,7 +5527,7 @@ void c_menu::render2(bool is_open) {
 					ImGui::NextColumn();
 					child_title(crypt_str("Script elements"));
 					ImGui::Spacing();
-					ImGui::BeginChild("item6s2", { 300, 430 });
+					ImGui::BeginChild("item6s2", { 300, 530 });
 					{
 
 						ImGui::SetCursorPos({ 10,10 });
@@ -5724,7 +5625,7 @@ void c_menu::render2(bool is_open) {
 		}
 		ImGui::EndChild();
 }
-	ImGui::End();
+ImGui::End();
 }
 
 void c_menu::create_style() 
@@ -5743,7 +5644,7 @@ void c_menu::create_style()
 
 	/*edit Style if needed*/
 	_style.ScrollbarRounding = 0.f;
-	_style.TabRounding = 0;
+	_style.TabRounding = 5.f;
 	_style.WindowRounding = 0;
 	_style.FrameRounding = 0;
 
