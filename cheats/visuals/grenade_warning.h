@@ -168,6 +168,7 @@ public:
             if (reinterpret_cast<entity_t*>(trace.hit_entity)->is_player()
                 || m_index != WEAPON_TAGRENADE && m_index != WEAPON_MOLOTOV && m_index != WEAPON_INCGRENADE)
                 return;
+
             static const auto weapon_molotov_maxdetonateslope = m_cvar()->FindVar("weapon_molotov_maxdetonateslope");
 
             if (m_index != WEAPON_TAGRENADE
@@ -318,7 +319,6 @@ public:
         __forceinline void predict(const Vector& origin, const Vector& velocity, float throw_time, int offset) {
             m_origin = origin;
             m_velocity = velocity;
-
             m_collision_group = COLLISION_GROUP_PROJECTILE;
 
             const auto tick = TIME_TO_TICKS(1.f / 30.f);
@@ -373,7 +373,6 @@ public:
         bool                                            m_detonated{};
         player_t* m_owner{};
         Vector                                            m_origin{}, m_velocity{};
-        QAngle                                            m_rotate{};
         IClientEntity* m_last_hit_entity{};
         Collision_Group_t                                m_collision_group{};
         float                                            m_detonate_time{}, m_expire_time{};
@@ -390,5 +389,5 @@ public:
 
     __forceinline std::unordered_map< unsigned long, data_t >& get_list() { return m_list; }
 
-    virtual void grenade_warning(projectile_t* entity);
+    virtual void grenade_warning(weapon_t* entity, player_t* e);
 };

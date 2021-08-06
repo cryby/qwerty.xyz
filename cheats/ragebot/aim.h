@@ -1,6 +1,6 @@
 #pragma once
-#include "..\..\includes.hpp"
-#include "..\lagcompensation\animation_system.h"
+#include "../../includes.hpp"
+#include "../../cheats/lagcompensation/animation_system.h"
 
 class target
 {
@@ -40,7 +40,7 @@ public:
 		point.Zero();
 		hitbox = -1;
 		center = false;
-		safe = 0.0f; 
+		safe = 0.0f;
 	}
 
 	scan_point(const Vector& point, const int& hitbox, const bool& center) //-V818 //-V730

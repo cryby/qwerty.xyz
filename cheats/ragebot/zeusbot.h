@@ -1,7 +1,8 @@
 #pragma once
-#include "..\..\includes.hpp"
-#include "..\lagcompensation\animation_system.h"
+#include "../../includes.hpp"
+#include "../../cheats/lagcompensation/animation_system.h"
 #include "aim.h"
+
 
 class zeusbot : public singleton <zeusbot>
 {

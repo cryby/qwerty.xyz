@@ -1,7 +1,7 @@
 #pragma once
 
 #include "..\autowall\autowall.h"
-#include "..\..\includes.hpp"
+#include "../../includes.hpp"
 #include "..\..\sdk\structs.hpp"
 
 class antiaim : public singleton <antiaim>
@@ -26,7 +26,7 @@ public:
 	float desync_angle = 0.0f;
 };
 
-enum 
+enum
 {
 	SIDE_NONE = -1,
 	SIDE_BACK,

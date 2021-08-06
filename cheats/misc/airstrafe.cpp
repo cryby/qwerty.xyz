@@ -42,7 +42,7 @@ void airstrafe::create_move(CUserCmd* m_pcmd) //-V2008
 		auto get_velocity_degree = [](float velocity)
 		{
 			auto tmp = RAD2DEG(atan(30.0f / velocity));
-			
+
 			if (CheckIfNonValidNumber(tmp) || tmp > 90.0f)
 				return 90.0f;
 
@@ -96,7 +96,7 @@ void airstrafe::create_move(CUserCmd* m_pcmd) //-V2008
 
 		auto abs_yaw_delta = fabs(yaw_delta);
 
-		if (abs_yaw_delta <= strafe_angle || abs_yaw_delta >= 30.0f)
+		if (abs_yaw_delta <= strafe_angle || abs_yaw_delta >= 15.0f) // whatsapp turbo ativado
 		{
 			Vector velocity_angles;
 			math::vector_angles(velocity, velocity_angles);

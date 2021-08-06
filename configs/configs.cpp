@@ -144,7 +144,7 @@ void C_ConfigManager::setup()
 	setup_item(&config_system.g_cfg.radar.render_health, false, crypt_str("Player.render_health"));
 
 	setup_item(&config_system.g_cfg.player.enable, false, crypt_str("Player.enable"));
-	setup_item(&config_system.g_cfg.player.arrows_color, Color(255, 255, 255), crypt_str("Player.arrows_color"));
+	//setup_item(&config_system.g_cfg.player.arrows_color, Color(255, 255, 255), crypt_str("Player.arrows_color"));
 	setup_item(&config_system.g_cfg.player.arrows, false, crypt_str("Player.arrows"));
 	setup_item(&config_system.g_cfg.player.distance, 1, crypt_str("Player.arrows_distance"));
 	setup_item(&config_system.g_cfg.player.size, 1, crypt_str("Player.arrows_size"));

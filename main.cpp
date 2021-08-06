@@ -151,32 +151,32 @@ DWORD WINAPI main(PVOID base)
 
 
 
-		std::cout << crypt_str("Setuping sounds...\n");
+		//std::cout << crypt_str("Setuping sounds...\n");
 		setup_sounds();
 
-		std::cout << crypt_str("Setuping skins...\n");
+		//std::cout << crypt_str("Setuping skins...\n");
 		setup_skins();
 
-		std::cout << crypt_str("Setuping netvars...\n");
+		//std::cout << crypt_str("Setuping netvars...\n");
 		setup_netvars();
 
-		std::cout << crypt_str("Setuping render...\n");
+		//std::cout << crypt_str("Setuping render...\n");
 		setup_render();
 
-		std::cout << crypt_str("Setuping configs manager...\n");
+		//std::cout << crypt_str("Setuping configs manager...\n");
 		cfg_manager->setup();
 
-		std::cout << crypt_str("Setuping scripts manager...\n");
+		//std::cout << crypt_str("Setuping scripts manager...\n");
 		c_lua::get().initialize();
 
-		std::cout << crypt_str("Setuping key binds manager...\n");
+		//std::cout << crypt_str("Setuping key binds manager...\n");
 		key_binds::get().initialize_key_binds();
 
-		std::cout << crypt_str("Setuping hooks...\n");
+		//std::cout << crypt_str("Setuping hooks...\n");
 		setup_hooks();
 		Netvars::Netvars();
 
-		std::cout << crypt_str("Done!");
+		//std::cout << crypt_str("Done!");
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 		FreeConsole();
 		return EXIT_SUCCESS;
@@ -211,7 +211,7 @@ __forceinline void setup_render()
 		return font;
 	};
 
-	fonts[LOGS] = create_font(crypt_str("Lucida Console"), 10, FW_MEDIUM, FONTFLAG_DROPSHADOW);
+	fonts[LOGS] = create_font(crypt_str("Josefin Sans ExtraLight"), 15, FW_LIGHT, FONTFLAG_ANTIALIAS);
 	fonts[ESP] = create_font(crypt_str("Smallest Pixel-7"), 11, FW_MEDIUM, FONTFLAG_OUTLINE);
 	fonts[NAME] = create_font(crypt_str("Verdana"), 12, FW_MEDIUM, FONTFLAG_ANTIALIAS | FONTFLAG_DROPSHADOW);
 	fonts[SUBTABWEAPONS] = create_font(crypt_str("undefeated"), 13, FW_MEDIUM, FONTFLAG_ANTIALIAS | FONTFLAG_DROPSHADOW);

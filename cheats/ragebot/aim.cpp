@@ -7,7 +7,8 @@
 #include "..\autowall\autowall.h"
 #include "..\misc\prediction_system.h"
 #include "..\fakewalk\slowwalk.h"
-#include "..\lagcompensation\local_animations.h"
+#include "../../cheats/lagcompensation/local_animations.h"
+#include "../../cheats/lagcompensation/animation_system.h"
 
 void aim::run(CUserCmd* cmd)
 {
@@ -60,27 +61,18 @@ void aim::run(CUserCmd* cmd)
 		}
 	}
 
-	if (automatic_stop(cmd))
-		find_best_target();
+	if (!automatic_stop(cmd))
+		return;
 
 	if (scanned_targets.empty())
-		find_best_target();
+		return;
 
-	if (final_target.data.valid())
-		fire(cmd);
+	find_best_target();
 
-	//if (!automatic_stop(cmd))
-		//return;
+	if (!final_target.data.valid())
+		return;
 
-	//if (scanned_targets.empty())
-		//return;
-
-	//find_best_target();
-
-	//if (!final_target.data.valid())
-		//return;
-
-	//fire(cmd);
+	fire(cmd);
 }
 
 void aim::automatic_revolver(CUserCmd* cmd)
@@ -136,7 +128,7 @@ void aim::prepare_targets()
 
 		if (records->empty())
 			continue;
-	
+
 		targets.emplace_back(target(e, get_record(records, false), get_record(records, true)));
 	}
 
@@ -403,7 +395,7 @@ void aim::scan(adjust_data* record, scan_data& data, const Vector& shoot_positio
 
 	auto minimum_damage = get_minimum_damage(false, record->player->m_iHealth());
 	auto minimum_visible_damage = get_minimum_damage(true, record->player->m_iHealth());
-	
+
 	auto get_hitgroup = [](const int& hitbox)
 	{
 		if (hitbox == HITBOX_HEAD)
@@ -671,7 +663,7 @@ std::vector <scan_point> aim::get_points(adjust_data* record, int hitbox, bool f
 			points.emplace_back(scan_point(Vector(center.x + max, center.y, center.z), hitbox, false));
 		}
 	}
-	else 
+	else
 	{
 		auto scale = 0.0f;
 
@@ -717,7 +709,7 @@ std::vector <scan_point> aim::get_points(adjust_data* record, int hitbox, bool f
 			points.emplace_back(scan_point(Vector(bbox->bbmax.x + 0.70710678f * final_radius, bbox->bbmax.y - 0.70710678f * final_radius, bbox->bbmax.z), hitbox, false));
 			points.emplace_back(scan_point(Vector(bbox->bbmax.x, bbox->bbmax.y, bbox->bbmax.z + final_radius), hitbox, false));
 			points.emplace_back(scan_point(Vector(bbox->bbmax.x, bbox->bbmax.y, bbox->bbmax.z - final_radius), hitbox, false));
-			
+
 			points.emplace_back(scan_point(Vector(bbox->bbmax.x, bbox->bbmax.y - final_radius, bbox->bbmax.z), hitbox, false));
 
 			if (pitch_down && backward)
@@ -727,8 +719,8 @@ std::vector <scan_point> aim::get_points(adjust_data* record, int hitbox, bool f
 		{
 			points.emplace_back(scan_point(center, hitbox, true));
 
-			points.emplace_back(scan_point(Vector(bbox->bbmax.x, bbox->bbmax.y, bbox->bbmax.z + final_radius), hitbox,  false));
-			points.emplace_back(scan_point(Vector(bbox->bbmax.x, bbox->bbmax.y, bbox->bbmax.z - final_radius), hitbox,  false));
+			points.emplace_back(scan_point(Vector(bbox->bbmax.x, bbox->bbmax.y, bbox->bbmax.z + final_radius), hitbox, false));
+			points.emplace_back(scan_point(Vector(bbox->bbmax.x, bbox->bbmax.y, bbox->bbmax.z - final_radius), hitbox, false));
 
 			points.emplace_back(scan_point(Vector(center.x, bbox->bbmax.y - final_radius, center.z), hitbox, true));
 		}
@@ -887,35 +879,35 @@ void aim::fire(CUserCmd* cmd)
 		switch (type)
 		{
 		case ORIGINAL:
-			return crypt_str("original ");
+			return crypt_str("Class ");
 		case BRUTEFORCE:
-			return crypt_str("bruteforce ");
+			return crypt_str("Brute ");
 		case LBY:
-			return crypt_str("lby ");
+			return crypt_str("LBY ");
 		case TRACE:
-			return crypt_str("trace ");
+			return crypt_str("Traced ");
 		case DIRECTIONAL:
-			return crypt_str("directional ");
+			return crypt_str("Detect ");
 		}
 	};
 
 	player_info_t player_info;
 	m_engine()->GetPlayerInfo(final_target.record->i, &player_info);
 
-//#if BETA
 	std::stringstream log;
 
-	log << crypt_str("Fired shot at ") + (std::string)player_info.szName + crypt_str(": ");
-	log << crypt_str("hitchance: ") + (final_hitchance == 101 ? crypt_str("MA") : std::to_string(final_hitchance)) + crypt_str(", ");
-	log << crypt_str("hitbox: ") + get_hitbox_name(final_target.data.hitbox) + crypt_str(", ");
-	log << crypt_str("damage: ") + std::to_string(final_target.data.damage) + crypt_str(", ");
-	log << crypt_str("safe: ") + std::to_string((bool)final_target.data.point.safe) + crypt_str(", ");
-	log << crypt_str("backtrack: ") + std::to_string(backtrack_ticks) + crypt_str(", ");
-	log << crypt_str("resolver type: ") + get_resolver_type(final_target.record->type) + std::to_string(final_target.record->side);
+	log << crypt_str("Fired at ") + (std::string)player_info.szName + crypt_str("");
+	log << crypt_str("'s ") + get_hitbox_name(final_target.data.hitbox) + crypt_str("");
+	log << crypt_str(" for ") + std::to_string(final_target.data.damage) + crypt_str(", "); //
+
+	log << crypt_str("(HC: ") + (final_hitchance == 101 ? crypt_str("MA") : std::to_string(final_hitchance)) + crypt_str(" / ");
+	log << crypt_str("SP: ") + std::to_string((bool)final_target.data.point.safe) + crypt_str(" / ");
+	log << crypt_str("BT: ") + std::to_string(backtrack_ticks) + crypt_str(" / ");
+	log << crypt_str("R: ") + get_resolver_type(final_target.record->type) + crypt_str("") + std::to_string(final_target.record->side) + +crypt_str(" )");
 
 	if (config_system.g_cfg.misc.events_to_log[EVENTLOG_HIT])
-		eventlogs::get().addnew(log.str());
-//#endif
+		eventlogs::get().addnew(log.str(), Color(255, 255, 255));
+
 	cmd->m_viewangles = aim_angle;
 	cmd->m_buttons |= IN_ATTACK;
 	cmd->m_tickcount = TIME_TO_TICKS(final_target.record->simulation_time + util::get_interpolation());
@@ -924,7 +916,7 @@ void aim::fire(CUserCmd* cmd)
 	last_shoot_position = g_ctx.globals.eye_pos;
 	last_target[last_target_index] = Last_target
 	{
-		*final_target.record, final_target.data, final_target.distance 
+		*final_target.record, final_target.data, final_target.distance
 	};
 
 	auto shot = &g_ctx.shots.emplace_back();
@@ -964,7 +956,7 @@ int aim::hitchance(const Vector& aim_angle)
 	math::fast_vec_normalize(forward);
 	math::fast_vec_normalize(right);
 	math::fast_vec_normalize(up);
-	
+
 	auto is_special_weapon = g_ctx.globals.weapon->m_iItemDefinitionIndex() == WEAPON_AWP || g_ctx.globals.weapon->m_iItemDefinitionIndex() == WEAPON_G3SG1 || g_ctx.globals.weapon->m_iItemDefinitionIndex() == WEAPON_SCAR20 || g_ctx.globals.weapon->m_iItemDefinitionIndex() == WEAPON_SSG08;
 	auto inaccuracy = weapon_info->flInaccuracyStand;
 
@@ -1082,7 +1074,7 @@ int aim::hitchance(const Vector& aim_angle)
 			}
 		}
 	}
-	
+
 	if (high_accuracy_weapon)
 		return (float)damage / 48.0f >= get_minimum_damage(final_target.data.visible, final_target.health) ? final_hitchance : 0;
 

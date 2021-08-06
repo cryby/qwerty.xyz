@@ -104,97 +104,22 @@ _declspec(noinline)void hooks::updateclientsideanimation_detour(player_t* player
 
 void __fastcall hooks::hooked_updateclientsideanimation(player_t* player, uint32_t i)
 {
-	if (m_clientstate()->iDeltaTick < 0 && m_engine()->IsInGame())
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
-	else
-		return updateclientsideanimation_detour(player);
+	return updateclientsideanimation_detour(player);
 }
 
 _declspec(noinline)void hooks::physicssimulate_detour(player_t* player)
 {
-	auto& m_nSimulationTick = *reinterpret_cast<int*>(uintptr_t(player) + 0x2AC);
-	auto cctx = reinterpret_cast<C_CommandContext*>(uintptr_t(player) + 0x34FC);
+	auto simulation_tick = *(int*)((uintptr_t)player + 0x2AC);
 
-	if (!player
-		|| player->IsDead()
-		|| m_globals()->m_tickcount == m_nSimulationTick
-		|| player != g_ctx.local()
-		|| !cctx->needsprocessing
-		|| m_engine()->IsPlayingDemo()
-		|| m_engine()->IsHLTV()
-		|| player->m_fFlags() & 0x40)
+	if (player != g_ctx.local() || !g_ctx.local()->is_alive() || m_globals()->m_tickcount == simulation_tick)
 	{
 		((PhysicsSimulateFn)original_physicssimulate)(player);
 		return;
 	}
 
-	player->m_vphysicsCollisionState() = 0;
-
-	const bool bValid = (cctx->cmd.m_tickcount != 0x7FFFFFFF);
-
-	if (!bValid)
-	{
-		auto ndata = &engineprediction::get().m_Data[cctx->cmd.m_command_number % 150];
-
-		ndata->m_nTickBase = player->m_nTickBase();
-
-		ndata->command_number = cctx->cmd.m_command_number;
-		ndata->m_aimPunchAngle = player->m_aimPunchAngle();
-		ndata->m_aimPunchAngleVel = player->m_aimPunchAngleVel();
-		ndata->m_viewPunchAngle = player->m_viewPunchAngle();
-		ndata->m_vecViewOffset = player->m_vecViewOffset();
-		ndata->m_vecViewOffset.z = fminf(fmaxf(ndata->m_vecViewOffset.z, 46.0f), 64.0f);
-		ndata->m_vecVelocity = player->m_vecVelocity();
-		ndata->m_vecOrigin = player->m_vecOrigin();
-		ndata->m_flFallVelocity = player->m_flFallVelocity();
-		ndata->m_flDuckAmount = player->m_flDuckAmount();
-		ndata->m_flVelocityModifier = player->m_flVelocityModifier();
-		ndata->tick_count = cctx->cmd.m_tickcount;
-		ndata->is_filled = true;
-
-		m_nSimulationTick = m_globals()->m_tickcount;
-		cctx->needsprocessing = false;
-
-		return;
-	}
-	else
-	{
-		const auto data = &engineprediction::get().m_Data[cctx->cmd.m_command_number % 150];
-
-		if (data
-			&& data->command_number == (cctx->cmd.m_command_number - 1)
-			&& abs(data->command_number - cctx->cmd.m_command_number) <= 150)
-		{
-			engineprediction::get().FixNetvarCompression(cctx->cmd.m_command_number - 1);
-		}
-
-		auto shift_data = &engineprediction::get().m_Data[cctx->cmd.m_command_number % 150];
-
-		const auto pre_change = player->m_nTickBase();
-
-		if (cctx->cmd.m_command_number == (m_clientstate()->iCommandAck + 1)
-			&& g_ctx.globals.last_velocity_modifier >= 0.0f)
-			player->m_flVelocityModifier() = g_ctx.globals.last_velocity_modifier;
-
-		((PhysicsSimulateFn)original_physicssimulate)(player);
-
-		auto ndata = &engineprediction::get().m_Data[cctx->cmd.m_command_number % 150];
-
-		ndata->m_nTickBase = player->m_nTickBase();
-		ndata->command_number = cctx->cmd.m_command_number;
-		ndata->m_aimPunchAngle = player->m_aimPunchAngle();
-		ndata->m_aimPunchAngleVel = player->m_aimPunchAngleVel();
-		ndata->m_viewPunchAngle = player->m_viewPunchAngle();
-		ndata->m_vecViewOffset = player->m_vecViewOffset();
-		ndata->m_vecViewOffset.z = fminf(fmaxf(ndata->m_vecViewOffset.z, 46.0f), 64.0f);
-		ndata->m_vecVelocity = player->m_vecVelocity();
-		ndata->m_vecOrigin = player->m_vecOrigin();
-		ndata->m_flFallVelocity = player->m_flFallVelocity();
-		ndata->m_flDuckAmount = player->m_flDuckAmount();
-		ndata->m_flVelocityModifier = player->m_flVelocityModifier();
-		ndata->tick_count = m_globals()->m_tickcount;
-		ndata->is_filled = true;
-	}
+	engineprediction::get().restore_netvars();
+	((PhysicsSimulateFn)original_physicssimulate)(player);
+	engineprediction::get().store_netvars();
 }
 
 void __fastcall hooks::hooked_physicssimulate(player_t* player)

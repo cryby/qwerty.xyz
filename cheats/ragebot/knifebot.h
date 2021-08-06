@@ -1,6 +1,6 @@
 #pragma once
-#include "..\..\includes.hpp"
-#include "..\lagcompensation\animation_system.h"
+#include "../../includes.hpp"
+#include "../../cheats/lagcompensation/animation_system.h"
 #include "aim.h"
 
 class knifebot : public singleton <knifebot>

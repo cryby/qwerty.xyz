@@ -49,6 +49,10 @@
 #include "sdk\misc\Color.hpp"
 #include "sdk\misc\KeyValues.hpp"
 #include "sdk\misc\datamap.h"
+#include "sdk\misc\Enums.hpp"
+#include "sdk/interfaces/CClientState.hpp"
+
+#include "Render.h"
 
 #include "sdk\interfaces\IClientEntity.hpp"
 #include "sdk\structs.hpp"

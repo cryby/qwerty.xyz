@@ -369,7 +369,7 @@ void __stdcall hooks::hooked_fsn(ClientFrameStage_t stage)
 
 //#if BETA
 						if (config_system.g_cfg.misc.events_to_log[EVENTLOG_HIT])
-							eventlogs::get().addnew(crypt_str("Missed shot due to resolver"));
+							eventlogs::get().addnew(crypt_str("Missed shot due to resolver"), Color(255, 255, 255));
 //#endif
 					}
 					else if (config_system.g_cfg.misc.events_to_log[EVENTLOG_HIT])
@@ -377,11 +377,11 @@ void __stdcall hooks::hooked_fsn(ClientFrameStage_t stage)
 						current_shot->shot_info.result = crypt_str("Spread");
 
 						if (current_shot->occlusion)
-							eventlogs::get().addnew(crypt_str("Missed shot due to occlusion"));
+							eventlogs::get().addnew(crypt_str("Missed shot due to occlusion"), Color(255, 255, 255));
 						else if (current_shot->shot_info.hitchance == 100)
-							eventlogs::get().addnew(crypt_str("Missed shot due to prediction error"));
+							eventlogs::get().addnew(crypt_str("Missed shot due to prediction error"), Color(255, 255, 255));
 						else
-							eventlogs::get().addnew(crypt_str("Missed shot due to spread"));
+							eventlogs::get().addnew(crypt_str("Missed shot due to spread"), Color(255, 255, 255));
 					}
 				}
 			}

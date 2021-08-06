@@ -576,12 +576,12 @@ void ColorConvertHSVtoRGB(float h, float s, float v, float& out_r, float& out_g,
 
 void render::Draw3DCircle(const Vector& origin, float radius, Color color)
 {
-	static auto prevScreenPos = ZERO; //-V656
-	static auto step = M_PI * 2.0f / 72.0f;
+	auto prevScreenPos = ZERO;
+	auto step = M_PI * 2.0f / 72.0f;
 
 	auto screenPos = ZERO;
 
-	for (auto rotation = 0.0f; rotation <= M_PI * 2.0f; rotation += step) //-V1034
+	for (auto rotation = 0.0f; rotation <= M_PI * 2.0f; rotation += step)
 	{
 		Vector pos(radius * cos(rotation) + origin.x, radius * sin(rotation) + origin.y, origin.z);
 
@@ -604,30 +604,30 @@ void render::Draw3DCircle(const Vector& origin, float radius, Color color)
 
 void render::Draw3DFilledCircle(const Vector& origin, float radius, Color color)
 {
-	static auto prevScreenPos = ZERO; //-V656
-	static auto step = M_PI * 2.0f / 72.0f;
+    auto prevScreenPos = ZERO;
+    auto step = M_PI * 2.0f / 72.0f;
 
-	auto screenPos = ZERO;
-	auto screen = ZERO;
+    auto screenPos = ZERO;
+    auto screen = ZERO;
 
-	if (!math::world_to_screen(origin, screen))
-		return;
+    if (!math::world_to_screen(origin, screen))
+        return;
 
-	for (auto rotation = 0.0f; rotation <= M_PI * 2.0f; rotation += step) //-V1034
-	{
-		Vector pos(radius * cos(rotation) + origin.x, radius * sin(rotation) + origin.y, origin.z);
+    for (auto rotation = 0.0f; rotation <= M_PI * 2.0f; rotation += step)
+    {
+        Vector pos(radius * cos(rotation) + origin.x, radius * sin(rotation) + origin.y, origin.z);
 
-		if (math::world_to_screen(pos, screenPos))
-		{
-			if (!prevScreenPos.IsZero() && prevScreenPos.IsValid() && screenPos.IsValid() && prevScreenPos != screenPos)
-			{
-				line(prevScreenPos.x, prevScreenPos.y, screenPos.x, screenPos.y, color);
-				triangle(Vector2D(screen.x, screen.y), Vector2D(screenPos.x, screenPos.y), Vector2D(prevScreenPos.x, prevScreenPos.y), Color(color.r(), color.g(), color.b(), color.a() / 2));
-			}
+        if (math::world_to_screen(pos, screenPos))
+        {
+            if (!prevScreenPos.IsZero() && prevScreenPos.IsValid() && screenPos.IsValid() && prevScreenPos != screenPos)
+            {
+                line(prevScreenPos.x, prevScreenPos.y, screenPos.x, screenPos.y, color);
+                triangle(Vector2D(screen.x, screen.y), Vector2D(screenPos.x, screenPos.y), Vector2D(prevScreenPos.x, prevScreenPos.y), Color(color.r(), color.g(), color.b(), color.a() / 2));
+            }
 
-			prevScreenPos = screenPos;
-		}
-	}
+            prevScreenPos = screenPos;
+        }
+    }
 }
 
 void render::Draw3DRainbowCircle(const Vector& origin, float radius)

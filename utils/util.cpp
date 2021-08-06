@@ -478,7 +478,7 @@ namespace util
 			memcpy(command, cmd, sizeof(CUserCmd)); //-V598
 
 			if (command->m_tickcount != INT_MAX && m_clientstate()->iDeltaTick > 0)
-				m_prediction()->Update(m_clientstate()->iDeltaTick, true, m_clientstate()->nLastCommandAck, m_clientstate()->nLastOutgoingCommand + m_clientstate()->iChokedCommands);
+				m_prediction()->Update(m_clientstate()->iDeltaTick, true, m_clientstate()->m_nLastCommandAck, m_clientstate()->m_nLastOutgoingCommand + m_clientstate()->iChokedCommands);
 
 			command->m_command_number = sequence_number;
 			command->m_predicted = command->m_tickcount != INT_MAX;

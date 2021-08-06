@@ -659,6 +659,9 @@ inline MovementRecorder GetMrecorder;
 				Color grenade_warning_color;
 				bool grenade_warning;
 				int grenade_warning_beam;
+				bool grenade_trail;
+				int bullet_tracer_type;
+
 			} esp;
 
 			struct Warning_t
@@ -718,8 +721,10 @@ inline MovementRecorder GetMrecorder;
 				std::vector <int> events_to_log;
 				key_bind edgebug;
 				key_bind jumpbug;
+				int logs_mode;
 				bool show_default_log;
 				Color log_color;
+				Color log_color2;
 				bool inventory_access;
 				bool rank_reveal;
 				bool clantag_spammer;

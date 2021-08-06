@@ -161,6 +161,7 @@
     <ClCompile Include="cheats\visuals\bullet_tracers.cpp" />
     <ClCompile Include="cheats\visuals\dormant_esp.cpp" />
     <ClCompile Include="cheats\visuals\GrenadePrediction.cpp" />
+    <ClCompile Include="cheats\visuals\grenade_warning.cpp" />
     <ClCompile Include="cheats\visuals\logger.cpp" />
     <ClCompile Include="cheats\visuals\nightmode.cpp" />
     <ClCompile Include="cheats\visuals\other_esp.cpp" />
@@ -238,6 +239,7 @@
     <ClCompile Include="nSkinz\SkinChanger.cpp" />
     <ClCompile Include="nSkinz\Utilities\Platform.cpp" />
     <ClCompile Include="resources\custom_sounds.cpp" />
+    <ClCompile Include="sdk\i_base_player.cpp" />
     <ClCompile Include="sdk\math\Vector2D.cpp" />
     <ClCompile Include="sdk\math\Vector4D.cpp" />
     <ClCompile Include="sdk\math\VMatrix.cpp" />
@@ -287,6 +289,7 @@
     <ClInclude Include="cheats\visuals\bullet_tracers.h" />
     <ClInclude Include="cheats\visuals\dormant_esp.h" />
     <ClInclude Include="cheats\visuals\GrenadePrediction.h" />
+    <ClInclude Include="cheats\visuals\grenade_warning.h" />
     <ClInclude Include="cheats\visuals\logger.hpp" />
     <ClInclude Include="cheats\visuals\nightmode.h" />
     <ClInclude Include="cheats\visuals\other_esp.h" />
@@ -402,6 +405,8 @@
     <ClInclude Include="nSkinz\Utilities\vmt_smart_hook.hpp" />
     <ClInclude Include="resources\custom_sounds.hpp" />
     <ClInclude Include="resources\sounds.hpp" />
+    <ClInclude Include="sdk\common.h" />
+    <ClInclude Include="sdk\Hooks.h" />
     <ClInclude Include="sdk\interfaces\CClientState.hpp" />
     <ClInclude Include="sdk\interfaces\CInput.hpp" />
     <ClInclude Include="sdk\interfaces\IAppSystem.hpp" />
@@ -437,6 +442,7 @@
     <ClInclude Include="sdk\interfaces\IVModelRender.hpp" />
     <ClInclude Include="sdk\interfaces\memalloc.h" />
     <ClInclude Include="sdk\ItemSchema.h" />
+    <ClInclude Include="sdk\i_base_player.h" />
     <ClInclude Include="sdk\math\QAngle.hpp" />
     <ClInclude Include="sdk\math\Vector.hpp" />
     <ClInclude Include="sdk\math\Vector2D.hpp" />
@@ -474,6 +480,7 @@
     <ClInclude Include="sdk\misc\UtlVectorSimple.hpp" />
     <ClInclude Include="sdk\misc\vfunc.hpp" />
     <ClInclude Include="sdk\structs.hpp" />
+    <ClInclude Include="SourceEngine\SDK.hpp" />
     <ClInclude Include="utils\anti_debug.h" />
     <ClInclude Include="utils\crypt_str.h" />
     <ClInclude Include="utils\csgo.hpp" />

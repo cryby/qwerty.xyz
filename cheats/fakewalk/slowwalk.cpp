@@ -1,6 +1,3 @@
-// This is an independent project of an individual developer. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
-
 #include "slowwalk.h"
 
 void slowwalk::create_move(CUserCmd* m_pcmd, float custom_speed)

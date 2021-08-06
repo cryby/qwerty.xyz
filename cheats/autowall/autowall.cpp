@@ -1,45 +1,6 @@
-// This is an independent project of an individual developer. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
+// shit - needs update      ( 1 week maybe)
 
 #include "autowall.h"
-
-void SinCos(float radians, float* sine, float* cosine)
-{
-	*sine = sin(radians);
-	*cosine = cos(radians);
-}
-
-void AngleVectors(const Vector& angles, Vector* forward)
-{
-	float sp, sy, cp, cy;
-
-	SinCos(DEG2RAD(angles.y), &sy, &cy);
-	SinCos(DEG2RAD(angles.x), &sp, &cp);
-
-	forward->x = cp * cy;
-	forward->y = cp * sy;
-	forward->z = -sp;
-}
-
-float autowall::can_hit(Vector& vecEyePos, Vector& point)
-{
-	Vector angles, direction;
-	Vector tmp = point = g_ctx.local()->get_shoot_position();
-	float currentDamage = 0;
-
-	math::vector_angles(tmp, angles);
-	AngleVectors(angles, &direction);
-	auto visible = true;
-	auto hitbox = -1;
-	direction.Normalize();
-
-	auto local_weapon = (weapon_t*)(m_entitylist()->GetClientEntityFromHandle(g_ctx.local()->m_hActiveWeapon()));
-
-	if (local_weapon != nullptr && fire_bullet(local_weapon, vecEyePos, visible, currentDamage, hitbox, g_ctx.local()))
-		return currentDamage;
-
-	return -1; //That wall is just a bit too thick buddy
-}
 
 bool autowall::is_breakable_entity(IClientEntity* e)
 {
@@ -360,7 +321,7 @@ bool autowall::fire_bullet(weapon_t* pWeapon, Vector& direction, bool& visible, 
 	if (!pWeapon)
 		return false;
 
-	auto weaponData = m_weaponsystem()->GetWeaponData(pWeapon->m_iItemDefinitionIndex());
+	auto weaponData = pWeapon->get_csweapon_info();
 
 	if (!weaponData)
 		return false;

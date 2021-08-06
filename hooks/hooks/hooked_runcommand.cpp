@@ -137,7 +137,7 @@ bool __fastcall hooks::hooked_writeusercmddeltatobuffer(void* ecx, void* edx, in
 
 	*new_commands = choked_modifier;
 
-	auto next_cmdnr = m_clientstate()->iChokedCommands + m_clientstate()->nLastOutgoingCommand + 1;
+	auto next_cmdnr = m_clientstate()->iChokedCommands + m_clientstate()->m_nLastOutgoingCommand + 1;
 	auto final_to = next_cmdnr - newcmds + 1;
 
 	if (final_to <= next_cmdnr)

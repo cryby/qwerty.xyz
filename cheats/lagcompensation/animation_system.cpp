@@ -2,8 +2,8 @@
 // PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
 
 #include "animation_system.h"
-#include "..\misc\misc.h"
-#include "..\misc\logs.h"
+#include "../../cheats/misc/misc.h"
+#include "../../cheats/misc/logs.h"
 
 std::deque <adjust_data> player_records[65];
 
@@ -15,7 +15,7 @@ void lagcompensation::fsn(ClientFrameStage_t stage)
 	if (!config_system.g_cfg.ragebot.enable && !config_system.g_cfg.legitbot.enabled)
 		return;
 
-	for (auto i = 1; i < m_globals()->m_maxclients; i++) //-V807
+	for (auto i = 1; i < m_globals()->m_maxclients; i++)
 	{
 		auto e = static_cast<player_t*>(m_entitylist()->GetClientEntity(i));
 
@@ -30,9 +30,27 @@ void lagcompensation::fsn(ClientFrameStage_t stage)
 		if (time_delta > 1.0f / m_globals()->m_intervalpertick)
 			continue;
 
-		auto update = player_records[i].empty() || e->m_flSimulationTime() != e->m_flOldSimulationTime(); //-V550
+		auto update = player_records[i].empty() || e->m_flSimulationTime() != e->m_flOldSimulationTime();
 
-		if (update) //-V550
+		if (update && !player_records[i].empty())
+		{
+			auto server_tick = m_clientstate()->m_ClockDriftMgr.m_nServerTick - i % m_globals()->m_timestamprandomizewindow;
+			auto current_tick = server_tick - server_tick % m_globals()->m_timestampnetworkingbase;
+
+			if (TIME_TO_TICKS(e->m_flOldSimulationTime()) < current_tick && TIME_TO_TICKS(e->m_flSimulationTime()) == current_tick)
+			{
+				auto layer = &e->get_animlayers()[11];
+				auto previous_layer = &player_records[i].front().layers[11];
+
+				if (layer->m_flCycle == previous_layer->m_flCycle)
+				{
+					e->m_flSimulationTime() = e->m_flOldSimulationTime();
+					update = false;
+				}
+			}
+		}
+
+		if (update)
 		{
 			if (!player_records[i].empty() && (e->m_vecOrigin() - player_records[i].front().origin).LengthSqr() > 4096.0f)
 				for (auto& record : player_records[i])
@@ -69,68 +87,6 @@ bool lagcompensation::valid(int i, player_t* e)
 	return true;
 }
 
-void lagcompensation::extrapolate(player_t* player, Vector& origin, Vector& velocity, int& flags, bool wasonground)
-{
-	static auto sv_gravity = m_cvar()->FindVar(crypt_str("sv_gravity"));
-	static auto sv_jump_impulse = m_cvar()->FindVar(crypt_str("sv_jump_impulse"));
-
-	if (!(flags & FL_ONGROUND))
-		velocity.z -= (m_globals()->m_frametime * sv_gravity->GetFloat());
-	else if (wasonground)
-		velocity.z = sv_jump_impulse->GetFloat();
-
-	const Vector mins = player->GetCollideable()->OBBMins();
-	const Vector max = player->GetCollideable()->OBBMaxs();
-
-	const Vector src = origin;
-	Vector end = src + (velocity * m_globals()->m_frametime);
-
-	Ray_t ray;
-	ray.Init(src, end, mins, max);
-
-	trace_t trace;
-	CTraceFilter filter;
-	filter.pSkip = (void*)(player);
-
-	m_trace()->TraceRay(ray, MASK_PLAYERSOLID, &filter, &trace);
-
-	if (trace.fraction != 1.f)
-	{
-		for (int i = 0; i < 2; i++)
-		{
-			velocity -= trace.plane.normal * velocity.Dot(trace.plane.normal);
-
-			const float dot = velocity.Dot(trace.plane.normal);
-			if (dot < 0.f)
-			{
-				velocity.x -= dot * trace.plane.normal.x;
-				velocity.y -= dot * trace.plane.normal.y;
-				velocity.z -= dot * trace.plane.normal.z;
-			}
-
-			end = trace.endpos + (velocity * (m_globals()->m_intervalpertick * (1.f - trace.fraction)));
-
-			ray.Init(trace.endpos, end, mins, max);
-			m_trace()->TraceRay(ray, MASK_PLAYERSOLID, &filter, &trace);
-
-			if (trace.fraction == 1.f)
-				break;
-		}
-	}
-
-	origin = trace.endpos;
-	end = trace.endpos;
-	end.z -= 2.f;
-
-	ray.Init(origin, end, mins, max);
-	m_trace()->TraceRay(ray, MASK_PLAYERSOLID, &filter, &trace);
-
-	flags &= ~(1 << 0);
-
-	if (trace.DidHit() && trace.plane.normal.z > 0.7f)
-		flags |= (1 << 0);
-}
-
 void lagcompensation::update_player_animations(player_t* e)
 {
 	auto animstate = e->get_animation_state();
@@ -150,44 +106,30 @@ void lagcompensation::update_player_animations(player_t* e)
 
 	adjust_data* previous_record = nullptr;
 
-	auto record = &records->front();
-
-	const auto simtime_delta = e->m_flSimulationTime() - e->m_flOldSimulationTime();
-	const auto choked_ticks = ((simtime_delta / m_globals()->m_intervalpertick) + 0.5);
-	const auto simulation_tick_delta = choked_ticks - 2;
-	const auto delta_ticks = (std::clamp(TIME_TO_TICKS(m_engine()->GetNetChannelInfo()->GetLatency(1) + m_engine()->GetNetChannelInfo()->GetLatency(0)) + m_globals()->m_tickcount - TIME_TO_TICKS(e->m_flSimulationTime() + util::get_interpolation()), 0, 100)) - simulation_tick_delta;
-
-	if (delta_ticks > 0 && records->size() >= 2)
-	{
-		auto ticks_left = static_cast<int>(simulation_tick_delta);
-		ticks_left = std::clamp(ticks_left, 1, 10);
-		do
-		{
-			auto data_origin = record->origin;
-			auto data_velocity = record->velocity;
-			auto data_flags = record->flags;
-
-			extrapolate(e, data_origin, data_velocity, data_flags, !(e->m_fFlags() & FL_ONGROUND));
-
-			record->simulation_time += m_globals()->m_intervalpertick;
-			record->origin = data_origin;
-			record->velocity = data_velocity;
-			--ticks_left;
-		} while (ticks_left > 0);
-	}
-	else if (records->size() >= 2)
+	if (records->size() >= 2)
 		previous_record = &records->at(1);
+
+	auto record = &records->front();
 
 	AnimationLayer animlayers[13];
 
-	memcpy(animlayers, e->get_animlayers(), e->animlayer_count() * sizeof(AnimationLayer));
-	memcpy(record->layers, animlayers, e->animlayer_count() * sizeof(AnimationLayer));
+	memcpy(animlayers, e->get_animlayers(), 13 * sizeof(AnimationLayer));
+	memcpy(record->layers, animlayers, 13 * sizeof(AnimationLayer));
 
 	auto backup_lower_body_yaw_target = e->m_flLowerBodyYawTarget();
 	auto backup_duck_amount = e->m_flDuckAmount();
 	auto backup_flags = e->m_fFlags();
 	auto backup_eflags = e->m_iEFlags();
 
+	auto backup_curtime = m_globals()->m_curtime;
+	auto backup_frametime = m_globals()->m_frametime;
+	auto backup_realtime = m_globals()->m_realtime;
+	auto backup_framecount = m_globals()->m_framecount;
+	auto backup_tickcount = m_globals()->m_tickcount;
+	auto backup_interpolation_amount = m_globals()->m_interpolation_amount;
+
+	m_globals()->m_curtime = e->m_flSimulationTime();
+	m_globals()->m_frametime = m_globals()->m_intervalpertick;
 
 	if (previous_record)
 	{
@@ -264,12 +206,13 @@ void lagcompensation::update_player_animations(player_t* e)
 		}
 	}
 
-	e->m_iEFlags() &= ~0x1800;
+	e->m_iEFlags() &= ~EFL_DIRTY_ABSVELOCITY;
 
 	if (e->m_fFlags() & FL_ONGROUND && e->m_vecVelocity().Length() > 0.0f && animlayers[6].m_flWeight <= 0.0f)
 		e->m_vecVelocity().Zero();
 
 	e->m_vecAbsVelocity() = e->m_vecVelocity();
+
 	e->m_bClientSideAnimation() = true;
 
 	if (is_dormant[e->EntIndex()])
@@ -283,7 +226,7 @@ void lagcompensation::update_player_animations(player_t* e)
 		}
 
 		animstate->time_since_in_air() = 0.0f;
-		animstate->m_flGoalFeetYaw = math::normalize_yaw(animstate->m_flEyeYaw);
+		animstate->m_flGoalFeetYaw = math::normalize_yaw(e->m_angEyeAngles().y);
 	}
 
 	auto updated_animations = false;
@@ -293,12 +236,12 @@ void lagcompensation::update_player_animations(player_t* e)
 
 	if (previous_record)
 	{
-		memcpy(e->get_animlayers(), previous_record->layers, e->animlayer_count() * sizeof(AnimationLayer));
+		memcpy(e->get_animlayers(), previous_record->layers, 13 * sizeof(AnimationLayer));
 
 		auto ticks_chocked = 1;
 		auto simulation_ticks = TIME_TO_TICKS(e->m_flSimulationTime() - previous_record->simulation_time);
 
-		if (simulation_ticks > 0 && simulation_ticks < 17)
+		if (simulation_ticks > 0 && simulation_ticks < 31)
 			ticks_chocked = simulation_ticks;
 
 		if (ticks_chocked > 1)
@@ -318,9 +261,24 @@ void lagcompensation::update_player_animations(player_t* e)
 
 			for (auto i = 0; i < ticks_chocked; ++i)
 			{
+				auto lby_delta = fabs(math::normalize_yaw(e->m_flLowerBodyYawTarget() - previous_record->lby));
+
+				if (lby_delta > 0.0f && e->m_vecVelocity().Length() < 5.0f)
+				{
+					auto delta = ticks_chocked - i;
+					auto use_new_lby = true;
+
+					if (lby_delta < 1.0f)
+						use_new_lby = !delta; //-V547
+					else
+						use_new_lby = delta < 2;
+
+					e->m_flLowerBodyYawTarget() = use_new_lby ? backup_lower_body_yaw_target : previous_record->lby;
+				}
+
 				auto simulated_time = previous_record->simulation_time + TICKS_TO_TIME(i);
 
-				if (duck_amount_per_tick)
+				if (duck_amount_per_tick) //-V550
 					e->m_flDuckAmount() = previous_record->duck_amount + duck_amount_per_tick * (float)i;
 
 				on_ground = e->m_fFlags() & FL_ONGROUND;
@@ -343,55 +301,25 @@ void lagcompensation::update_player_animations(player_t* e)
 
 				auto simulated_ticks = TIME_TO_TICKS(simulated_time);
 
-
-
-
-
-
-
-
-
-
-
-
-				auto backup_curtime = m_globals()->m_curtime;
-				auto backup_frametime = m_globals()->m_frametime;
-				auto backup_realtime = m_globals()->m_realtime;
-				auto backup_framecount = m_globals()->m_framecount;
-				auto backup_tickcount = m_globals()->m_tickcount;
-				auto backup_interpolation_amount = m_globals()->m_interpolation_amount;
-
-				m_globals()->m_curtime = e->m_flSimulationTime();
-				m_globals()->m_frametime = m_globals()->m_intervalpertick;
-
-				auto realtime_backup = m_globals()->m_realtime;
-				auto curtime = m_globals()->m_curtime;
-				auto frametime = m_globals()->m_frametime;
-				auto absoluteframetime = m_globals()->m_absoluteframetime;
-				auto framecount = m_globals()->m_framecount;
-				auto tickcount = m_globals()->m_tickcount;
-				auto interpolation_amount = m_globals()->m_interpolation_amount;
-				int ticks = TIME_TO_TICKS(record->simulation_time);
-
-				m_globals()->m_realtime = realtime_backup;
+				m_globals()->m_realtime = simulated_time;
 				m_globals()->m_curtime = simulated_time;
-				m_globals()->m_frametime = m_globals()->m_intervalpertick;
-				m_globals()->m_absoluteframetime = m_globals()->m_intervalpertick;
-				m_globals()->m_framecount = ticks;
-				m_globals()->m_tickcount = ticks;
-				m_globals()->m_interpolation_amount = 0.f;
+				m_globals()->m_framecount = simulated_ticks;
+				m_globals()->m_tickcount = simulated_ticks;
+				m_globals()->m_interpolation_amount = 0.0f;
 
+				g_ctx.globals.updating_animation = true;
 
+				// updates animations + poses + calculates new abs angle based on eyeangles and other stuff.
 				e->update_clientside_animation();
 
+				g_ctx.globals.updating_animation = false;
 
-				m_globals()->m_realtime = realtime_backup;
-				m_globals()->m_curtime = curtime;
-				m_globals()->m_frametime = frametime;
-				m_globals()->m_absoluteframetime = absoluteframetime;
-				m_globals()->m_framecount = framecount;
-				m_globals()->m_tickcount = tickcount;
-				m_globals()->m_interpolation_amount = interpolation_amount;
+				m_globals()->m_realtime = backup_realtime;
+				m_globals()->m_curtime = backup_curtime;
+				m_globals()->m_framecount = backup_framecount;
+				m_globals()->m_tickcount = backup_tickcount;
+				m_globals()->m_interpolation_amount = backup_interpolation_amount;
+
 				updated_animations = true;
 			}
 		}
@@ -408,33 +336,38 @@ void lagcompensation::update_player_animations(player_t* e)
 
 	auto setup_matrix = [&](player_t* e, AnimationLayer* layers, const int& matrix) -> void
 	{
-		e->invalidate_physics_recursive(8);
+		e->invalidate_physics_recursive(ANIMATION_CHANGED);
 
 		AnimationLayer backup_layers[13];
-		memcpy(backup_layers, e->get_animlayers(), e->animlayer_count() * sizeof(AnimationLayer));
+		memcpy(backup_layers, e->get_animlayers(), 13 * sizeof(AnimationLayer));
 
-		memcpy(e->get_animlayers(), layers, e->animlayer_count() * sizeof(AnimationLayer));
+		memcpy(e->get_animlayers(), layers, 13 * sizeof(AnimationLayer));
 
+		// NOTE: astro
+		// we are using bit mask BONE_USED_BY_ANYTHING of main matrix cuz
+		// it is used for rendering
+		// in other cases, we use the bit mask BONE_USED_BY_HITBOX
+		// since it gives more accurate data than BONE_USED_BY_ANYTHING
 		switch (matrix)
 		{
 		case MAIN:
-			e->setup_bones_fixed(record->matrixes_data.main, BONE_USED_BY_ANYTHING);
+			e->setup_bones_rebuilt(record->matrixes_data.main, BONE_USED_BY_ANYTHING);
 			break;
 		case NONE:
-			e->setup_bones_fixed(record->matrixes_data.zero, BONE_USED_BY_HITBOX);
+			e->setup_bones_rebuilt(record->matrixes_data.zero, BONE_USED_BY_HITBOX);
 			break;
 		case FIRST:
-			e->setup_bones_fixed(record->matrixes_data.first, BONE_USED_BY_HITBOX);
+			e->setup_bones_rebuilt(record->matrixes_data.first, BONE_USED_BY_HITBOX);
 			break;
 		case SECOND:
-			e->setup_bones_fixed(record->matrixes_data.second, BONE_USED_BY_HITBOX);
+			e->setup_bones_rebuilt(record->matrixes_data.second, BONE_USED_BY_HITBOX);
 			break;
 		}
 
-		memcpy(e->get_animlayers(), backup_layers, e->animlayer_count() * sizeof(AnimationLayer));
+		memcpy(e->get_animlayers(), backup_layers, 13 * sizeof(AnimationLayer));
 	};
 
-	if (!player_info.fakeplayer && g_ctx.local()->is_alive() && e->m_iTeamNum() != g_ctx.local()->m_iTeamNum() && !config_system.g_cfg.legitbot.enabled)
+	if (!player_info.fakeplayer && g_ctx.local()->is_alive() && e->m_iTeamNum() != g_ctx.local()->m_iTeamNum() && !config_system.g_cfg.legitbot.enabled) //-V807
 	{
 		animstate->m_flGoalFeetYaw = previous_goal_feet_yaw[e->EntIndex()];
 
@@ -453,10 +386,8 @@ void lagcompensation::update_player_animations(player_t* e)
 
 		setup_matrix(e, animlayers, NONE);
 		memcpy(animstate, &state, sizeof(c_baseplayeranimationstate));
-		player_resolver[e->EntIndex()].goal_feet_yaw = animstate->m_flGoalFeetYaw;
-		memcpy(player_resolver[e->EntIndex()].resolver_layers[0], e->get_animlayers(), e->animlayer_count() * sizeof(AnimationLayer));
 
-		animstate->m_flGoalFeetYaw = math::normalize_yaw(e->m_angEyeAngles().y + 60.f);
+		animstate->m_flGoalFeetYaw = math::normalize_yaw(e->m_angEyeAngles().y + 60.0f);
 
 		g_ctx.globals.updating_animation = true;
 		e->update_clientside_animation();
@@ -464,9 +395,8 @@ void lagcompensation::update_player_animations(player_t* e)
 
 		setup_matrix(e, animlayers, FIRST);
 		memcpy(animstate, &state, sizeof(c_baseplayeranimationstate));
-		memcpy(player_resolver[e->EntIndex()].resolver_layers[2], e->get_animlayers(), e->animlayer_count() * sizeof(AnimationLayer));
 
-		animstate->m_flGoalFeetYaw = math::normalize_yaw(e->m_angEyeAngles().y - 60.f);
+		animstate->m_flGoalFeetYaw = math::normalize_yaw(e->m_angEyeAngles().y - 60.0f);
 
 		g_ctx.globals.updating_animation = true;
 		e->update_clientside_animation();
@@ -474,9 +404,8 @@ void lagcompensation::update_player_animations(player_t* e)
 
 		setup_matrix(e, animlayers, SECOND);
 		memcpy(animstate, &state, sizeof(c_baseplayeranimationstate));
-		memcpy(player_resolver[e->EntIndex()].resolver_layers[1], e->get_animlayers(), e->animlayer_count() * sizeof(AnimationLayer));
 
-		player_resolver[e->EntIndex()].initialize(e, record, previous_goal_feet_yaw[e->EntIndex()], animstate->m_flPitch);
+		player_resolver[e->EntIndex()].initialize(e, record, previous_goal_feet_yaw[e->EntIndex()], e->m_angEyeAngles().x);
 		player_resolver[e->EntIndex()].resolve_yaw();
 
 		if (config_system.g_cfg.player_list.low_delta[e->EntIndex()])
@@ -497,30 +426,6 @@ void lagcompensation::update_player_animations(player_t* e)
 				break;
 			}
 		}
-		else
-		{
-			for (auto it = lagcompensation::get().player_sets.begin(); it != lagcompensation::get().player_sets.end(); ++it)
-				if (it->id == player_info.steamID64 && it->res_type == HISTORY_LOW)
-				{
-					switch (record->side)
-					{
-					case RESOLVER_FIRST:
-						record->side = RESOLVER_LOW_FIRST;
-						break;
-					case RESOLVER_SECOND:
-						record->side = RESOLVER_LOW_SECOND;
-						break;
-					case RESOLVER_LOW_FIRST:
-						record->side = RESOLVER_FIRST;
-						break;
-					case RESOLVER_LOW_SECOND:
-						record->side = RESOLVER_SECOND;
-						break;
-					}
-
-					break;
-				}
-		}
 
 		switch (record->side)
 		{
@@ -531,20 +436,20 @@ void lagcompensation::update_player_animations(player_t* e)
 			animstate->m_flGoalFeetYaw = math::normalize_yaw(e->m_angEyeAngles().y);
 			break;
 		case RESOLVER_FIRST:
-			animstate->m_flGoalFeetYaw = math::normalize_yaw(e->m_angEyeAngles().y + e->get_max_desync_delta());
+			animstate->m_flGoalFeetYaw = math::normalize_yaw(e->m_angEyeAngles().y + 60.0f);
 			break;
 		case RESOLVER_SECOND:
-			animstate->m_flGoalFeetYaw = math::normalize_yaw(e->m_angEyeAngles().y - e->get_max_desync_delta());
+			animstate->m_flGoalFeetYaw = math::normalize_yaw(e->m_angEyeAngles().y - 60.0f);
 			break;
 		case RESOLVER_LOW_FIRST:
-			animstate->m_flGoalFeetYaw = math::normalize_yaw(e->m_angEyeAngles().y + min(21.0f, e->get_max_desync_delta()));
+			animstate->m_flGoalFeetYaw = math::normalize_yaw(e->m_angEyeAngles().y + 30.0f);
 			break;
 		case RESOLVER_LOW_SECOND:
-			animstate->m_flGoalFeetYaw = math::normalize_yaw(e->m_angEyeAngles().y - min(21.0f, e->get_max_desync_delta()));
+			animstate->m_flGoalFeetYaw = math::normalize_yaw(e->m_angEyeAngles().y - 30.0f);
 			break;
 		}
 
-		animstate->m_flPitch = player_resolver[e->EntIndex()].resolve_pitch();
+		e->m_angEyeAngles().x = player_resolver[e->EntIndex()].resolve_pitch();
 	}
 
 	g_ctx.globals.updating_animation = true;
@@ -554,15 +459,15 @@ void lagcompensation::update_player_animations(player_t* e)
 	setup_matrix(e, animlayers, MAIN);
 	memcpy(e->m_CachedBoneData().Base(), record->matrixes_data.main, e->m_CachedBoneData().Count() * sizeof(matrix3x4_t));
 
+	m_globals()->m_curtime = backup_curtime;
+	m_globals()->m_frametime = backup_frametime;
 
 	e->m_flLowerBodyYawTarget() = backup_lower_body_yaw_target;
 	e->m_flDuckAmount() = backup_duck_amount;
 	e->m_fFlags() = backup_flags;
 	e->m_iEFlags() = backup_eflags;
 
-	memcpy(e->get_animlayers(), animlayers, e->animlayer_count() * sizeof(AnimationLayer));
-	memcpy(player_resolver[e->EntIndex()].previous_layers, animlayers, e->animlayer_count() * sizeof(AnimationLayer));
-
+	memcpy(e->get_animlayers(), animlayers, 13 * sizeof(AnimationLayer));
 	record->store_data(e, false);
 
 	if (e->m_flSimulationTime() < e->m_flOldSimulationTime())

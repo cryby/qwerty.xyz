@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "..\includes.hpp"
+//#include "c_baseplayer.h"
 #include "interfaces\IClientEntity.hpp"
 #include "misc\EHandle.hpp"
 #include "misc\UtlVector.hpp"
@@ -326,6 +327,37 @@ public:
     NETVAR(float, m_flRecoilSeed, crypt_str("CWeaponCSBase"), crypt_str("m_flRecoilIndex"));
     NETVAR(int, m_weaponMode, crypt_str("CWeaponCSBase"), crypt_str("m_weaponMode"));
     NETVAR(CHandle <weapon_t>, m_hWeaponWorldModel, crypt_str("CBaseCombatWeapon"), crypt_str("m_hWeaponWorldModel"));
+    NETVAR(Vector, m_vecOrigin, "DT_BaseCSGrenadeProjectile", "m_vecOrigin");
+    // угол
+    NETVAR(Vector, m_angRotation, "DT_BaseCSGrenadeProjectile", " m_angRotation");
+    // дамаг
+    NETVAR(float, m_flDamage, "DT_BaseCSGrenadeProjectile", "m_flDamage");
+    // радиус дамага
+    NETVAR(float, m_DmgRadius, "DT_BaseCSGrenadeProjectile", "m_DmgRadius");
+    // вектор скорости
+    NETVAR(Vector, m_vecVelocity, "DT_BaseCSGrenadeProjectile", "m_vecVelocity");
+    // начальный вектор скорости
+    NETVAR(Vector, m_vInitialVelocity, "DT_BaseCSGrenadeProjectile", "m_vInitialVelocity");
+    // колво отскоков от стен
+    NETVAR(int, m_nBounces, "DT_BaseCSGrenadeProjectile", "m_nBounces");
+    // тик на котором появился эффект взрыва
+    NETVAR(int, m_nExplodeEffectTickBegin, "DT_BaseCSGrenadeProjectile", "m_nExplodeEffectTickBegin");
+    // время когда граната была создана
+    NETVAR(float, m_flSpawnTime, "DT_BaseCSGrenadeProjectile", "m_vecExplodeEffectOrigin", +0xC);
+    // кто кинул
+    NETVAR(CHandle <player_t>, m_hThrower, "DT_BaseCSGrenadeProjectile", "m_hThrower");
+
+    NETVAR(bool, m_bIsHeldByPlayer, "DT_BaseCSGrenade", "m_bIsHeldByPlayer");
+    // выдернута ли чека
+    //NETVAR(bool, m_bPinPulled, "DT_BaseCSGrenade", "m_bPinPulled");
+    // время когда граната должна быть брошена (если != 0 значит бросается)
+    //NETVAR(float, m_fThrowTime, "DT_BaseCSGrenade", "m_fThrowTime");
+    // с какой силой бросается граната (0.0-1.0)
+    NETVAR(float, m_flThrowStrength, "DT_BaseCSGrenade", "m_flThrowStrength");
+    // кто кинул
+    NETVAR(CHandle <player_t>, m_hOwner, "DT_BaseCSGrenade", "m_hOwner");
+    // имя нейда
+    NETVAR(std::string, m_iName, "DT_BaseCSGrenade", "m_iName");
 
     weapon_info_t* get_csweapon_info();
     bool is_empty();
@@ -376,6 +408,7 @@ public:
     NETVAR(Vector, m_angEyeAngles, crypt_str("CCSPlayer"), crypt_str("m_angEyeAngles[0]"));
     NETVAR(Vector, m_angRotation, crypt_str("CBaseEntity"), crypt_str("m_angRotation"));
     NETVAR(int, m_ArmorValue, crypt_str("CCSPlayer"), crypt_str("m_ArmorValue"));
+    //NETVAR(CHandle<C_BasePlayer>, m_hThrower, "DT_BaseGrenade", "m_hThrower");
     NETVAR(int, m_iAccount, crypt_str("CCSPlayer"), crypt_str("m_iAccount"));
     NETVAR(bool, m_bHasHelmet, crypt_str("CCSPlayer"), crypt_str("m_bHasHelmet"));
     NETVAR(bool, m_bHasHeavyArmor, crypt_str("CCSPlayer"), crypt_str("m_bHasHeavyArmor"));
@@ -394,6 +427,7 @@ public:
     NETVAR(Vector, m_aimPunchAngleVel, crypt_str("CBasePlayer"), crypt_str("m_aimPunchAngleVel"));
     NETVAR(CHandle <viewmodel_t>, m_hViewModel, crypt_str("CBasePlayer"), crypt_str("m_hViewModel[0]"));
     NETVAR(Vector, m_vecVelocity, crypt_str("CBasePlayer"), crypt_str("m_vecVelocity[0]"));
+    NETVAR(float, m_flThirdpersonRecoil, crypt_str("CCSPlayer"), crypt_str("m_flThirdpersonRecoil"));
     NETVAR(Vector, m_vecMins, crypt_str("CBaseEntity"), crypt_str("m_vecMins"));
     NETVAR(Vector, m_vecMaxs, crypt_str("CBaseEntity"), crypt_str("m_vecMaxs"));
     NETVAR(float, m_flVelocityModifier, crypt_str("CCSPlayer"), crypt_str("m_flVelocityModifier"));
@@ -479,6 +513,7 @@ public:
     Vector hitbox_position(int hitbox_id);
     Vector hitbox_position_matrix(int hitbox_id, matrix3x4_t matrix[MAXSTUDIOBONES]);
     AnimationLayer* get_animlayers();
+    bool setup_bones_rebuilt(matrix3x4_t* matrix, int mask);
     CUtlVector <matrix3x4_t>& m_CachedBoneData();
     CBoneAccessor& m_BoneAccessor();
     void invalidate_bone_cache();
@@ -528,6 +563,7 @@ public:
 struct inferno_t : public entity_t
 {
     OFFSET(float, get_spawn_time, 0x20);
+    NETVAR(int, m_nFireEffectTickBegin, crypt_str("DT_Inferno"), crypt_str("m_nFireEffectTickBegin"));
 
     static float get_expiry_time()
     {

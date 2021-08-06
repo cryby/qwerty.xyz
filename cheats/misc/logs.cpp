@@ -5,397 +5,231 @@
 
 void eventlogs::paint_traverse()
 {
-	if (logs.empty())
-		return;
+    if (logs.empty())
+        return;
 
-}
-#include "../visuals/logger.hpp"
-std::map<std::string, std::string> event_to_normal =
-{
-	//others
-	////////////////////////////////////////////////
-	{ "weapon_taser", "Zeus" },
-	{ "item_kevlar", "Kevlar" },
-	{ "item_defuser", "Defuse kit" },
-	{ "item_assaultsuit", "Kevlar + Helmet" },
-	////////////////////////////////////////////////
-	//
+    auto last_y = 3;
 
+    const auto font = fonts[LOGS];
+    const auto name_font = fonts[LOGS];
 
-	//pistols
-	////////////////////////////////////////////////
-	{ "weapon_p250", "P250" },
-	{ "weapon_tec9", "TEC-9" },
-	{ "weapon_cz75a", "CZ75A" },
-	{ "weapon_glock", "Glock" },
-	{ "weapon_elite", "Double-Berretas" },
-	{ "weapon_deagle", "Desert-Eagle" },
-	{ "weapon_hkp2000", "P2000" },
-	{ "weapon_usp_silencer", "USP-S" },
-	{ "weapon_revolver", "R8 Revolver" },
-	{ "weapon_fiveseven", "Five-Seven" },
-	////////////////////////////////////////////////
-	//
+    for (unsigned int i = 0; i < logs.size(); i++) {
+        auto& log = logs.at(i);
 
-	//pp
-	////////////////////////////////////////////////
-	{ "weapon_mp9", "MP-9" },
-	{ "weapon_mac10", "MAC-10" },
-	{ "weapon_mp7", "MP-7" },
-	{ "weapon_mp5sd", "MP5-SD" },
-	{ "weapon_ump45", "UMP-45" },
-	{ "weapon_p90", "P90" },
-	{ "weapon_bizon", "PP-Bizon" },
-	////////////////////////////////////////////////
-	//
+        if (util::epoch_time() - log.log_time > 4700) {
+            float factor = (log.log_time + 5100) - util::epoch_time();
+            factor /= 1000;
 
-	//rifles
-	////////////////////////////////////////////////
-	{ "weapon_famas", "FAMAS" },
-	{ "weapon_m4a1_silencer", "M4A1-s" },
-	{ "weapon_m4a1", "M4A1" },
-	{ "weapon_ssg08", "SSG08 / Scout" },
-	{ "weapon_aug", "AUG" },
-	{ "weapon_awp", "AWP" },
-	{ "weapon_scar20", "SCAR20" },
-	{ "weapon_galilar", "AR-Galil" },
-	{ "weapon_ak47", "AK-47" },
-	{ "weapon_sg556", "SG553" },
-	{ "weapon_g3sg1", "G3SG1" },
-	////////////////////////////////////////////////
-	//
+            auto opacity = int(255 * factor);
 
-	//have
-	////////////////////////////////////////////////
-	{ "weapon_nova", "Nova" },
-	{ "weapon_xm1014", "XM1014" },
-	{ "weapon_sawedoff", "Sawed-Off" },
-	{ "weapon_m249", "M249" },
-	{ "weapon_negev", "Negev" },
-	{ "weapon_mag7", "MAG-7" },
-	////////////////////////////////////////////////
-	//
+            if (opacity < 2) {
+                logs.erase(logs.begin() + i);
+                continue;
+            }
+            log.x -= 20 * (factor * 1.25);
+            log.y -= 0 * (factor * 1.25);
+        }
 
-	//granades
-	////////////////////////////////////////////////
-	{ "weapon_flashbang", "Flasg grenade" },
-	{ "weapon_smokegrenade", "Smoke grenade" },
-	{ "weapon_molotov", "Molotov" },
-	{ "weapon_incgrenade", "Incereative grenade" },
-	{ "weapon_decoy", "Decoy grenade" },
-	{ "weapon_hegrenade", "HE Grenade" },
-	////////////////////////////////////////////////
-	//
-};
-std::string bomb_site(int site_id, std::string map_name)
-{
-	if (map_name == "de_inferno")
-	{
-		if (site_id == 333)
-		{
-			return "A";
-		}
-		else if (site_id == 422)
-		{
-			return "B";
-		}
-	}
-	else if (map_name == "de_mirage")
-	{
-		if (site_id == 425)
-		{
-			return "A";
-		}
-		else if (site_id == 426)
-		{
-			return "B";
-		}
-	}
-	else if (map_name == "de_dust2")
-	{
-		if (site_id == 281)
-		{
-			return "A";
-		}
-		else if (site_id == 282)
-		{
-			return "B";
-		}
-	}
-	else if (map_name == "de_overpass")
-	{
-		if (site_id == 79)
-		{
-			return "A";
-		}
-		else if (site_id == 504)
-		{
-			return "B";
-		}
-	}
-	else if (map_name == "de_vertigo")
-	{
-		if (site_id == 262)
-		{
-			return "A";
-		}
-		else if (site_id == 314)
-		{
-			return "B";
-		}
-	}
-	else if (map_name == "de_nuke")
-	{
-		if (site_id == 154)
-		{
-			return "A";
-		}
-		else if (site_id == 167)
-		{
-			return "B";
-		}
-	}
-	else if (map_name == "de_train")
-	{
-		if (site_id == 94)
-		{
-			return "A";
-		}
-		else if (site_id == 536)
-		{
-			return "B";
-		}
-	}
-	else if (map_name == "de_cache")
-	{
-		if (site_id == 317)
-		{
-			return "A";
-		}
-		else if (site_id == 318)
-		{
-			return "B";
-		}
-	}
-	else if (map_name == "de_cbble")
-	{
-		if (site_id == 216)
-		{
-			return "A";
-		}
-		else if (site_id == 107)
-		{
-			return "B";
-		}
-	}
-	else if (map_name == "de_shortdust")
-	{
-		if (site_id == 217)
-		{
-			return "A";
-		}
-	}
-	else if (map_name == "de_rialto")
-	{
-		if (site_id == 99)
-		{
-			return "A";
-		}
-	}
-	else if (map_name == "de_lake")
-	{
-		if (site_id == 209)
-		{
-			return "A";
-		}
-	}
+        const auto text = log.message.c_str();
+        auto name_size = render::get().text_width(name_font, text);
 
-	return "unck";
+        float logsBG[4] = { 0.f, 0.f, 0.f, 1.f };
+        float logs[4] = { 0.26f, 0.32f, 0.96f, 1.f };
 
+        render::get().rect_filled(log.x + 0, last_y + log.y + 18, name_size + 10, 16, Color(logsBG[0], logsBG[1], logsBG[2], logsBG[3]));
+        render::get().rect_filled(log.x + 10 + name_size, last_y + log.y + 18, 8, 16, Color(logs[0], logs[1], logs[2], logs[3]));
+        render::get().text(font, log.x + 7, last_y + log.y + 20, log.color, HFONT_CENTERED_NONE, text);
+
+        last_y += 25;
+    }
 }
 
 void eventlogs::events(IGameEvent* event)
 {
-	static auto get_hitgroup_name = [](int hitgroup) -> std::string
-	{
-		switch (hitgroup)
-		{
-		case HITGROUP_HEAD:
-			return crypt_str("head");
-		case HITGROUP_CHEST:
-			return crypt_str("chest");
-		case HITGROUP_STOMACH:
-			return crypt_str("stomach");
-		case HITGROUP_LEFTARM:
-			return crypt_str("left arm");
-		case HITGROUP_RIGHTARM:
-			return crypt_str("right arm");
-		case HITGROUP_LEFTLEG:
-			return crypt_str("left leg");
-		case HITGROUP_RIGHTLEG:
-			return crypt_str("right leg");
-		default:
-			return crypt_str("generic");
-		}
-	};
+    static auto get_hitgroup_name = [](int hitgroup) -> std::string
+    {
+        switch (hitgroup)
+        {
+        case HITGROUP_HEAD:
+            return crypt_str("head");
+        case HITGROUP_CHEST:
+            return crypt_str("chest");
+        case HITGROUP_STOMACH:
+            return crypt_str("stomach");
+        case HITGROUP_LEFTARM:
+            return crypt_str("left arm");
+        case HITGROUP_RIGHTARM:
+            return crypt_str("right arm");
+        case HITGROUP_LEFTLEG:
+            return crypt_str("left leg");
+        case HITGROUP_RIGHTLEG:
+            return crypt_str("right leg");
+        default:
+            return crypt_str("generic");
+        }
+    };
 
-	if (config_system.g_cfg.misc.events_to_log[EVENTLOG_HIT] && !strcmp(event->GetName(), crypt_str("player_hurt")))
-	{
-		auto userid = event->GetInt(crypt_str("userid")), attacker = event->GetInt(crypt_str("attacker"));
+    if (config_system.g_cfg.misc.events_to_log[EVENTLOG_HIT] && !strcmp(event->GetName(), crypt_str("player_hurt")))
+    {
+        auto userid = event->GetInt(crypt_str("userid")), attacker = event->GetInt(crypt_str("attacker"));
 
-		if (!userid || !attacker)
-			return;
+        if (!userid || !attacker)
+            return;
 
-		auto userid_id = m_engine()->GetPlayerForUserID(userid), attacker_id = m_engine()->GetPlayerForUserID(attacker); //-V807
+        auto userid_id = m_engine()->GetPlayerForUserID(userid), attacker_id = m_engine()->GetPlayerForUserID(attacker); //-V807
 
-		player_info_t userid_info, attacker_info;
+        player_info_t userid_info, attacker_info;
 
-		if (!m_engine()->GetPlayerInfo(userid_id, &userid_info))
-			return;
+        if (!m_engine()->GetPlayerInfo(userid_id, &userid_info))
+            return;
 
-		if (!m_engine()->GetPlayerInfo(attacker_id, &attacker_info))
-			return;
+        if (!m_engine()->GetPlayerInfo(attacker_id, &attacker_info))
+            return;
 
-		auto m_victim = static_cast<player_t*>(m_entitylist()->GetClientEntity(userid_id));
+        auto m_victim = static_cast<player_t*>(m_entitylist()->GetClientEntity(userid_id));
 
-		std::stringstream ss;
+        std::stringstream ss;
 
-		if (attacker_id == m_engine()->GetLocalPlayer() && userid_id != m_engine()->GetLocalPlayer())
-		{
-			ss << crypt_str("Hurt to ") << userid_info.szName << "'s " << get_hitgroup_name(event->GetInt(crypt_str("hitgroup"))) << " for " << event->GetInt(crypt_str("dmg_health")) << " damage";
-			notify::add_log("Hurt", ss.str().c_str(), Color(130, 235, 25));
-		}
-		else if (userid_id == m_engine()->GetLocalPlayer() && attacker_id != m_engine()->GetLocalPlayer())
-		{
-			ss << crypt_str("Hurm by ") << attacker_info.szName << " in " << get_hitgroup_name(event->GetInt(crypt_str("hitgroup"))) << " for " << event->GetInt(crypt_str("dmg_health")) << " damage";
-			notify::add_log("Hurm", ss.str().c_str(), Color(235, 140, 5));
-		}
-	}
+        if (attacker_id == m_engine()->GetLocalPlayer() && userid_id != m_engine()->GetLocalPlayer())
+        {
+            ss << crypt_str("You did ") << event->GetInt(crypt_str("dmg_health")) << crypt_str(" damage ") << crypt_str("to ") << userid_info.szName << crypt_str(" in ") << get_hitgroup_name(event->GetInt(crypt_str("hitgroup")));
+            addnew(ss.str(), Color::Blue);
+        }
+        else if (userid_id == m_engine()->GetLocalPlayer() && attacker_id != m_engine()->GetLocalPlayer())
+        {
+            ss << attacker_info.szName << crypt_str(" did you ") << event->GetInt(crypt_str("dmg_health")) << crypt_str(" damage ") << crypt_str("in ") << get_hitgroup_name(event->GetInt(crypt_str("hitgroup")));
 
-	if (config_system.g_cfg.misc.events_to_log[EVENTLOG_ITEM_PURCHASES] && !strcmp(event->GetName(), crypt_str("item_purchase")))
-	{
-		auto userid = event->GetInt(crypt_str("userid"));
+            addnew(ss.str(), Color::Blue);
+        }
+    }
 
-		if (!userid)
-			return;
+    if (config_system.g_cfg.misc.events_to_log[EVENTLOG_ITEM_PURCHASES] && !strcmp(event->GetName(), crypt_str("item_purchase")))
+    {
+        auto userid = event->GetInt(crypt_str("userid"));
 
-		auto userid_id = m_engine()->GetPlayerForUserID(userid);
+        if (!userid)
+            return;
 
-		player_info_t userid_info;
+        auto userid_id = m_engine()->GetPlayerForUserID(userid);
 
-		if (!m_engine()->GetPlayerInfo(userid_id, &userid_info))
-			return;
+        player_info_t userid_info;
 
-		auto m_player = static_cast<player_t*>(m_entitylist()->GetClientEntity(userid_id));
+        if (!m_engine()->GetPlayerInfo(userid_id, &userid_info))
+            return;
 
-		if (!g_ctx.local() || !m_player)
-			return;
+        auto m_player = static_cast<player_t*>(m_entitylist()->GetClientEntity(userid_id));
 
-		if (g_ctx.local() == m_player)
-			g_ctx.globals.should_buy = 0;
+        if (!g_ctx.local() || !m_player)
+            return;
 
-		if (m_player->m_iTeamNum() == g_ctx.local()->m_iTeamNum())
-			return;
+        if (g_ctx.local() == m_player)
+            g_ctx.globals.should_buy = 0;
 
-		std::string weapon = event->GetString(crypt_str("weapon"));
-		std::stringstream ss;
-		ss << userid_info.szName << crypt_str(" bought ") << event_to_normal[weapon.c_str()] << " remaining money: " << m_player->m_iAccount() << "$";
-		notify::add_log("Buy", ss.str().c_str(), Color(0, 150, 240));
-	}
+        if (m_player->m_iTeamNum() == g_ctx.local()->m_iTeamNum())
+            return;
 
-	if (config_system.g_cfg.misc.events_to_log[EVENTLOG_BOMB] && !strcmp(event->GetName(), crypt_str("bomb_beginplant")))
-	{
-		auto userid = event->GetInt(crypt_str("userid"));
+        std::string weapon = event->GetString(crypt_str("weapon"));
 
-		if (!userid)
-			return;
+        std::stringstream ss;
+        ss << userid_info.szName << crypt_str(" bought ") << weapon;
 
-		auto userid_id = m_engine()->GetPlayerForUserID(userid);
+        addnew(ss.str(), Color::Blue);
+    }
 
-		player_info_t userid_info;
+    if (config_system.g_cfg.misc.events_to_log[EVENTLOG_BOMB] && !strcmp(event->GetName(), crypt_str("bomb_beginplant")))
+    {
+        auto userid = event->GetInt(crypt_str("userid"));
 
-		if (!m_engine()->GetPlayerInfo(userid_id, &userid_info))
-			return;
+        if (!userid)
+            return;
 
-		auto m_player = static_cast<player_t*>(m_entitylist()->GetClientEntity(userid_id));
+        auto userid_id = m_engine()->GetPlayerForUserID(userid);
 
-		if (!m_player)
-			return;
-		int site_id = event->GetInt("site");
-		std::string namemap = m_engine()->GetLevelNameShort();
-		std::string bomb_site_s = bomb_site(site_id, namemap);
-		std::stringstream ss;
-		ss << userid_info.szName << crypt_str(" planting the bomb" << crypt_str(" at site ") << bomb_site_s);
-		notify::add_log("Plant", ss.str().c_str(), Color(255, 66, 66));
-	}
+        player_info_t userid_info;
 
-	if (config_system.g_cfg.misc.events_to_log[EVENTLOG_BOMB] && !strcmp(event->GetName(), crypt_str("bomb_begindefuse")))
-	{
-		auto userid = event->GetInt(crypt_str("userid"));
+        if (!m_engine()->GetPlayerInfo(userid_id, &userid_info))
+            return;
 
-		if (!userid)
-			return;
+        auto m_player = static_cast<player_t*>(m_entitylist()->GetClientEntity(userid_id));
 
-		auto userid_id = m_engine()->GetPlayerForUserID(userid);
+        if (!m_player)
+            return;
 
-		player_info_t userid_info;
+        std::stringstream ss;
+        ss << userid_info.szName << crypt_str(" has began planting the bomb");
 
-		if (!m_engine()->GetPlayerInfo(userid_id, &userid_info))
-			return;
+        addnew(ss.str(), Color::Blue);
+    }
 
-		auto m_player = static_cast<player_t*>(m_entitylist()->GetClientEntity(userid_id));
+    if (config_system.g_cfg.misc.events_to_log[EVENTLOG_BOMB] && !strcmp(event->GetName(), crypt_str("bomb_begindefuse")))
+    {
+        auto userid = event->GetInt(crypt_str("userid"));
 
-		if (!m_player)
-			return;
-		std::stringstream ss;
-		ss << userid_info.szName << crypt_str(" defusing the bomb ") << (event->GetBool(crypt_str("haskit")) ? crypt_str("with defuse kit") : crypt_str("without defuse kit"));
+        if (!userid)
+            return;
 
-		notify::add_log("Defusing", ss.str().c_str(), Color(255, 66, 66));
-	}
+        auto userid_id = m_engine()->GetPlayerForUserID(userid);
+
+        player_info_t userid_info;
+
+        if (!m_engine()->GetPlayerInfo(userid_id, &userid_info))
+            return;
+
+        auto m_player = static_cast<player_t*>(m_entitylist()->GetClientEntity(userid_id));
+
+        if (!m_player)
+            return;
+
+        std::stringstream ss;
+        ss << userid_info.szName << crypt_str(" has began defusing the bomb ") << (event->GetBool(crypt_str("haskit")) ? crypt_str("with defuse kit") : crypt_str("without defuse kit"));
+
+        addnew(ss.str(), Color::Blue);
+    }
 }
+
 void eventlogs::addnew(std::string text, Color color, bool full_display)
 {
-	logs.emplace_front(loginfo_t(util::epoch_time(), text, Color(255, 255, 255, 255)));
+    logs.emplace_front(loginfo_t(util::epoch_time(), text, config_system.g_cfg.misc.log_color));
 
-	if (!full_display)
-		return;
+    if (!full_display)
+        return;
 
-	if (config_system.g_cfg.misc.log_output[EVENTLOG_OUTPUT_CONSOLE])
-	{
-		last_log = true;
-
-#if RELEASE
-#if BETA
-		m_cvar()->ConsoleColorPrintf(Color::Pink, crypt_str("[ qwerty.xyz] ")); //-V807
-#else
-		m_cvar()->ConsoleColorPrintf(Color::Pink, crypt_str("[ qwerty.xyz] "));
-#endif
-#else
-		m_cvar()->ConsoleColorPrintf(Color(config_system.g_cfg.misc.log_color.r(), config_system.g_cfg.misc.log_color.g(), config_system.g_cfg.misc.log_color.b()), crypt_str("[ qwerty.xyz] / ")); //-V807
-#endif
-
-		m_cvar()->ConsoleColorPrintf(config_system.g_cfg.misc.log_color, text.c_str());
-		m_cvar()->ConsolePrintf(crypt_str("\n"));
-	}
-
-	if (config_system.g_cfg.misc.log_output[EVENTLOG_OUTPUT_CHAT])
-	{
-		static CHudChat* chat = nullptr;
-
-		if (!chat)
-			chat = util::FindHudElement <CHudChat>(crypt_str("CHudChat"));
+    if (config_system.g_cfg.misc.log_output[EVENTLOG_OUTPUT_CONSOLE])
+    {
+        last_log = true;
 
 #if RELEASE
 #if BETA
-		auto log = crypt_str("[ \x0CAqwerty.xyz\x01] ") + text;
-		chat->chat_print(log.c_str());
+        m_cvar()->ConsoleColorPrintf(config_system.g_cfg.misc.log_color, crypt_str("[ YOURCHEATNAME ] ")); //-V807
 #else
-		auto log = crypt_str("[ \x0Cqwerty.xyz\x01] ") + text;
-		chat->chat_print(log.c_str());
+        m_cvar()->ConsoleColorPrintf(config_system.g_cfg.misc.log_color, crypt_str("[ YOURCHEATNAME ] "));
 #endif
 #else
-		auto log = crypt_str("\x0Cqwerty.xyz\x01/ ") + text;
-		chat->chat_print(log.c_str());
+        m_cvar()->ConsoleColorPrintf(config_system.g_cfg.misc.log_color, crypt_str("[ YOURCHEATNAME ] ")); //-V807
 #endif
-	}
+
+        m_cvar()->ConsoleColorPrintf(Color::Blue, text.c_str());
+        m_cvar()->ConsolePrintf(crypt_str("\n"));
+    }
+
+    if (config_system.g_cfg.misc.log_output[EVENTLOG_OUTPUT_CHAT])
+    {
+        static CHudChat* chat = nullptr;
+
+        if (!chat)
+            chat = util::FindHudElement <CHudChat>(crypt_str("CHudChat"));
+
+#if RELEASE
+#if BETA
+        auto log = crypt_str("[ \x0CAYOURCHEATNAME \x01] ") + text;
+        chat->chat_print(log.c_str());
+#else
+        auto log = crypt_str("[ \x0CYOURCHEATNAME \x01] ") + text;
+        chat->chat_print(log.c_str());
+#endif
+#else
+        auto log = crypt_str("[ \x0CYOURCHEATNAME \x01] ") + text;
+        chat->chat_print(log.c_str());
+#endif
+    }
 }

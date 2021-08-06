@@ -13,6 +13,7 @@
 #include "..\..\cheats\visuals\bullet_tracers.h"
 #include "..\..\cheats\visuals\dormant_esp.h"
 #include "..\..\cheats\lagcompensation\local_animations.h"
+#include "../../cheats/visuals/grenade_warning.h"
 
 using PaintTraverse_t = void(__thiscall*)(void*, vgui::VPANEL, bool, bool);
 
@@ -220,6 +221,8 @@ void __fastcall hooks::hooked_painttraverse(void* ecx, void* edx, vgui::VPANEL p
 
 			if (weapon->is_grenade() && config_system.g_cfg.esp.grenade_prediction && config_system.g_cfg.player.enable)
 				GrenadePrediction::get().Paint();
+			if (weapon->is_grenade() && config_system.g_cfg.esp.grenade_warning && config_system.g_cfg.player.enable)
+				c_grenade_prediction::get().grenade_warning((weapon_t*) weapon, g_ctx.local());
 
 			if (config_system.g_cfg.player.enable && config_system.g_cfg.esp.removals[REMOVALS_SCOPE] && g_ctx.globals.scoped && weapon->is_sniper())
 			{

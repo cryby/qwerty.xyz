@@ -752,6 +752,99 @@ Vector player_t::hitbox_position_matrix(int hitbox_id, matrix3x4_t matrix[MAXSTU
 	return (min + max) * 0.5f;
 }
 
+bool player_t::setup_bones_rebuilt(matrix3x4_t* matrix, int mask)
+{
+	if (!this) //-V704
+		return false;
+
+	auto setuped = false;
+
+	auto backup_value = *(uint8_t*)((uintptr_t)this + 0x274);
+	*(uint8_t*)((uintptr_t)this + 0x274) = 0;
+
+	m_fEffects() |= EF_NOINTERP;
+
+	// If we're setting up LOD N, we have set up all lower LODs also
+	// because lower LODs always use subsets of the bones of higher LODs.
+	int nLOD = 0;
+	int nMask = BONE_USED_BY_VERTEX_LOD0;
+	for (; nLOD < MAX_NUM_LODS; ++nLOD, nMask <<= 1)
+	{
+		if (mask & nMask)
+			break;
+	}
+	for (; nLOD < MAX_NUM_LODS; ++nLOD, nMask <<= 1)
+	{
+		mask |= nMask;
+	}
+
+	auto animstate = get_animation_state();
+	auto previous_weapon = animstate ? animstate->m_pLastBoneSetupWeapon : nullptr;
+
+	if (previous_weapon)
+		animstate->m_pLastBoneSetupWeapon = animstate->m_pActiveWeapon;
+
+	auto backup_abs_origin = GetAbsOrigin();
+
+	if (this != g_ctx.local())
+		set_abs_origin(m_vecOrigin());
+
+	g_ctx.globals.setuping_bones = true;
+	invalidate_bone_cache();
+
+	if (mask == BONE_USED_BY_ANYTHING)
+		SetupBones(matrix, MAXSTUDIOBONES, mask, m_flSimulationTime());
+	else
+	{
+		CSetupBones setup_bones;
+
+		setup_bones.m_animating = this;
+		setup_bones.m_vecOrigin = m_vecOrigin();
+		setup_bones.m_animLayers = get_animlayers();
+		setup_bones.m_pHdr = m_pStudioHdr();
+		setup_bones.m_nAnimOverlayCount = animlayer_count();
+		setup_bones.m_angAngles = Vector(0.0f, animstate ? animstate->m_flGoalFeetYaw : 0.0f, 0.0f);
+		setup_bones.m_boneMatrix = matrix;
+
+		memcpy(setup_bones.m_flPoseParameters, &m_flPoseParameter(), 24 * sizeof(float));
+
+		auto weapon = m_hActiveWeapon().Get();
+		auto world_model = weapon ? weapon->m_hWeaponWorldModel().Get() : nullptr;
+
+		if (world_model)
+			memcpy(setup_bones.m_flWorldPoses, &world_model->m_flPoseParameter(), 24 * sizeof(float));
+
+		setup_bones.m_boneMask = mask;
+
+		Vector position[MAXSTUDIOBONES];
+		Quaternion q[MAXSTUDIOBONES];
+
+		setup_bones.m_vecBones = position;
+		setup_bones.m_quatBones = q;
+		setup_bones.m_flCurtime = m_flSimulationTime();
+
+		setup_bones.setup_bones_server();
+
+		if (m_CachedBoneData().Base() != m_BoneAccessor().m_pBones)
+			memcpy(m_BoneAccessor().m_pBones, setup_bones.m_boneMatrix, m_CachedBoneData().Count() * sizeof(matrix3x4_t));
+
+		setup_bones.fix_bones_rotations();
+	}
+
+	g_ctx.globals.setuping_bones = false;
+
+	if (this != g_ctx.local())
+		set_abs_origin(backup_abs_origin);
+
+	if (previous_weapon)
+		animstate->m_pLastBoneSetupWeapon = previous_weapon;
+
+	m_fEffects() &= ~EF_NOINTERP;
+	*(uint8_t*)((uintptr_t)this + 0x274) = backup_value;
+
+	return setuped;
+}
+
 CUtlVector <matrix3x4_t>& player_t::m_CachedBoneData()
 {
 	static auto m_CachedBoneData = *(DWORD*)(util::FindSignature(crypt_str("client.dll"), crypt_str("FF B7 ?? ?? ?? ?? 52")) + 0x2) + 0x4;

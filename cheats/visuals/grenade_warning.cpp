@@ -1,502 +1,573 @@
-#include "grenade_warning.h"
+/*#include "grenade_warning.h"
+#include <ragebot/autowall.hpp>
 
+void c_grenade_prediction::on_create_move(CUserCmd* cmd) {
+	m_data = {};
+
+	if (ctx.m_local()->IsDead() || !ctx.m_settings.other_esp_grenade_trajectory)
+		return;
+
+	const auto weapon = reinterpret_cast<C_WeaponCSBaseGun*>(csgo.m_entity_list()->GetClientEntityFromHandle(ctx.m_local()->m_hActiveWeapon()));
+	if (!weapon
+		|| !weapon->m_bPinPulled() && weapon->m_fThrowTime() == 0.f)
+		return;
+
+	const auto weapon_data = weapon->GetCSWeaponData();
+	if (!weapon_data
+		|| weapon_data->type != 9)//weapon_type_grenade
+		return;
+
+	m_data.m_owner = ctx.m_local();
+	m_data.m_index = weapon->m_iItemDefinitionIndex();
+
+	auto view_angles = cmd->viewangles;
+
+	if (view_angles.x < -90.f) {
+		view_angles.x += 360.f;
+	}
+	else if (view_angles.x > 90.f) {
+		view_angles.x -= 360.f;
+	}
+
+	view_angles.x -= (90.f - std::fabsf(view_angles.x)) * 10.f / 90.f;
+
+	auto direction = Vector();
+
+	Math::AngleVectors(view_angles, direction);
+
+	const auto throw_strength = std::clamp< float >(weapon->m_flThrowStrength(), 0.f, 1.f);
+	const auto eye_pos = ctx.m_local()->GetEyePosition();
+	const auto src = Vector(eye_pos.x, eye_pos.y, eye_pos.z + (throw_strength * 12.f - 12.f));
+
+	auto trace = CGameTrace();
+
+	csgo.m_engine_trace()->TraceHull(
+		src, src + direction * 22.f, { -2.f, -2.f, -2.f }, { 2.f, 2.f, 2.f },
+		MASK_SOLID | CONTENTS_CURRENT_90, ctx.m_local(), COLLISION_GROUP_NONE, &trace
+	);
+
+	m_data.predict(
+		trace.endpos - direction * 6.f,
+		direction * (std::clamp< float >(
+			weapon_data->throw_velocity * 0.9f, 15.f, 750.f
+			) * (throw_strength * 0.7f + 0.3f)) + ctx.m_local()->m_vecVelocity() * 1.25f,
+		csgo.m_globals()->curtime,
+		0
+	);
+}
 const char* index_to_grenade_name(int index)
 {
-    switch (index)
-    {
-    case WEAPON_SMOKEGRENADE: return "smoke"; break;
-    case WEAPON_HEGRENADE: return "he grenade"; break;
-    case WEAPON_MOLOTOV:return "molotov"; break;
-    case WEAPON_INCGRENADE:return "molotov"; break;
-    }
+	switch (index)
+	{
+	case WEAPON_SMOKEGRENADE: return "smoke"; break;
+	case WEAPON_HEGRENADE: return "he grenade"; break;
+	case WEAPON_MOLOTOV:return "molotov"; break;
+	case WEAPON_INCGRENADE:return "molotov"; break;
+	}
 }
 const char* index_to_grenade_name_icon(int index)
 {
-    switch (index)
-    {
-    case WEAPON_SMOKEGRENADE: return "k"; break;
-    case WEAPON_HEGRENADE: return "j"; break;
-    case WEAPON_MOLOTOV:return "l"; break;
-    case WEAPON_INCGRENADE:return "n"; break;
-    }
+	switch (index)
+	{
+	case WEAPON_SMOKEGRENADE: return "k"; break;
+	case WEAPON_HEGRENADE: return "j"; break;
+	case WEAPON_MOLOTOV:return "l"; break;
+	case WEAPON_INCGRENADE:return "n"; break;
+	}
 }
-
-void rotate_point(Vector2D& point, Vector2D origin, bool clockwise, float angle) {
-    Vector2D delta = point - origin;
-    Vector2D rotated;
-
-    if (clockwise) {
-        rotated = Vector2D(delta.x * cosf(angle) - delta.y * sinf(angle), delta.x * sinf(angle) + delta.y * cosf(angle));
-    }
-    else {
-        rotated = Vector2D(delta.x * sinf(angle) - delta.y * cosf(angle), delta.x * cosf(angle) + delta.y * sinf(angle));
-    }
-
-    point = rotated + origin;
-}
-
-void draw_arc(int x, int y, int radius, int start_angle, int percent, int thickness, Color color) {
-    auto precision = (2 * M_PI) / 30;
-    auto step = M_PI / 180;
-    auto inner = radius - thickness;
-    auto end_angle = (start_angle + percent) * step;
-    auto start_angles = (start_angle * M_PI) / 180;
-
-    for (; radius > inner; --radius) {
-        for (auto angle = start_angles; angle < end_angle; angle += precision) {
-            auto cx = std::round(x + radius * std::cos(angle));
-            auto cy = std::round(y + radius * std::sin(angle));
-
-            auto cx2 = std::round(x + radius * std::cos(angle + precision));
-            auto cy2 = std::round(y + radius * std::sin(angle + precision));
-
-            render::get().line(cx, cy, cx2, cy2, color);
-        }
-    }
-}
-
-void textured_polygon(int n, std::vector< Vertex_t > vertice, Color color) {
-    static int texture_id = m_surface()->CreateNewTextureID(true);
-    static unsigned char buf[4] = { 255, 255, 255, 255 };
-
-    m_surface()->DrawSetTextureRGBA(texture_id, buf, 1, 1);
-    m_surface()->DrawSetColor(color);
-    m_surface()->DrawSetTexture(texture_id);
-    m_surface()->DrawTexturedPolygon(n, vertice.data());
-}
-
-void filled_circle(int x, int y, int radius, int segments, Color color) {
-    std::vector< Vertex_t > vertices;
-
-    float step = M_PI * 2.0f / segments;
-
-    for (float a = 0; a < (M_PI * 2.0f); a += step)
-        vertices.emplace_back(Vector2D(radius * cosf(a) + x, radius * sinf(a) + y));
-
-    textured_polygon(vertices.size(), vertices, color);
-}
-
-void shoto(int x, int y, float d, int rad)
-{
-    if (d < 1)
-        return;
-    for (int i = 0; i < d / 5 + 1; i++)
-    {
-        static float pulse = 0.f;
-        pulse += 1 / 1000.f;
-        if (pulse >= 1.f)
-            pulse = 0;
-        filled_circle(x, y, (rad + d / 2 * pulse), 18, Color(config_system.g_cfg.esp.grenade_warning_color.r(), config_system.g_cfg.esp.grenade_warning_color.g(), config_system.g_cfg.esp.grenade_warning_color.b(), int(25 * pulse)));
-    }
-}
-
-
 void DrawBeamPaw(Vector src, Vector end, Color color)
 {
-    BeamInfo_t beamInfo;
-    beamInfo.m_nType = TE_BEAMPOINTS; //TE_BEAMPOINTS
-    beamInfo.m_vecStart = src;
-    beamInfo.m_vecEnd = end;
-    beamInfo.m_pszModelName = "sprites/bubble.vmt";
-    beamInfo.m_pszHaloName = "sprites/bubble.vmt";
-    beamInfo.m_flHaloScale = 1.0;
-    beamInfo.m_flWidth = config_system.g_cfg.warning.trace.width;
-    beamInfo.m_flEndWidth = config_system.g_cfg.warning.trace.width;
-    beamInfo.m_flFadeLength = 0.2f;
-    beamInfo.m_flAmplitude = 0;
-    beamInfo.m_flBrightness = float(220);
-    beamInfo.m_flSpeed = 0.001f;
-    beamInfo.m_nStartFrame = 0.0;
-    beamInfo.m_flFrameRate = 0.0;
-    beamInfo.m_flRed = color.r();
-    beamInfo.m_flGreen = color.g();
-    beamInfo.m_flBlue = color.b();
-    beamInfo.m_nSegments = 2;
-    beamInfo.m_bRenderable = true;
-    beamInfo.m_flLife = 0.05;
-    beamInfo.m_nFlags = FBEAM_NOTILE; //FBEAM_ONLYNOISEONCE | FBEAM_NOTILE | FBEAM_HALOBEAM
-    Beam_t* myBeam = m_viewrenderbeams()->CreateBeamPoints(beamInfo);
-    if (myBeam)
-        m_viewrenderbeams()->DrawBeam(myBeam);
-    // beamInfo.m_pszModelName = "sprites/radio.vmt";// рисуется за стеной
+	BeamInfo_t beamInfo;
+	beamInfo.m_nType = TE_BEAMPOINTS; //TE_BEAMPOINTS
+	beamInfo.m_vecStart = src;
+	beamInfo.m_vecEnd = end;
+	beamInfo.m_pszModelName = "sprites/purplelaser1.vmt";//sprites/purplelaser1.vmt
+	beamInfo.m_pszHaloName = "sprites/purplelaser1.vmt";//sprites/purplelaser1.vmt
+	beamInfo.m_flHaloScale = 0;//0
+	beamInfo.m_flWidth = ctx.m_settings.other_esp_grenade_warning_beam_width;//11
+	beamInfo.m_flEndWidth = ctx.m_settings.other_esp_grenade_warning_beam_end_width;//11
+	beamInfo.m_flFadeLength = 1.0f;
+	beamInfo.m_flAmplitude = 2.3;
+	beamInfo.m_flBrightness = 255.f;
+	beamInfo.m_flSpeed = 0.2f;
+	beamInfo.m_nStartFrame = 0.0;
+	beamInfo.m_flFrameRate = 0.0;
+	beamInfo.m_flRed = color.r();
+	beamInfo.m_flGreen = color.g();
+	beamInfo.m_flBlue = color.b();
+	beamInfo.m_nSegments = 2;//40
+	beamInfo.m_bRenderable = true;
+	beamInfo.m_flLife = 0.03f;
+	beamInfo.m_nFlags = FBEAM_ONLYNOISEONCE | FBEAM_NOTILE | FBEAM_HALOBEAM; //FBEAM_ONLYNOISEONCE | FBEAM_NOTILE | FBEAM_HALOBEAM
+
+	Beam_t* myBeam = csgo.m_beams()->CreateBeamPoints(beamInfo);
+	if (myBeam)
+		csgo.m_beams()->DrawBeam(myBeam);
 }
+void draw_arc(int x, int y, int radius, int start_angle, int percent, int thickness, Color color) {
+	auto precision = (2 * M_PI) / 30;
+	auto step = M_PI / 180;
+	auto inner = radius - thickness;
+	auto end_angle = (start_angle + percent) * step;
+	auto start_angles = (start_angle * M_PI) / 180;
 
-void DrawBeamPawWall(Vector src, Vector end, Color color)
-{
-    BeamInfo_t beamInfo;
-    beamInfo.m_nType = TE_BEAMPOINTS;
-    beamInfo.m_vecStart = src;
-    beamInfo.m_vecEnd = end;
-    beamInfo.m_pszModelName = "sprites/light_glow02_add_noz.vmt";
-    beamInfo.m_pszHaloName = "sprites/light_glow02_add_noz.vmt";
-    beamInfo.m_flHaloScale = 1.0;
-    beamInfo.m_flWidth = config_system.g_cfg.warning.trace.width;
-    beamInfo.m_flEndWidth = config_system.g_cfg.warning.trace.width;
-    beamInfo.m_flFadeLength = 0.2f;
-    beamInfo.m_flAmplitude = 0;
-    beamInfo.m_flBrightness = float(180);
-    beamInfo.m_flSpeed = 0.001f;
-    beamInfo.m_nStartFrame = 0.0;
-    beamInfo.m_flFrameRate = 0.0;
-    beamInfo.m_flRed = color.r();
-    beamInfo.m_flGreen = color.g();
-    beamInfo.m_flBlue = color.b();
-    beamInfo.m_nSegments = 2;
-    beamInfo.m_bRenderable = true;
-    beamInfo.m_flLife = 0.05;
-    beamInfo.m_nFlags = FBEAM_NOTILE;
-    Beam_t* myBeam = m_viewrenderbeams()->CreateBeamPoints(beamInfo);
-    if (myBeam)
-        m_viewrenderbeams()->DrawBeam(myBeam);
-}
+	for (; radius > inner; --radius) {
+		for (auto angle = start_angles; angle < end_angle; angle += precision) {
+			auto cx = std::round(x + radius * std::cos(angle));
+			auto cy = std::round(y + radius * std::sin(angle));
 
-inline float CSGO_Armores(float flDamage, int ArmorValue) {
-    float flArmorRatio = 0.5f;
-    float flArmorBonus = 0.5f;
-    if (ArmorValue > 0) {
-        float flNew = flDamage * flArmorRatio;
-        float flArmor = (flDamage - flNew) * flArmorBonus;
+			auto cx2 = std::round(x + radius * std::cos(angle + precision));
+			auto cy2 = std::round(y + radius * std::sin(angle + precision));
 
-        if (flArmor > static_cast<float>(ArmorValue)) {
-            flArmor = static_cast<float>(ArmorValue) * (1.f / flArmorBonus);
-            flNew = flDamage - flArmor;
-        }
-
-        flDamage = flNew;
-    }
-    return flDamage;
+			Drawing::DrawLine(cx, cy, cx2, cy2, color);
+		}
+	}
 }
 bool c_grenade_prediction::data_t::draw() const
 {
-    if (m_path.size() <= 1u
-        || m_globals()->m_curtime >= m_expire_time)
-        return false;
+	if (m_path.size() <= 1u
+		|| csgo.m_globals()->curtime >= m_expire_time)
+		return false;
 
-    bool is_he = m_index == 44;
-    float distance = g_ctx.local()->m_vecOrigin().DistTo(m_origin) / 3.28;
+	float distance = ctx.m_local()->m_vecOrigin().Distance(m_origin) / 12;
 
-    if (distance > 999.f)
-        return false;
+	if (distance > 200.f)
+		return false;
 
-    static int iScreenWidth, iScreenHeight;
-    m_engine()->GetScreenSize(iScreenWidth, iScreenHeight);
+	auto prev_screen = Vector();
+	auto prev_on_screen = Drawing::WorldToScreen(std::get< Vector >(m_path.front()), prev_screen);
 
-    auto isOnScreen = [](Vector origin, Vector& screen) -> bool
-    {
-        if (!math::world_to_screen(origin, screen))
-            return false;
+	for (auto i = 1u; i < m_path.size(); ++i) {
+		auto cur_screen = Vector();
+		const auto cur_on_screen = Drawing::WorldToScreen(std::get< Vector >(m_path.at(i)), cur_screen);
 
-        static int iScreenWidth, iScreenHeight;
-        m_engine()->GetScreenSize(iScreenWidth, iScreenHeight);
+		if (prev_on_screen && cur_on_screen)
+		{
+			//Drawing::DrawLine(prev_screen.x, prev_screen.y, cur_screen.x, cur_screen.y, { 244, 182, 255, 200 });
+			if (ctx.m_settings.other_esp_grenade_warning_beam_rainbow)
+			{
+				auto rainbow_col = Color::FromHSB((360 / m_path.size() * i) / 360.f, 0.9f, 0.8f);
+				DrawBeamPaw(std::get< Vector >(m_path.at(i - 1)), std::get< Vector >(m_path.at(i)), rainbow_col);
+			}
+			else
+			{
+				DrawBeamPaw(std::get< Vector >(m_path.at(i - 1)), std::get< Vector >(m_path.at(i)), ctx.flt2color(ctx.m_settings.other_esp_grenade_warning_beam_color));
+			}
 
-        auto xOk = iScreenWidth > screen.x;
-        auto yOk = iScreenHeight > screen.y;
+		}
 
-        return xOk && yOk;
-    };
+		prev_screen = cur_screen;
+		prev_on_screen = cur_on_screen;
+	}
 
-    auto prev_screen = ZERO;
-    auto prev_on_screen = math::world_to_screen(std::get< Vector >(m_path.front()), prev_screen);
-    /*Draw tracer*/ {
+	auto textsizeicon = Drawing::GetTextSize(F::GrenadeWarningFont, index_to_grenade_name_icon(m_index));
+	auto textsize = Drawing::GetTextSize(F::ESPFont, index_to_grenade_name(m_index));
 
-        for (auto i = 1u; i < m_path.size(); ++i) {
-            auto cur_screen = ZERO, last_cur_screen = ZERO;
-            const auto cur_on_screen = math::world_to_screen(std::get< Vector >(m_path.at(i)), cur_screen);
+	float percent = ((m_expire_time - csgo.m_globals()->curtime) / TICKS_TO_TIME(m_tick));
+	int alpha_damage = 0;
 
+	if (m_index == WEAPON_HEGRENADE && distance <= 20)
+	{
+		alpha_damage = 255 - 255 * (distance / 20);
+	}
 
-            if (prev_on_screen && cur_on_screen)
-            {
-                if (config_system.g_cfg.warning.trace.enable) {
-                    if (!config_system.g_cfg.warning.trace.type)
-                    {
-                        Vector sstart, eend;
-                        DrawBeamPaw(std::get< Vector >(m_path.at(i - 1)), std::get< Vector >(m_path.at(i)), Color(config_system.g_cfg.warning.trace.color));
-                        if (!config_system.g_cfg.warning.trace.visible_only)
-                            DrawBeamPawWall(std::get< Vector >(m_path.at(i - 1)), std::get< Vector >(m_path.at(i)), Color(config_system.g_cfg.warning.trace.color));
-                    }
-                    if (config_system.g_cfg.warning.trace.type == 1)
-                    {
-                        Vector sstart, eend;
+	if ((m_index == WEAPON_MOLOTOV || m_index == WEAPON_INCGRENADE) && distance <= 15)
+	{
+		alpha_damage = 255 - 255 * (distance / 15);
+	}
 
-                        auto rainbow_col = Color::FromHSB((360 / m_path.size() * i) / 360.f, 0.9f, 0.8f);
-                        DrawBeamPaw(std::get< Vector >(m_path.at(i - 1)), std::get< Vector >(m_path.at(i)), Color(rainbow_col));
-                        if (!config_system.g_cfg.warning.trace.visible_only)
-                            DrawBeamPawWall(std::get< Vector >(m_path.at(i - 1)), std::get< Vector >(m_path.at(i)), Color(rainbow_col));
-                    }
-                    else if (config_system.g_cfg.warning.trace.type == 2)
-                    {
+	Drawing::DrawFilledCircle(prev_screen.x, prev_screen.y - 10, 25, 180, distance > 27 ? Color(26, 26, 30, 199) : Color(232, 39, 62, 199)); //prosto i procent
+	draw_arc(prev_screen.x, prev_screen.y - 10, 25, 0, 360 * percent, 2, ctx.flt2color(ctx.m_settings.other_esp_grenade_warning_timer_color));
+	//Drawing::DrawString(F::[censored]Warning, prev_screen.x, prev_screen.y - 25, Color(252, 211, 3, 255), FONT_CENTER, "!");
+	Drawing::DrawString(F::GrenadeWarningFont, prev_screen.x, prev_screen.y - 20, Color(245, 245, 245, 255), FONT_CENTER, index_to_grenade_name_icon(m_index));
 
-                        auto color = config_system.g_cfg.esp.grenade_warning_color;
-                        Vector sstart, eend;
-                        if (math::world_to_screen(std::get< Vector >(m_path.at(i - 1)), sstart) && math::world_to_screen(std::get< Vector >(m_path.at(i)), eend))
-                            render::get().line(sstart.x, sstart.y, eend.x, eend.y, Color(config_system.g_cfg.warning.trace.color));
+	auto is_on_screen = [](Vector origin, Vector& screen) -> bool
+	{
+		if (!Drawing::WorldToScreen(origin, screen))
+			return false;
 
+		return (screen.x > 0 && screen.x < ctx.screen_size.x) && (ctx.screen_size.y > screen.y && screen.y > 0);
+	};
 
-                    }
-                }
-            }
+	Vector screenPos;
+	Vector vEnemyOrigin = m_origin;
+	Vector vLocalOrigin = ctx.m_local()->get_abs_origin();
+	if (ctx.m_local()->IsDead())
+		vLocalOrigin = csgo.m_input()->m_vecCameraOffset;
 
-            prev_screen = cur_screen;
-            prev_on_screen = cur_on_screen;
-        }
-    }
-    if (m_index == 45)
-        return true;
+	if (!is_on_screen(vEnemyOrigin, screenPos)) //out_of_fov_grenade_warning
+	{
+		const float wm = ctx.screen_size.x / 2, hm = ctx.screen_size.y / 2;
+		Vector last_pos = std::get< Vector >(m_path.at(m_path.size() - 1));
 
-    if (!config_system.g_cfg.warning.main.enable)
-        return true;
+		Vector dir;
 
-    float percent = ((m_expire_time - m_globals()->m_curtime) / TICKS_TO_TIME(m_tick));
+		csgo.m_engine()->GetViewAngles(dir);
 
-    int end_damage = 0;
-    static auto size = Vector2D(35.0f, 5.0f);
-    CTraceFilter filter;
-    std::pair <float, player_t*> target{ 0.f, nullptr };
-    for (int i{ 0 }; i < m_globals()->m_maxclients; ++i) {
-        player_t* player = (player_t*)m_entitylist()->GetClientEntity(i);
-        if (!player) //-V704
-            continue;
+		float view_angle = dir.y;
 
-        if (!player->is_player())
-            continue;
+		if (view_angle < 0)
+			view_angle += 360;
 
-        if (!player->is_alive())
-            continue;
+		view_angle = DEG2RAD(view_angle);
 
-        if (player->IsDormant())
-            continue;
+		auto entity_angle = Math::CalcAngle(vLocalOrigin, vEnemyOrigin);
+		entity_angle.Normalize();
 
-        // get center of mass for player.
-        auto origin = player->m_vecOrigin();
-        auto collideable = player->GetCollideable();
+		if (entity_angle.y < 0.f)
+			entity_angle.y += 360.f;
 
-        auto min = collideable->OBBMins() + origin;
-        auto max = collideable->OBBMaxs() + origin;
+		entity_angle.y = DEG2RAD(entity_angle.y);
+		entity_angle.y -= view_angle;
 
-        auto center = min + (max - min) * 0.5f;
+		auto position = Vector2D(wm, hm);
+		position.x -= std::clamp(vLocalOrigin.Distance(vEnemyOrigin), 100.f, hm - 100);
 
-        // get delta between center of mass and final nade pos.
-        auto delta = center - m_origin;
+		Drawing::rotate_point(position, Vector2D(wm, hm), false, entity_angle.y);
 
-        if (m_index == 44) {
+		const auto size = static_cast<int>(ctx.m_settings.player_esp_out_of_fov_arrow_size);//std::clamp(100 - int(vEnemyOrigin.Distance(vLocalOrigin) / 6), 10, 25);
 
-            // is within damage radius?
-            if (delta.Length() > 350.f)
-                continue;
-
-            Ray_t ray;
-            Vector NadeScreen;
-            math::world_to_screen(m_origin, NadeScreen);
-
-            // main hitbox, that takes damage
-            Vector vPelvis = player->hitbox_position(HITBOX_PELVIS);
-            ray.Init(m_origin, vPelvis);
-            trace_t ptr;
-            m_trace()->TraceRay(ray, MASK_SHOT, &filter, &ptr);
-            //trace to it
-
-            if (ptr.hit_entity == player) {
-                Vector PelvisScreen;
-
-                math::world_to_screen(vPelvis, PelvisScreen);
-
-                // some magic values by VaLvO
-                static float a = 105.0f;
-                static float b = 25.0f;
-                static float c = 140.0f;
-
-                float d = ((delta.Length() - b) / c);
-                float flDamage = a * exp(-d * d);
-
-                auto dmg = max(static_cast<int>(ceilf(CSGO_Armores(flDamage, player->m_ArmorValue()))), 0);
-
-                dmg = min(dmg, (player->m_ArmorValue() > 0) ? 57 : 100);
-                if (dmg > target.first) {
-                    target.first = dmg;
-                    target.second = player;
-                }
-                end_damage = dmg;
-            }
-        }
-
-    }
-    int local_damage = 0;
-    if (target.second == g_ctx.local())
-        local_damage = end_damage;
-    // if (local_damage > 1 || g_ctx.local()->GetAbsOrigin().DistTo(m_origin) < 240 && m_index == 44)
-    //     shoto(prev_screen.x, prev_screen.y - 10, local_damage > 40 ? local_damage : 40, 18);
-    // else if (m_index != 44 && g_ctx.local()->GetAbsOrigin().DistTo(m_origin) < 240)
-    //     shoto(prev_screen.x, prev_screen.y - 10, 90, 18);
-     /*Draw main*/
-    {
-        Vector screenPos;
-        int red_adjust = 0;
-        auto dist = g_ctx.local()->GetAbsOrigin().DistTo(m_origin);
-        if (config_system.g_cfg.warning.main.d_warn_type == 1) {
-            if (dist <= (!is_he ? 150 : 350))
-                red_adjust = int(195 * (1.f - (dist / (!is_he ? 150 : 350))));
-        }
-        /*Visible*/
-        if (isOnScreen(m_origin, screenPos))
-        {
-            bool O = config_system.g_cfg.warning.main.color_by_time;
-            Color g_col = Color(min(510 * int(percent * 100) / 100, 255), min(510 * (102 - int(percent * 100)) / 110, 255), 5);
-            Vector vOutStart, vOutEnd;
-            if (math::world_to_screen(m_origin, vOutStart))
-            {
-                if (end_damage > 0 && is_he) {
-                    if (config_system.g_cfg.warning.main.show_bg) {
-                        filled_circle(vOutStart.x, vOutStart.y, 19, 26, Color(config_system.g_cfg.warning.main.bg_col));
-                        if (config_system.g_cfg.warning.main.d_warn_type == 1)
-                            filled_circle(vOutStart.x, vOutStart.y, 19, 26, Color(25 + red_adjust, 25, 25, red_adjust));
-                    }
-                    if (config_system.g_cfg.warning.main.show_icon)
-                        render::get().text(fonts[GRENADES], vOutStart.x, vOutStart.y - 16, O ? g_col : config_system.g_cfg.warning.main.icon_col, HFONT_CENTERED_X, !is_he ? "l" : "j");
-                    std::string dmg = "-"; dmg += std::to_string(int(end_damage));
-                    if (config_system.g_cfg.warning.main.show_damage_dist)
-                        render::get().text(fonts[NAME], vOutStart.x, vOutStart.y + 1, Color(255, 255, 255), HFONT_CENTERED_X, dmg.c_str());
-                    if (config_system.g_cfg.warning.main.show_timer)
-                        render::get().CircularProgressBar(vOutStart.x, vOutStart.y, 18, 19, 90, 360 * percent, O ? g_col : config_system.g_cfg.warning.main.timer_col, false);
-                }
-                else {
-                    if (config_system.g_cfg.warning.main.show_bg) {
-                        filled_circle(vOutStart.x, vOutStart.y, 19, 26, Color(config_system.g_cfg.warning.main.bg_col));
-                        if (config_system.g_cfg.warning.main.d_warn_type == 1)
-                            filled_circle(vOutStart.x, vOutStart.y, 19, 26, Color(25 + red_adjust, 25, 25, red_adjust));
-                    }
-                    if (config_system.g_cfg.warning.main.show_icon)
-                        render::get().text(fonts[GRENADES], vOutStart.x, vOutStart.y - 16, O ? g_col : config_system.g_cfg.warning.main.icon_col, HFONT_CENTERED_X, !is_he ? "l" : "j");
-                    std::string dmg = ""; dmg += std::to_string(int(max(g_ctx.local()->GetAbsOrigin().DistTo(m_origin) / 3.28, 0))); dmg += "m";
-                    if (config_system.g_cfg.warning.main.show_damage_dist)
-                        render::get().text(fonts[NAME], vOutStart.x, vOutStart.y + 1, Color(255, 255, 255), HFONT_CENTERED_X, dmg.c_str());
-                    if (config_system.g_cfg.warning.main.show_timer)
-                        render::get().CircularProgressBar(vOutStart.x, vOutStart.y, 18, 19, 90, 360 * percent, O ? g_col : config_system.g_cfg.warning.main.timer_col, false);
-                }
-
-            }
-        }
-        /*Out of Fov*/
-        if (!config_system.g_cfg.warning.main.visible_only && !isOnScreen(m_origin, screenPos))
-        {
-            bool O = config_system.g_cfg.warning.main.color_by_time;
-            Color g_col = Color(min(510 * int(percent * 100) / 100, 255), min(510 * (102 - int(percent * 100)) / 110, 255), 5);
-            Vector viewAngles;
-            m_engine()->GetViewAngles(viewAngles);
-
-            static int width, height;
-            m_engine()->GetScreenSize(width, height);
-            auto screenCenter = Vector2D(width * 0.5f, height * 0.5f);
-            auto angleYawRad = DEG2RAD(viewAngles.y - math::calculate_angle(g_ctx.globals.eye_pos, m_origin).y - 90.0f);
-
-            auto radius = 80;
-            auto size = 6;
-
-            auto newPointX = screenCenter.x + ((((width - (size * 3)) * 0.5f) * (radius / 100.0f)) * cos(angleYawRad)) + (int)(6.0f * (((float)size - 4.0f) / 16.0f));
-            auto newPointY = screenCenter.y + ((((height - (size * 3)) * 0.5f) * (radius / 100.0f)) * sin(angleYawRad));
-            auto newPointX2 = screenCenter.x + ((((width - (size * 11)) * 0.5f) * (radius / 100.0f)) * cos(angleYawRad)) + (int)(6.0f * (((float)size - 4.0f) / 16.0f));
-            auto newPointY2 = screenCenter.y + ((((height - (size * 11)) * 0.5f) * (radius / 100.0f)) * sin(angleYawRad));
-            std::array <Vector2D, 3> points
-            {
-                Vector2D(newPointX - size, newPointY - size),
-                Vector2D(newPointX + size, newPointY),
-                Vector2D(newPointX - size, newPointY + size)
-            };
-            int alp;
-            if (dist <= (!is_he ? 200 : 400))
-                alp = int(100 * (1.f - (dist / (!is_he ? 200 : 400))));
-            auto warn = Vector2D(newPointX2, newPointY2);
-            math::rotate_triangle(points, viewAngles.y - math::calculate_angle(g_ctx.globals.eye_pos, m_origin).y - 90.0f);
-            if (end_damage > 0 && is_he) {
-                if (config_system.g_cfg.warning.main.show_bg) {
-                    filled_circle(warn.x, warn.y, 19, 26, Color(config_system.g_cfg.warning.main.bg_col));
-                    if (config_system.g_cfg.warning.main.d_warn_type == 1)
-                        filled_circle(warn.x, warn.y, 19, 26, Color(25 + red_adjust, 25, 25, alp));
-                }
-                if (config_system.g_cfg.warning.main.show_icon)
-                    render::get().text(fonts[GRENADES], warn.x, warn.y - 16, O ? g_col : config_system.g_cfg.warning.main.icon_col, HFONT_CENTERED_X, !is_he ? "l" : "j");
-                std::string dmg = "-"; dmg += std::to_string(int(end_damage));
-                if (config_system.g_cfg.warning.main.show_damage_dist)
-                    render::get().text(fonts[NAME], warn.x, warn.y + 1, Color(255, 255, 255), HFONT_CENTERED_X, dmg.c_str());
-                if (config_system.g_cfg.warning.main.show_timer)
-                    render::get().CircularProgressBar(warn.x, warn.y, 18, 19, 90, 360 * percent, O ? g_col : config_system.g_cfg.warning.main.timer_col, false);
-            }
-            else {
-                if (config_system.g_cfg.warning.main.show_bg) {
-                    filled_circle(warn.x, warn.y, 19, 26, Color(config_system.g_cfg.warning.main.bg_col));
-                    if (config_system.g_cfg.warning.main.d_warn_type == 1)
-                        filled_circle(warn.x, warn.y, 19, 26, Color(25 + red_adjust, 25, 25, alp));
-                }
-                if (config_system.g_cfg.warning.main.show_icon)
-                    render::get().text(fonts[GRENADES], warn.x, warn.y - 16, O ? g_col : config_system.g_cfg.warning.main.icon_col, HFONT_CENTERED_X, !is_he ? "l" : "j");
-                std::string dmg = ""; dmg += std::to_string(int(max((g_ctx.local()->GetAbsOrigin().DistTo(m_origin)) / 3.28, 0))); dmg += "m";
-                if (config_system.g_cfg.warning.main.show_damage_dist)
-                    render::get().text(fonts[NAME], warn.x, warn.y + 1, Color(255, 255, 255), HFONT_CENTERED_X, dmg.c_str());
-                if (config_system.g_cfg.warning.main.show_timer)
-                    render::get().CircularProgressBar(warn.x, warn.y, 18, 19, 90, 360 * percent, O ? g_col : config_system.g_cfg.warning.main.timer_col, false);
-            }
-        }
-    }
-
-
-
-
-
-    return true;
+		Drawing::DrawFilledCircle(position.x, position.y, 25, 180, distance > 27 ? Color(26, 26, 30, 199) : Color(232, 39, 62, 199));
+		draw_arc(position.x, position.y, 25, 0, 360 * percent, 2, ctx.flt2color(ctx.m_settings.other_esp_grenade_warning_timer_color));
+		Drawing::DrawString(F::GrenadeWarningFont, position.x, position.y - 10, Color(245, 245, 245, 255), FONT_CENTER, index_to_grenade_name_icon(m_index)); // Color(245, 245, 245, 255), FONT_CENTER, index_to_grenade_name_icon(m_index // F::[censored]Warning, position.x, position.y - 15, Color(252, 211, 3, 255), FONT_CENTER, "!"
+	}
+	return true;
 }
 
-void c_grenade_prediction::grenade_warning(projectile_t* entity)
+void c_grenade_prediction::grenade_warning(C_BasePlayer* entity)
 {
-    auto& predicted_nades = c_grenade_prediction::get().get_list();
+	auto& predicted_nades = c_grenade_prediction::Get().get_list();
 
-    static auto last_server_tick = m_globals()->m_curtime;
-    if (last_server_tick != m_globals()->m_curtime) {
-        predicted_nades.clear();
+	static auto last_server_tick = csgo.m_client_state()->m_clockdrift_manager.m_nServerTick;
+	if (last_server_tick != csgo.m_client_state()->m_clockdrift_manager.m_nServerTick) {
+		predicted_nades.clear();
 
-        last_server_tick = m_globals()->m_curtime;
-    }
+		last_server_tick = csgo.m_client_state()->m_clockdrift_manager.m_nServerTick;
+	}
 
-    if (entity->IsDormant() || !config_system.g_cfg.esp.grenade_warning)
-        return;
+	if (entity->IsDormant() || !ctx.m_settings.other_esp_grenade_proximity_warning)
+		return;
 
-    const auto client_class = entity->GetClientClass();
-    if (!client_class
-        || client_class->m_ClassID != CMolotovProjectile && client_class->m_ClassID != CBaseCSGrenadeProjectile && client_class->m_ClassID != CSmokeGrenadeProjectile)
-        return;
+	const auto client_class = entity->GetClientClass();
+	if (!client_class
+		|| client_class->m_ClassID != 114 && client_class->m_ClassID != CBaseCSGrenadeProjectile)
+		return;
 
-    if (client_class->m_ClassID == CBaseCSGrenadeProjectile) {
-        const auto model = entity->GetModel();
-        if (!model)
-            return;
+	if (client_class->m_ClassID == CBaseCSGrenadeProjectile) {
+		const auto model = entity->GetModel();
+		if (!model)
+			return;
 
-        const auto studio_model = m_modelinfo()->GetStudioModel(model);
-        if (!studio_model
-            || std::string_view(studio_model->szName).find("fraggrenade") == std::string::npos)
-            return;
-    }
+		const auto studio_model = csgo.m_model_info()->GetStudioModel(model);
+		if (!studio_model
+			|| std::string_view(studio_model->name).find("fraggrenade") == std::string::npos)
+			return;
+	}
 
-    const auto handle = entity->GetRefEHandle().ToLong();
+	const auto handle = entity->GetRefEHandle().ToLong();
 
-    if (entity->m_nExplodeEffectTickBegin() || !entity->m_hThrower().IsValid() || (entity->m_hThrower().Get()->m_iTeamNum() == g_ctx.local()->m_iTeamNum() && entity->m_hThrower().Get() != g_ctx.local())) {
-        predicted_nades.erase(handle);
+	if (entity->m_nExplodeEffectTickBegin()) {
+		predicted_nades.erase(handle);
 
-        return;
-    }
+		return;
+	}
 
-    if (predicted_nades.find(handle) == predicted_nades.end()) {
-        predicted_nades.emplace(
-            std::piecewise_construct,
-            std::forward_as_tuple(handle),
-            std::forward_as_tuple(
-                entity->m_hThrower().Get(),
-                client_class->m_ClassID == CMolotovProjectile ? WEAPON_MOLOTOV : WEAPON_HEGRENADE,
-                entity->m_vecOrigin(), reinterpret_cast<player_t*>(entity)->m_vecVelocity(),
-                entity->m_flSpawnTime(), TIME_TO_TICKS(reinterpret_cast<player_t*>(entity)->m_flSimulationTime() - entity->m_flSpawnTime())
-            )
-        );
-    }
+	if (predicted_nades.find(handle) == predicted_nades.end()) {
+		predicted_nades.emplace(
+			std::piecewise_construct,
+			std::forward_as_tuple(handle),
+			std::forward_as_tuple(
+				reinterpret_cast<C_BaseCombatWeapon*>(entity)->m_hThrower(),
+				client_class->m_ClassID == 114 ? WEAPON_MOLOTOV : WEAPON_HEGRENADE,
+				entity->m_vecOrigin(), reinterpret_cast<C_BasePlayer*>(entity)->m_vecVelocity(),
+				entity->get_creation_time(), TIME_TO_TICKS(reinterpret_cast<C_BasePlayer*>(entity)->m_flSimulationTime() - entity->get_creation_time())
+			)
+		);
+	}
 
-    if (predicted_nades.at(handle).draw())
-        return;
+	if (predicted_nades.at(handle).draw())
+		return;
 
-    predicted_nades.erase(handle);
+	predicted_nades.erase(handle);
+}*/#include "grenade_warning.h"
+
+const char* index_to_grenade_name(int index)
+{
+	switch (index)
+	{
+	case WEAPON_SMOKEGRENADE: return "smoke"; break;
+	case WEAPON_HEGRENADE: return "he grenade"; break;
+	case WEAPON_MOLOTOV:return "molotov"; break;
+	case WEAPON_INCGRENADE:return "molotov"; break;
+	}
+}
+const char* index_to_grenade_name_icon(int index)
+{
+	switch (index)
+	{
+	case WEAPON_SMOKEGRENADE: return "k"; break;
+	case WEAPON_HEGRENADE: return "j"; break;
+	case WEAPON_MOLOTOV:return "l"; break;
+	case WEAPON_INCGRENADE:return "n"; break;
+	}
+}
+
+void rotate_point(Vector2D& point, Vector2D origin, bool clockwise, float angle) {
+	Vector2D delta = point - origin;
+	Vector2D rotated;
+
+	if (clockwise) {
+		rotated = Vector2D(delta.x * cosf(angle) - delta.y * sinf(angle), delta.x * sinf(angle) + delta.y * cosf(angle));
+	}
+	else {
+		rotated = Vector2D(delta.x * sinf(angle) - delta.y * cosf(angle), delta.x * cosf(angle) + delta.y * sinf(angle));
+	}
+
+	point = rotated + origin;
+}
+
+void draw_arc(int x, int y, int radius, int start_angle, int percent, int thickness, Color color) {
+	auto precision = (2 * M_PI) / 30;
+	auto step = M_PI / 180;
+	auto inner = radius - thickness;
+	auto end_angle = (start_angle + percent) * step;
+	auto start_angles = (start_angle * M_PI) / 180;
+
+	for (; radius > inner; --radius) {
+		for (auto angle = start_angles; angle < end_angle; angle += precision) {
+			auto cx = std::round(x + radius * std::cos(angle));
+			auto cy = std::round(y + radius * std::sin(angle));
+
+			auto cx2 = std::round(x + radius * std::cos(angle + precision));
+			auto cy2 = std::round(y + radius * std::sin(angle + precision));
+
+			render::get().line(cx, cy, cx2, cy2, color);
+		}
+	}
+}
+
+void textured_polygon(int n, std::vector< Vertex_t > vertice, Color color) {
+	static int texture_id = m_surface()->CreateNewTextureID(true);
+	static unsigned char buf[4] = { 255, 255, 255, 255 };
+
+	m_surface()->DrawSetTextureRGBA(texture_id, buf, 1, 1);
+	m_surface()->DrawSetColor(color);
+	m_surface()->DrawSetTexture(texture_id);
+	m_surface()->DrawTexturedPolygon(n, vertice.data());
+}
+
+void filled_circle(int x, int y, int radius, int segments, Color color) {
+	std::vector< Vertex_t > vertices;
+
+	float step = M_PI * 2.0f / segments;
+
+	for (float a = 0; a < (M_PI * 2.0f); a += step)
+		vertices.emplace_back(Vector2D(radius * cosf(a) + x, radius * sinf(a) + y));
+
+	textured_polygon(vertices.size(), vertices, color);
+}
+
+void DrawBeamPaw(Vector src, Vector end, Color color)
+{
+	BeamInfo_t beamInfo;
+	beamInfo.m_nType = TE_BEAMPOINTS;
+	beamInfo.m_vecStart = src;
+	beamInfo.m_vecEnd = end;
+	beamInfo.m_pszModelName = "sprites/purplelaser1.vmt";
+	beamInfo.m_pszHaloName = "sprites/purplelaser1.vmt";
+	beamInfo.m_flHaloScale = 0;
+	beamInfo.m_flWidth = 3;
+	beamInfo.m_flEndWidth = 3;
+	beamInfo.m_flFadeLength = 1.0f;
+	beamInfo.m_flAmplitude = 2.3;
+	beamInfo.m_flBrightness = 255.f;
+	beamInfo.m_flSpeed = 0.2f;
+	beamInfo.m_nStartFrame = 0.0;
+	beamInfo.m_flFrameRate = 0.0;
+	beamInfo.m_flRed = color.r();
+	beamInfo.m_flGreen = color.g();
+	beamInfo.m_flBlue = color.b();
+	beamInfo.m_nSegments = 2;
+	beamInfo.m_bRenderable = true;
+	beamInfo.m_flLife = 0.03f;
+	beamInfo.m_nFlags = FBEAM_ONLYNOISEONCE | FBEAM_NOTILE | FBEAM_HALOBEAM;
+
+	Beam_t* myBeam = m_viewrenderbeams()->CreateBeamPoints(beamInfo);
+
+	if (myBeam)
+		m_viewrenderbeams()->DrawBeam(myBeam);
+}
+
+bool c_grenade_prediction::data_t::draw() const
+{
+	if (m_path.size() <= 1u
+		|| m_globals()->m_curtime >= m_expire_time)
+		return false;
+
+	float distance = g_ctx.local()->m_vecOrigin().DistTo(m_origin) / 12;
+
+	if (distance > 200.f)
+		return false;
+
+	static int iScreenWidth, iScreenHeight;
+	m_engine()->GetScreenSize(iScreenWidth, iScreenHeight);
+
+	auto prev_screen = ZERO;
+	auto prev_on_screen = math::world_to_screen(std::get< Vector >(m_path.front()), prev_screen);
+
+	for (auto i = 1u; i < m_path.size(); ++i) {
+		auto cur_screen = ZERO, last_cur_screen = ZERO;
+		const auto cur_on_screen = math::world_to_screen(std::get< Vector >(m_path.at(i)), cur_screen);
+
+		if (prev_on_screen && cur_on_screen)
+		{
+			if (config_system.g_cfg.esp.grenade_esp[GRENADE_WARNING])
+			{
+				auto color = Color(config_system.g_cfg.esp.projectiles_color.r(), config_system.g_cfg.esp.projectiles_color.g(), config_system.g_cfg.esp.projectiles_color.g(), 255);
+
+				DrawBeamPaw(std::get< Vector >(m_path.at(i - 1)), std::get< Vector >(m_path.at(i)), color);
+			}
+		}
+
+		prev_screen = cur_screen;
+		prev_on_screen = cur_on_screen;
+	}
+
+	float percent = ((m_expire_time - m_globals()->m_curtime) / TICKS_TO_TIME(m_tick));
+	int alpha_damage = 0;
+
+	if (m_index == WEAPON_HEGRENADE && distance <= 20)
+	{
+		alpha_damage = 255 - 255 * (distance / 20);
+	}
+
+	if ((m_index == WEAPON_MOLOTOV || m_index == WEAPON_INCGRENADE) && distance <= 15)
+	{
+		alpha_damage = 255 - 255 * (distance / 15);
+	}
+
+	static auto size = Vector2D(35.0f, 5.0f);
+
+	auto color = Color(config_system.g_cfg.esp.projectiles_color.r(), config_system.g_cfg.esp.projectiles_color.g(), config_system.g_cfg.esp.projectiles_color.g(), 255);
+
+	render::get().circle_filled(prev_screen.x, prev_screen.y - size.y * 0.5f, 60, 20, color);
+	render::get().circle_filled(prev_screen.x, prev_screen.y - size.y * 0.5f, 60, 20, Color(255, 0, 0, alpha_damage));
+	draw_arc(prev_screen.x, prev_screen.y - size.y * 0.5f, 20, 0, 360 * percent, 2, color);
+	render::get().text(fonts[GRENADES], prev_screen.x, prev_screen.y - size.y * 0.5f, Color::White, HFONT_CENTERED_X | HFONT_CENTERED_Y, index_to_grenade_name_icon(m_index));
+
+	auto is_on_screen = [](Vector origin, Vector& screen) -> bool
+	{
+		if (!math::world_to_screen(origin, screen))
+			return false;
+
+		auto xOk = iScreenWidth > screen.x;
+		auto yOk = iScreenHeight > screen.y;
+
+		return xOk && yOk;
+	};
+
+	Vector screenPos;
+	Vector vEnemyOrigin = m_origin;
+	Vector vLocalOrigin = g_ctx.local()->GetAbsOrigin();
+
+	if (!g_ctx.local()->is_alive())
+		vLocalOrigin = m_input()->m_vecCameraOffset;
+
+	if (!is_on_screen(vEnemyOrigin, screenPos))
+	{
+		const float wm = iScreenWidth / 2, hm = iScreenHeight / 2;
+		Vector last_pos = std::get< Vector >(m_path.at(m_path.size() - 1));
+
+		Vector dir;
+
+		m_engine()->GetViewAngles(dir);
+
+		float view_angle = dir.y;
+
+		if (view_angle < 0)
+			view_angle += 360;
+
+		view_angle = DEG2RAD(view_angle);
+
+		auto entity_angle = math::calculate_angle(vLocalOrigin, vEnemyOrigin);
+		entity_angle.NormalizeInPlace();
+
+		if (entity_angle.y < 0.f)
+			entity_angle.y += 360.f;
+
+		entity_angle.y = DEG2RAD(entity_angle.y);
+		entity_angle.y -= view_angle;
+
+		auto position = Vector2D(wm, hm);
+		position.x -= math::clamp(vLocalOrigin.DistTo(vEnemyOrigin), 100.f, hm - 100);
+
+		rotate_point(position, Vector2D(wm, hm), false, entity_angle.y);
+
+		auto color = Color(config_system.g_cfg.esp.projectiles_color.r(), config_system.g_cfg.esp.projectiles_color.g(), config_system.g_cfg.esp.projectiles_color.g(), 255);
+
+		render::get().circle_filled(position.x, position.y - size.y * 0.5f, 60, 20, color);
+		render::get().circle_filled(position.x, position.y - size.y * 0.5f, 60, 20, Color(255, 0, 0, alpha_damage));
+		draw_arc(position.x, position.y - size.y * 0.5f, 20, 0, 360 * percent, 2, color);
+		render::get().text(fonts[GRENADES], position.x, position.y - size.y * 0.5f, Color::White, HFONT_CENTERED_X | HFONT_CENTERED_Y, index_to_grenade_name_icon(m_index));
+	}
+	return true;
+}
+
+void c_grenade_prediction::grenade_warning(weapon_t* entity, player_t* e)
+{
+	auto& predicted_nades = c_grenade_prediction::get().get_list();
+
+	static auto last_server_tick = m_globals()->m_curtime;
+	if (last_server_tick != m_globals()->m_curtime) {
+		predicted_nades.clear();
+
+		last_server_tick = m_globals()->m_curtime;
+	}
+
+	if (entity->IsDormant() || !config_system.g_cfg.esp.grenade_esp[GRENADE_WARNING])
+		return;
+
+	const auto client_class = entity->GetClientClass();
+	if (!client_class
+		|| client_class->m_ClassID != CMolotovProjectile && client_class->m_ClassID != CBaseCSGrenadeProjectile)
+		return;
+
+	if (client_class->m_ClassID == CBaseCSGrenadeProjectile) {
+		const auto model = entity->GetModel();
+		if (!model)
+			return;
+
+		const auto studio_model = m_modelinfo()->GetStudioModel(model);
+		if (!studio_model
+			|| std::string_view(studio_model->szName).find("fraggrenade") == std::string::npos)
+			return;
+	}
+
+	const auto handle = entity->GetRefEHandle().ToLong();
+
+	if (entity->m_nExplodeEffectTickBegin() || !entity->m_hThrower().IsValid() || (entity->m_hThrower().Get()->m_iTeamNum() == g_ctx.local()->m_iTeamNum() && entity->m_hThrower().Get() != g_ctx.local()))
+	{
+		predicted_nades.erase(handle);
+
+		return;
+	}
+
+	if (predicted_nades.find(handle) == predicted_nades.end())
+	{
+		predicted_nades.emplace(
+			std::piecewise_construct,
+			std::forward_as_tuple(handle),
+			std::forward_as_tuple(
+				entity->m_hThrower().Get(),
+				client_class->m_ClassID == CMolotovProjectile ? WEAPON_MOLOTOV : WEAPON_HEGRENADE,
+				entity->m_vecOrigin(), reinterpret_cast<player_t*>(entity)->m_vecVelocity(),
+				e->m_flSpawnTime(), TIME_TO_TICKS(reinterpret_cast<player_t*>(e)->m_flSimulationTime() - e->m_flSpawnTime())
+			)
+		);
+	}
+
+	if (predicted_nades.at(handle).draw())
+		return;
+
+	predicted_nades.erase(handle);
 }

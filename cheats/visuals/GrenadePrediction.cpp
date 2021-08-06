@@ -85,7 +85,7 @@ void GrenadePrediction::Paint()
 
 		auto min = collideable->OBBMins() + origin;
 		auto max = collideable->OBBMaxs() + origin;
-	
+
 		auto center = min + (max - min) * 0.5f;
 
 		// get delta between center of mass and final nade pos.
@@ -372,7 +372,7 @@ void GrenadePrediction::PushEntity(Vector& src, const Vector& move, trace_t& tr)
 
 void GrenadePrediction::ResolveFlyCollisionCustom(trace_t& tr, Vector& vecVelocity, const Vector& move, float interval)
 {
-	if (tr.hit_entity) 
+	if (tr.hit_entity)
 	{
 		if (autowall::get().is_breakable_entity(tr.hit_entity))
 		{

@@ -614,7 +614,7 @@ void misc::zeus_range()
 	if (!m_input()->m_fCameraInThirdPerson)
 		return;
 
-	if (!g_ctx.local()->is_alive())  //-V807
+	if (!g_ctx.local()->is_alive())
 		return;
 
 	auto weapon = g_ctx.local()->m_hActiveWeapon().Get();
@@ -630,7 +630,14 @@ void misc::zeus_range()
 	if (!weapon_info)
 		return;
 
-	render::get().Draw3DRainbowCircle(g_ctx.local()->get_shoot_position(), weapon_info->flRange);
+	float circle_range = weapon_info->flRange / 2;
+
+	auto draw_pos = g_ctx.local()->get_shoot_position();
+	draw_pos.z -= 32;
+	render::get().Draw3DRainbowCircle(draw_pos, circle_range);
+
+	draw_pos.z -= 4;
+	render::get().Draw3DRainbowCircle(draw_pos, circle_range);
 }
 
 void misc::NightmodeFix()
@@ -1049,10 +1056,10 @@ bool misc::double_tap(CUserCmd* m_pcmd)
 		g_ctx.globals.next_tickbase_shift = 0;
 		return false;
 	}
-	
+
 	if (recharging_double_tap)
 	{
-		auto recharge_time = g_ctx.globals.weapon->can_double_tap() ? TIME_TO_TICKS(0.1f) : TIME_TO_TICKS(0.1f);
+		auto recharge_time = g_ctx.globals.weapon->can_double_tap() ? TIME_TO_TICKS(0.75f) : TIME_TO_TICKS(1.5f);
 
 		if (!aim::get().should_stop && fabs(g_ctx.globals.fixed_tickbase - last_double_tap) > recharge_time)
 		{

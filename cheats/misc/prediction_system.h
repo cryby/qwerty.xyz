@@ -1,6 +1,6 @@
 #pragma once
 
-#include "..\..\includes.hpp"
+#include "../../includes.hpp"
 #include "..\..\sdk\structs.hpp"
 
 enum Prediction_stage
@@ -10,89 +10,11 @@ enum Prediction_stage
 	FINISH
 };
 
-struct PlayerData
-{
-	PlayerData()
-	{
-		reset();
-	};
-	~PlayerData()
-	{
-		reset();
-	};
-
-	void reset()
-	{
-		m_aimPunchAngle.Zero();
-		m_aimPunchAngleVel.Zero();
-		m_viewPunchAngle.Zero();
-
-		m_vecViewOffset.Zero();
-		m_vecBaseVelocity.Zero();
-		m_vecVelocity.Zero();
-		m_vecOrigin.Zero();
-
-		m_flFallVelocity = 0.0f;
-		m_flVelocityModifier = 0.0f;
-		m_flDuckAmount = 0.0f;
-		m_flDuckSpeed = 0.0f;
-		m_fAccuracyPenalty = 0.0f;
-		m_flThirdpersonRecoil = 0.0f;
-
-		m_hGroundEntity = 0;
-		m_nMoveType = 0;
-		m_nFlags = 0;
-		m_nTickBase = 0;
-		m_flRecoilIndex = 0;
-		tick_count = 0;
-		command_number = INT_MAX;
-		is_filled = false;
-	}
-
-	Vector m_aimPunchAngle = {};
-	Vector m_aimPunchAngleVel = {};
-	Vector m_viewPunchAngle = {};
-
-	Vector m_vecViewOffset = {};
-	Vector m_vecBaseVelocity = {};
-	Vector m_vecVelocity = {};
-	Vector m_vecOrigin = {};
-
-	float m_flFallVelocity = 0.0f;
-	float m_flVelocityModifier = 0.0f;
-	float m_flThirdpersonRecoil = 0.0f;
-	float m_flDuckAmount = 0.0f;
-	float m_flDuckSpeed = 0.0f;
-	float m_fAccuracyPenalty = 0.0f;
-
-	int m_hGroundEntity = 0;
-	int m_nMoveType = 0;
-	int m_nFlags = 0;
-	int m_nTickBase = 0;
-	int m_flRecoilIndex = 0;
-
-	int tick_count = 0;
-	int command_number = INT_MAX;
-
-	bool is_filled = false;
-};
-
 class engineprediction : public singleton <engineprediction>
 {
-	player_t* player = nullptr;
-
 	struct Netvars_data
 	{
 		int tickbase = INT_MIN;
-		Vector m_vecVelocity = {};
-		Vector m_vecOrigin = {};
-		int get_move_type = 0;
-		float m_flFallVelocity = 0.0f;
-		float m_flVelocityModifier = 0.0f;
-		float m_flThirdpersonRecoil = 0.0f;
-		float m_flDuckAmount = 0.0f;
-		float m_flDuckSpeed = 0.0f;
-		float m_fAccuracyPenalty = 0.0f;
 
 		Vector m_aimPunchAngle = ZERO;
 		Vector m_aimPunchAngleVel = ZERO;
@@ -122,8 +44,6 @@ class engineprediction : public singleton <engineprediction>
 		int* prediction_player = nullptr;
 	};
 
-	float m_spread, m_inaccuracy;
-
 	struct Viewmodel_data
 	{
 		weapon_t* weapon = nullptr;
@@ -141,10 +61,7 @@ public:
 	Prediction_data prediction_data;
 	Viewmodel_data viewmodel_data;
 
-	PlayerData m_Data[150] = { };
-
 	void store_netvars();
-	void FixNetvarCompression(int time);
 	void restore_netvars();
 	void setup();
 	void predict(CUserCmd* m_pcmd);

@@ -7,7 +7,7 @@
 #include "..\autowall\autowall.h"
 #include "..\misc\prediction_system.h"
 #include "..\fakewalk\slowwalk.h"
-#include "..\lagcompensation\local_animations.h"
+#include "../lagcompensation/local_animations.h"
 #include <random>
 
 void knifebot::run(CUserCmd* cmd)
@@ -99,7 +99,7 @@ void knifebot::fire(CUserCmd* cmd)
 	auto delta = fabs(math::normalize_yaw(final_target.record->angles.y - math::calculate_angle(final_target.record->player->get_shoot_position(), g_ctx.local()->GetAbsOrigin()).y));
 
 	if (final_target.record->player->m_iHealth() > 46 && delta < 120.0f)
-	{	
+	{
 		cmd->m_viewangles = vecDelta.ToEulerAngles();
 		cmd->m_buttons |= IN_ATTACK;
 		cmd->m_tickcount = TIME_TO_TICKS(final_target.record->simulation_time + util::get_interpolation());
@@ -113,7 +113,7 @@ void knifebot::fire(CUserCmd* cmd)
 	cmd->m_tickcount = TIME_TO_TICKS(final_target.record->simulation_time + util::get_interpolation());
 }
 
-int knifebot::determinate_hit_type(bool stab_type, const Vector& delta) 
+int knifebot::determinate_hit_type(bool stab_type, const Vector& delta)
 {
 	auto minimum_distance = stab_type ? 32.0f : 48.0f;
 	auto end = g_ctx.globals.eye_pos + delta * minimum_distance;

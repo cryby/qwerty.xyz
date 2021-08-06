@@ -97,8 +97,17 @@ void otheresp::penetration_reticle()
 	render::get().rect_filled(width / 2 - 1, height / 2, 3, 1, color);
 }
 
-/*void otheresp::indicators()
+void otheresp::indicators()
 {
+
+	int offf = 1;
+	auto offset = offf;
+	render::get().rect_filled(25, 366, 200, 2, Color(74, 79, 143, 255));
+	render::get().rect_filled(25, 368, 200, 15, Color(40, 40, 47, 240));
+	render::get().text(fonts[NAME], 102, 368, Color(255, 255, 255), true, "keybinds");
+
+
+
 	if (!g_ctx.local()->is_alive()) //-V807
 		return;
 
@@ -107,7 +116,7 @@ void otheresp::penetration_reticle()
 	if (!weapon)
 		return;
 
-	if (config_system.g_cfg.esp.indicators[INDICATOR_FAKE] && (antiaim::get().type == ANTIAIM_LEGIT || config_system.g_cfg.antiaim.type[antiaim::get().type].desync))
+	/*if (g_cfg.esp.indicators[INDICATOR_FAKE] && (antiaim::get().type == ANTIAIM_LEGIT || g_cfg.antiaim.type[antiaim::get().type].desync))
 	{
 		auto color = Color(130, 20, 20);
 		auto animstate = g_ctx.local()->get_animation_state();
@@ -121,49 +130,97 @@ void otheresp::penetration_reticle()
 		}
 
 		m_indicators.push_back(m_indicator("FAKE", color));
-	}
+	} */
 
-	if (config_system.g_cfg.esp.indicators[INDICATOR_DESYNC_SIDE] && (antiaim::get().type == ANTIAIM_LEGIT && config_system.g_cfg.antiaim.desync == 1 || antiaim::get().type != ANTIAIM_LEGIT && config_system.g_cfg.antiaim.type[antiaim::get().type].desync == 1) && !antiaim::get().condition(g_ctx.get_command()))
+	/*if (g_cfg.esp.indicators[INDICATOR_DESYNC_SIDE] && (antiaim::get().type == ANTIAIM_LEGIT && g_cfg.antiaim.desync == 1 || antiaim::get().type != ANTIAIM_LEGIT && g_cfg.antiaim.type[antiaim::get().type].desync == 1) && !antiaim::get().condition(g_ctx.get_command()))
 	{
-		auto side = antiaim::get().desync_angle > 0.0f ? "RIGHT" : "LEFT";
+		auto side = antiaim::get().desync_angle > 0.0f ? "Normal" : "Inverted";
 
 		if (antiaim::get().type == ANTIAIM_LEGIT)
 			side = antiaim::get().desync_angle > 0.0f ? "LEFT" : "RIGHT";
 
 		m_indicators.push_back(m_indicator(side, Color(130, 170, 20)));
+	}*/
+
+	//auto choke_indicator = false;
+
+	/*if (g_cfg.esp.indicators[INDICATOR_CHOKE] && !fakelag::get().condition && !misc::get().double_tap_enabled && !misc::get().hide_shots_enabled)
+	{
+		render::get().text(fonts[NAME], 98, 360 + 12 + 13 * offset, Color(255, 255, 255), true, "double-tap");
+		offset = offset + 1;
 	}
 
-	auto choke_indicator = false;
 
-	if (config_system.g_cfg.esp.indicators[INDICATOR_CHOKE] && !fakelag::get().condition && !misc::get().double_tap_enabled && !misc::get().hide_shots_enabled)
+	if (g_cfg.esp.indicators[INDICATOR_DAMAGE] && g_ctx.globals.current_weapon != -1 && key_binds::get().get_key_bind_state(4 + g_ctx.globals.current_weapon) && !weapon->is_non_aim())
 	{
-		m_indicators.push_back(m_indicator(("CHOKE: " + std::to_string(fakelag::get().max_choke)), Color(130, 170, 20)));
-		choke_indicator = true;
-	}
-
-	if (config_system.g_cfg.esp.indicators[INDICATOR_DAMAGE] && g_ctx.globals.current_weapon != -1 && key_binds::get().get_key_bind_state(4 + g_ctx.globals.current_weapon) && !weapon->is_non_aim())
-	{
-		if (config_system.g_cfg.ragebot.weapon[g_ctx.globals.current_weapon].minimum_override_damage > 100)
-			m_indicators.push_back(m_indicator(("DAMAGE: HP + " + std::to_string(config_system.g_cfg.ragebot.weapon[g_ctx.globals.current_weapon].minimum_override_damage - 100)), Color(130, 170, 20)));
+		if (g_cfg.ragebot.weapon[g_ctx.globals.current_weapon].minimum_override_damage > 100)
+			m_indicators.push_back(m_indicator(("DAMAGE: HP + " + std::to_string(g_cfg.ragebot.weapon[g_ctx.globals.current_weapon].minimum_override_damage - 100)), Color(130, 170, 20)));
 		else
-			m_indicators.push_back(m_indicator(("DAMAGE: " + std::to_string(config_system.g_cfg.ragebot.weapon[g_ctx.globals.current_weapon].minimum_override_damage)), Color(130, 170, 20)));
+			m_indicators.push_back(m_indicator(("DAMAGE: " + std::to_string(g_cfg.ragebot.weapon[g_ctx.globals.current_weapon].minimum_override_damage)), Color(130, 170, 20)));
 	}
 
-	if (config_system.g_cfg.esp.indicators[INDICATOR_SAFE_POINTS] && key_binds::get().get_key_bind_state(3) && !weapon->is_non_aim())
+	if (g_cfg.esp.indicators[INDICATOR_SAFE_POINTS] && key_binds::get().get_key_bind_state(3) && !weapon->is_non_aim())
 		m_indicators.push_back(m_indicator("SAFE POINTS", Color(130, 170, 20)));
 
-	if (config_system.g_cfg.esp.indicators[INDICATOR_BODY_AIM] && key_binds::get().get_key_bind_state(22) && !weapon->is_non_aim())
+	if (g_cfg.esp.indicators[INDICATOR_BODY_AIM] && key_binds::get().get_key_bind_state(22) && !weapon->is_non_aim())
 		m_indicators.push_back(m_indicator("BODY AIM", Color(130, 170, 20)));
 
 	if (choke_indicator)
-		return;
+   return;*/
+
+
 
 	if (config_system.g_cfg.esp.indicators[INDICATOR_DT] && config_system.g_cfg.ragebot.double_tap && config_system.g_cfg.ragebot.double_tap_key.key > KEY_NONE && config_system.g_cfg.ragebot.double_tap_key.key < KEY_MAX && misc::get().double_tap_key)
-		m_indicators.push_back(m_indicator("DT", !g_ctx.local()->m_bGunGameImmunity() && !(g_ctx.local()->m_fFlags() & FL_FROZEN) && !antiaim::get().freeze_check && misc::get().double_tap_enabled && !weapon->is_grenade() && weapon->m_iItemDefinitionIndex() != WEAPON_TASER && weapon->m_iItemDefinitionIndex() != WEAPON_REVOLVER && weapon->can_fire(false) ? Color(130, 170, 20) : Color(130, 20, 20)));
+		render::get().text(fonts[NAME], 98, 360 + 12 + 13 * offset, Color(255, 255, 255), true, "double-tap");
+	offset = offset + 1;
 
 	if (config_system.g_cfg.esp.indicators[INDICATOR_HS] && config_system.g_cfg.antiaim.hide_shots && config_system.g_cfg.antiaim.hide_shots_key.key > KEY_NONE && config_system.g_cfg.antiaim.hide_shots_key.key < KEY_MAX && misc::get().hide_shots_key)
-		m_indicators.push_back(m_indicator("HS", !g_ctx.local()->m_bGunGameImmunity() && !(g_ctx.local()->m_fFlags() & FL_FROZEN) && !antiaim::get().freeze_check && misc::get().hide_shots_enabled ? Color(130, 170, 20) : Color(130, 20, 20)));
-}*/
+		render::get().text(fonts[NAME], 98, 360 + 12 + 13 * offset, Color(255, 255, 255), true, "hide shots");
+	offset = offset + 1;
+
+	if (key_binds::get().get_key_bind_state(3) && !weapon->is_non_aim())
+	{
+		render::get().text(fonts[NAME], 98, 360 + 12 + 13 * offset, Color(255, 255, 255), true, "safe points");
+		offset = offset + 1;
+	}
+
+	if (key_binds::get().get_key_bind_state(22) && !weapon->is_non_aim())
+	{
+		render::get().text(fonts[NAME], 98, 360 + 12 + 13 * offset, Color(255, 255, 255), true, "body aim");
+		offset = offset + 1;
+	}
+	if (config_system.g_cfg.esp.indicators[INDICATOR_DAMAGE] && g_ctx.globals.current_weapon != -1 && key_binds::get().get_key_bind_state(4 + g_ctx.globals.current_weapon) && !weapon->is_non_aim())
+	{
+		if (config_system.g_cfg.ragebot.weapon[g_ctx.globals.current_weapon].minimum_override_damage > 100)
+		{
+			render::get().text(fonts[NAME], 98, 360 + 12 + 13 * offset, Color(255, 255, 255), true, "min damage");
+			offset = offset + 1;
+		}
+		else {
+			render::get().text(fonts[NAME], 98, 360 + 12 + 13 * offset, Color(255, 255, 255), true, "min damage");
+			offset = offset + 1;
+		}
+	}
+}
+
+void otheresp::draw_indicators()
+{
+	if (!g_ctx.local()->is_alive()) //-V807
+		return;
+
+	static int width, height;
+	m_engine()->GetScreenSize(width, height);
+
+	auto h = height / 2 + 20;
+
+	for (auto& indicator : m_indicators)
+	{
+		render::get().text(fonts[INDICATORFONT], width / 2 - 10, h, indicator.m_color, HFONT_CENTERED_Y, indicator.m_text.c_str());
+		h += 10;
+	}
+
+	m_indicators.clear();
+}
 
 void otheresp::draw_velocity()
 {
@@ -204,7 +261,7 @@ void otheresp::draw_velocity()
 		);
 	}
 }
-void otheresp::indicators()
+/*void otheresp::indicators()
 {
 
 	if (!g_ctx.local()->is_alive()) //-V807
@@ -290,8 +347,8 @@ void otheresp::indicators()
 		offset = offset + 1;
 
 	}
-}
-void otheresp::draw_indicators()
+}*/
+/*void otheresp::draw_indicators()
 {
 	if (!g_ctx.local()->is_alive()) //-V807
 		return;
@@ -310,7 +367,7 @@ void otheresp::draw_indicators()
 	}
 
 	m_indicators.clear();
-}
+}*/
 
 void otheresp::hitmarker_paint()
 {

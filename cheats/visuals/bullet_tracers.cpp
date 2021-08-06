@@ -12,15 +12,23 @@ void bullettracers::draw_beam(bool local_tracer, const Vector& src, const Vector
 	if (src == ZERO)
 		return;
 
+	const char* bullet_tracers_type[] =
+	{
+		crypt_str("sprites/purplelaser1.vmt"),
+		crypt_str("sprites/physbeam.vmt"),
+		crypt_str("sprites/white.vmt"),
+		crypt_str("sprites/blueglow01.vmt")
+	};
+
 	BeamInfo_t beam_info;
 	beam_info.m_vecStart = src;
 
 	if (local_tracer)
 		beam_info.m_vecStart.z -= 2.0f;
-	
+
 	beam_info.m_vecEnd = end;
 	beam_info.m_nType = TE_BEAMPOINTS;
-	beam_info.m_pszModelName = crypt_str("sprites/purplelaser1.vmt");
+	beam_info.m_pszModelName = bullet_tracers_type[config_system.g_cfg.esp.bullet_tracer_type];
 	beam_info.m_nModelIndex = -1;
 	beam_info.m_flHaloScale = 0.0f;
 	beam_info.m_flLife = 4.0f;
@@ -36,11 +44,11 @@ void bullettracers::draw_beam(bool local_tracer, const Vector& src, const Vector
 	beam_info.m_flGreen = (float)color.g();
 	beam_info.m_flBlue = (float)color.b();
 	beam_info.m_nSegments = 2;
-	beam_info.m_bRenderable = true; 
+	beam_info.m_bRenderable = true;
 	beam_info.m_nFlags = FBEAM_SHADEIN | FBEAM_ONLYNOISEONCE | FBEAM_NOTILE | FBEAM_HALOBEAM;
-	
+
 	auto beam = m_viewrenderbeams()->CreateBeamPoints(beam_info);
-	
+
 	if (beam)
 		m_viewrenderbeams()->DrawBeam(beam);
 }
@@ -54,7 +62,7 @@ void bullettracers::events(IGameEvent* event)
 		auto user_id = event->GetInt(crypt_str("userid"));
 		auto user = m_engine()->GetPlayerForUserID(user_id);
 
-		auto e = static_cast<player_t *>(m_entitylist()->GetClientEntity(user));
+		auto e = static_cast<player_t*>(m_entitylist()->GetClientEntity(user));
 
 		if (e->valid(false))
 		{
@@ -119,13 +127,13 @@ void bullettracers::draw_beams()
 
 	while (!impacts.empty())
 	{
-		if (impacts.begin()->impact_position.IsZero())
+		if (impacts.begin()->impact_position.IsZero()) //-V807
 		{
 			impacts.erase(impacts.begin());
 			continue;
 		}
 
-		if (fabs(m_globals()->m_curtime - impacts.begin()->time) > 4.0f)
+		if (fabs(m_globals()->m_curtime - impacts.begin()->time) > 4.0f) //-V807
 		{
 			impacts.erase(impacts.begin());
 			continue;
@@ -157,9 +165,7 @@ void bullettracers::draw_beams()
 				continue;
 			}
 
-			// @note - if you want default uncomment draw_beam and comment m_debugoverlay()->AddLineOverlayAlpha.
-			m_debugoverlay()->AddLineOverlayAlpha(impacts.begin()->e == g_ctx.local() ? aim::get().last_shoot_position : impacts.begin()->e->get_shoot_position(), impacts.begin()->impact_position, (float)color.r(), (float)color.g(), (float)color.b(), 255, false, 4);
-			//draw_beam(impacts.begin()->e == g_ctx.local(), impacts.begin()->e == g_ctx.local() ? aim::get().last_shoot_position : impacts.begin()->e->get_shoot_position(), impacts.begin()->impact_position, color);
+			draw_beam(impacts.begin()->e == g_ctx.local(), impacts.begin()->e == g_ctx.local() ? aim::get().last_shoot_position : impacts.begin()->e->get_shoot_position(), impacts.begin()->impact_position, color);
 			impacts.erase(impacts.begin());
 			continue;
 		}

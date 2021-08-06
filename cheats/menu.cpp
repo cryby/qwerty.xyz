@@ -4015,8 +4015,7 @@ void c_menu::render2(bool is_open) {
 								if (player == 0 || ENEMY)
 								{
 									ImGui::Checkbox(crypt_str("OOF arrows"), &config_system.g_cfg.player.arrows);
-									ImGui::SameLine();
-									ImGui::ColorEdit(crypt_str("##arrowscolor"), &config_system.g_cfg.player.arrows_color, ALPHA);
+									ImGui::SameLine(100); ImGui::ColorEdit4("##fov_arrow", &config_system.g_cfg.player.arrows_color); padding(8, 2);
 
 									if (config_system.g_cfg.player.arrows)
 									{
