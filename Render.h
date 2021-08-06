@@ -1,7 +1,5 @@
 #pragma once
 #include "includes.hpp"
-#include "sdk/math/Vector.hpp"
-#include "sdk/misc/Color.hpp"
 
 namespace render2 {
 	enum e_textflags {

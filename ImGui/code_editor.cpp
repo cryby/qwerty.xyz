@@ -3139,7 +3139,7 @@ const TextEditor::LanguageDefinition& TextEditor::LanguageDefinition::Lua()
 			"reverse", "sub", "upper", "pack", "packsize", "unpack", "concat", "maxn", "insert", "pack", "unpack", "remove", "move", "sort", "offset", "codepoint", "char", "len", "codes", "charpattern",
 			"coroutine", "table", "io", "os", "string", "utf8", "bit32", "math", "debug", "package",
 
-			"client", "menu", "globals", "engine", "render", "console", "events", "entitylist", "cmd",
+			"client", "menu", "globals", "engine", "g_Render", "render", "console", "events", "entitylist", "cmd",
 			"color", "vector", "player_info", "key_binds", "key_bind_mode", "game_event", "hitboxes", "player", "weapon", "buttons", "shot_info"
 
 		};

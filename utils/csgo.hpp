@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../sdk/interfaces/dLight.h"
 #include "..\sdk\interfaces\IVEngineClient.hpp"
 #include "..\sdk\interfaces\IInputSystem.hpp"
 #include "..\sdk\interfaces\IBaseClientDll.hpp"
@@ -95,6 +96,7 @@ public:
 	CInput * m_input();
 	C_CSPlayerResource * m_playerresource();
 	CSGameRulesProxy * m_gamerules();
+	iv_effects* DLightT();
 	ILocalize * m_localize();
 	IWeaponSystem* m_WeaponSystem();
 	IBaseFileSystem* m_basefilesys();
@@ -134,6 +136,7 @@ private:
 	C_CSPlayerResource * p_playerresource = nullptr;
 	CSGameRulesProxy * p_gamerules = nullptr;
 	ILocalize * p_localize = nullptr;
+	iv_effects* DLight = nullptr;
 	IWeaponSystem* p_WeaponSystem = nullptr;
 	IBaseFileSystem* p_basefilesys = nullptr;
 

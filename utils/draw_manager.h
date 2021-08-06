@@ -1,6 +1,7 @@
 #pragma once
 
 #include "..\includes.hpp"
+#include "../../ImGui/imgui.h"
 #include "singleton.h"
 
 enum FontCenteringFlags 
@@ -55,6 +56,14 @@ private:
 	LPDIRECT3DDEVICE9 device; //-V122
 	D3DVIEWPORT9      m_viewport;
 public:
+
+	void DrawString(float x, float y, Color color, int flags, ImFont* font, const char* message, ...);
+	void arc(float x, float y, float radius, float min_angle, float max_angle, Color col, float thickness);
+	void DrawLine(float x1, float y1, float x2, float y2, Color clr, float thickness = 1.f);
+	void Rect(float x, float y, float w, float h, Color clr, float rounding = 0.f);
+	void FilledRect(float x, float y, float w, float h, Color clr, float rounding = 0.f);
+	//---------------------------------------------------------------------------------------------------------------------
+
 	bool initalized = false;
 	void CircularProgressBar(int x, int y, int r1, int r2, int s, int d, Color col, bool inverse);
 	float get_alphafactor();

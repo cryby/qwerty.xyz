@@ -1,4 +1,4 @@
-#include "GHelper.h"
+/*#include "GHelper.h"
 #include "../../Render.h"
 #include "../menu.h"
 
@@ -665,4 +665,4 @@ namespace visuals
 			}
 		}
 	}
-}
+}*/

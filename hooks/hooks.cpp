@@ -19315,6 +19315,7 @@ namespace hooks
 
 		c_menu::get().render2(menu_open);
 
+
 		otheresp::get().spread_crosshair(device);
 
 		if (g_ctx.globals.should_update_radar)

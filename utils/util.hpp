@@ -16,12 +16,14 @@ class c_baseplayeranimationstate;
 
 struct datamap_t;
 
-struct Box 
+struct Box
 {
 	int x = 0;
 	int y = 0;
 	int w = 0;
 	int h = 0;
+	int j = 0;
+	int t = 0;
 };
 
 struct HPInfo

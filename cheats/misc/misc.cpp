@@ -556,6 +556,8 @@ void misc::FullBright()
 		mat_fullbright->SetValue(config_system.g_cfg.esp.bright);
 }
 
+#include "../../Render.h"
+
 void misc::PovArrows(player_t* e, Color color)
 {
 	auto isOnScreen = [](Vector origin, Vector& screen) -> bool
@@ -566,7 +568,7 @@ void misc::PovArrows(player_t* e, Color color)
 		static int iScreenWidth, iScreenHeight;
 		m_engine()->GetScreenSize(iScreenWidth, iScreenHeight);
 
-		auto xOk = iScreenWidth > screen.x; 
+		auto xOk = iScreenWidth > screen.x;
 		auto yOk = iScreenHeight > screen.y;
 
 		return xOk && yOk;

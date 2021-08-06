@@ -159,6 +159,7 @@
     <ClCompile Include="cheats\ragebot\knifebot.cpp" />
     <ClCompile Include="cheats\ragebot\zeusbot.cpp" />
     <ClCompile Include="cheats\visuals\bullet_tracers.cpp" />
+    <ClCompile Include="cheats\visuals\CustomVisuals.cpp" />
     <ClCompile Include="cheats\visuals\dormant_esp.cpp" />
     <ClCompile Include="cheats\visuals\GrenadePrediction.cpp" />
     <ClCompile Include="cheats\visuals\grenade_warning.cpp" />

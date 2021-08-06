@@ -50,9 +50,13 @@
 #include "sdk\misc\KeyValues.hpp"
 #include "sdk\misc\datamap.h"
 #include "sdk\misc\Enums.hpp"
+#include "sdk/interfaces/dLight.h"
 #include "sdk/interfaces/CClientState.hpp"
 
 #include "Render.h"
+#include "ImGui/imgui.h"
+#include "cheats/menu.h"
+
 
 #include "sdk\interfaces\IClientEntity.hpp"
 #include "sdk\structs.hpp"
@@ -93,3 +97,4 @@
 #define m_soundservices g_csgo.m_soundservices
 #define m_basefilesys g_csgo.m_basefilesys
 #define m_weaponsystem g_csgo.m_WeaponSystem
+#define DLightT g_csgo.DLightT

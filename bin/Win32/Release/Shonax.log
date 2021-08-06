@@ -1,10 +1,28 @@
 ﻿C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\MSBuild\Microsoft\VC\v160\Microsoft.CppBuild.targets(499,5): warning MSB8004: Output Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Output Directory.
+  animation_system.cpp
+  menu.cpp
+  fakelag.cpp
+  key_binds.cpp
+  misc.cpp
+  aim.cpp
+  antiaim.cpp
+  knifebot.cpp
+  zeusbot.cpp
   other_esp.cpp
+  player_esp.cpp
+  hooks.cpp
+  hooked_createmove.cpp
+  hooked_events.cpp
+  hooked_fsn.cpp
+  hooked_painttraverse.cpp
+  hooked_runcommand.cpp
+  structs.cpp
+  util.cpp
 LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
   Generating code
-  1724 of 24806 functions ( 6.9%) were compiled, the rest were copied from previous compilation.
-    1 functions were new in current compilation
-    791 functions had inline decision re-evaluated but remain unchanged
+  1732 of 24854 functions ( 7.0%) were compiled, the rest were copied from previous compilation.
+    2 functions were new in current compilation
+    782 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
 detours.lib(detours.obj) : warning LNK4099: PDB 'detours.pdb' was not found with 'detours.lib(detours.obj)' or at 'C:\HFNHOOK\detours.pdb'; linking object as if no debug info
 detours.lib(disasm.obj) : warning LNK4099: PDB 'detours.pdb' was not found with 'detours.lib(disasm.obj)' or at 'C:\HFNHOOK\detours.pdb'; linking object as if no debug info

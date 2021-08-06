@@ -40,8 +40,24 @@ C_CSGO g_csgo;
 #undef m_trace
 #undef m_viewrenderbeams
 #undef m_soundservices
+#undef DLightT
 #undef m_basefilesys
-#undef m_weaponsystem
+#undef m_weaponsystemT
+
+
+template<typename T>
+T* Interface(const char* strModule, const char* strInterface)
+{
+	typedef T* (*CreateInterfaceFn)(const char* szName, int iReturn);
+	CreateInterfaceFn CreateInterface = (CreateInterfaceFn)GetProcAddress(GetModuleHandleA(strModule), ("CreateInterface"));
+
+	if (!CreateInterface)
+	{/* exit(1); */
+	}
+	// throw std::runtime_error(hs::create_interface_ex::s().c_str());
+
+	return CreateInterface(strInterface, 0);
+}
 
 template<typename T>
 static T *get_interface(const char *mod_name, const char *interface_name, bool exact = false) {
@@ -307,6 +323,13 @@ IBaseFileSystem* C_CSGO::m_basefilesys() {
 	return p_basefilesys;
 }
 
+iv_effects* C_CSGO::DLightT()
+{
+	if (DLight == nullptr)
+		DLight = Interface<iv_effects>(crypt_str("engine.dll"), crypt_str("VEngineEffects001"));
+	return DLight;
+}
+
 IWeaponSystem* C_CSGO::m_WeaponSystem()
 {
 	if (p_WeaponSystem == nullptr)
@@ -322,6 +345,8 @@ ILocalize * C_CSGO::m_localize()
 
 	return p_localize;
 }
+
+
 
 DWORD C_CSGO::m_postprocessing() {
 	if (!p_postprocessing)

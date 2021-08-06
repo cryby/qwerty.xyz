@@ -4,6 +4,7 @@
 #include <ShlObj_core.h>
 #include <unordered_map>
 #include "menu.h"
+#include "visuals/player_esp.h"
 #include "../ImGui/code_editor.h"
 #include "../constchars.h"
 #include "../cheats/misc/logs.h"
@@ -3162,6 +3163,7 @@ void c_menu::render2(bool is_open) {
 			}
 			else if (Active_Tab == 3) // Visuals | Âčçóŕëű
 			{
+				
 				auto cur_window = ImGui::GetCurrentWindow();
 				ImVec2 w_pos = cur_window->Pos;
 				ImGuiStyle* Style = &ImGui::GetStyle();
@@ -3182,7 +3184,7 @@ void c_menu::render2(bool is_open) {
 
 				ImGui::SetNextWindowSize({ 340, 570 });
 
-				ImGui::Begin("##test", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+				/*ImGui::Begin("##test", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 				{
 
 					ImGui::Spacing();
@@ -3262,6 +3264,115 @@ void c_menu::render2(bool is_open) {
 				}
 				ImGui::End();
 				info.clear();*/
+				static int lastactive = -1;
+
+				static CEsp::MoveStruct* MV_Hp = &GP_Esp->MVItemList[CEsp::MI_HEALTH_BAR];
+				static CEsp::MoveStruct* MV_Armor = &GP_Esp->MVItemList[CEsp::MI_ARMOR_BAR];
+				static CEsp::MoveStruct* MV_Hp_Text = &GP_Esp->MVItemList[CEsp::MI_HEALTH_TEXT];
+				static CEsp::MoveStruct* MV_Armor_Text = &GP_Esp->MVItemList[CEsp::MI_ARMOR_TEXT];
+				static CEsp::MoveStruct* MV_Name = &GP_Esp->MVItemList[CEsp::MI_NAME_TEXT];
+				static CEsp::MoveStruct* MV_Weapon = &GP_Esp->MVItemList[CEsp::MI_WEAPON_TEXT];
+				static CEsp::MoveStruct* MV_Ammo = &GP_Esp->MVItemList[CEsp::MI_AMMO_TEXT];
+				static CEsp::MoveStruct* MV_Distance = &GP_Esp->MVItemList[CEsp::MI_DISTANCE_TEXT];
+				static CEsp::MoveStruct* MV_Money = &GP_Esp->MVItemList[CEsp::MI_MONEY_TEXT];
+				static CEsp::MoveStruct* MV_Scope = &GP_Esp->MVItemList[CEsp::MI_SCOPE_TEXT];
+				static CEsp::MoveStruct* MV_Flashed = &GP_Esp->MVItemList[CEsp::MI_FLASHED_TEXT];
+				static CEsp::MoveStruct* MV_Defusing = &GP_Esp->MVItemList[CEsp::MI_DEFUSING_TEXT];
+
+				if ((CEsp::MITypes)CEsp::MoveStruct::LastActive == CEsp::MI_HEALTH_BAR)
+					lastactive = CEsp::MI_HEALTH_BAR;
+
+				else if ((CEsp::MITypes)CEsp::MoveStruct::LastActive == CEsp::MI_ARMOR_BAR)
+					lastactive = CEsp::MI_ARMOR_BAR;
+
+				else if ((CEsp::MITypes)CEsp::MoveStruct::LastActive == CEsp::MI_NAME_TEXT)
+					lastactive = CEsp::MI_NAME_TEXT;
+
+				else if ((CEsp::MITypes)CEsp::MoveStruct::LastActive == CEsp::MI_WEAPON_TEXT)
+					lastactive = CEsp::MI_WEAPON_TEXT;
+
+				else if ((CEsp::MITypes)CEsp::MoveStruct::LastActive == CEsp::MI_FLASHED_TEXT)
+					lastactive = CEsp::MI_FLASHED_TEXT;
+
+				else if ((CEsp::MITypes)CEsp::MoveStruct::LastActive == CEsp::MI_DEFUSING_TEXT)
+					lastactive = CEsp::MI_DEFUSING_TEXT;
+
+				else if ((CEsp::MITypes)CEsp::MoveStruct::LastActive == CEsp::MI_SCOPE_TEXT)
+					lastactive = CEsp::MI_SCOPE_TEXT;
+
+				else if ((CEsp::MITypes)CEsp::MoveStruct::LastActive == CEsp::MI_HEALTH_TEXT)
+					lastactive = CEsp::MI_HEALTH_TEXT;
+
+				auto player = players_section;
+
+				ImGui::SetNextWindowPos(ImVec2(x + 645, y));
+				ImGui::SetNextWindowSize(ImVec2(340, 520));
+				ImGui::Begin("Preview", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+				{
+					GP_Esp->CustomVisuals(ImGui::GetWindowPos(), players_section);
+					//ImGui::Text(std::to_string(lastactive).c_str());
+					ImGui::BeginChild("Types", ImVec2(-1, -1), false);
+					if (lastactive == CEsp::MI_HEALTH_BAR)
+					{
+						padding(8, 8);
+						ImGui::Text("Health bar"); padding(8, 2);
+						ImGui::Checkbox("Override health bar", &config_system.g_cfg.player.type[players_section].custom_health_color);
+						padding(-16, 2);
+						ImGui::ColorEdit4("Override color", &config_system.g_cfg.player.type[players_section].health_color, true, true);
+					}
+					else if (lastactive == CEsp::MI_ARMOR_BAR)
+					{
+						padding(8, 8);
+						ImGui::Text("Ammo bar"); padding(8, 2);
+						padding(-16, 2);
+						ImGui::ColorEdit4("Ammo bar color", &config_system.g_cfg.player.type[players_section].ammobar_color, true, true);
+					}
+					else if (lastactive == CEsp::MI_NAME_TEXT)
+					{
+						padding(8, 8);
+						ImGui::Text("Player name"); padding(8, 2);
+						padding(-16, 2);
+						ImGui::ColorEdit4("Name color", &config_system.g_cfg.player.type[players_section].name_color, true, true);
+					}
+					else if (lastactive == CEsp::MI_WEAPON_TEXT)
+					{
+						padding(8, 8);
+						ImGui::Text("Player weapon"); padding(8, 2);
+						padding(-16, 2);
+						ImGui::ColorEdit4("Weapon color", &config_system.g_cfg.player.type[players_section].weapon_color, true, true);
+
+					}
+					else if (lastactive == CEsp::MI_FLASHED_TEXT)
+					{
+						padding(8, 8);
+						ImGui::Text("Player bomb"); padding(8, 2);
+						padding(-16, 2);
+						ImGui::ColorEdit4("Bomb color", &config_system.g_cfg.player.type[players_section].BombCarrie, true, true);
+					}
+					else if (lastactive == CEsp::MI_DEFUSING_TEXT)
+					{
+						padding(8, 8);
+						ImGui::Text("Defuse kit"); padding(8, 2);
+						padding(-16, 2);
+						ImGui::ColorEdit4("Defuse color", &config_system.g_cfg.player.type[players_section].Defuse, true, true);
+					}
+					else if (lastactive == CEsp::MI_SCOPE_TEXT)
+					{
+						padding(8, 8);
+						ImGui::Text("Player scopped"); padding(8, 2);
+						padding(-16, 2);
+						ImGui::ColorEdit4("Scopped color", &config_system.g_cfg.player.type[players_section].Scoped, true, true);
+					}
+					else if (lastactive == CEsp::MI_HEALTH_TEXT)
+					{
+						padding(8, 8);
+						ImGui::Text("Player armor"); padding(8, 2);
+						padding(-16, 2);
+						ImGui::ColorEdit4("Armor color", &config_system.g_cfg.player.type[players_section].Armor, true, true);
+					}
+					ImGui::EndChild();
+				}
+				ImGui::End();
 
 				Style->ChildRounding = 5;
 				ImGui::SetCursorPos(ImVec2{ 60, 25 });

@@ -2,6 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
 #include <ShlObj.h>
 #include <ShlObj_core.h>
+#include "Render.h"
 #include "includes.hpp"
 #include "utils\ctx.hpp"
 #include "utils\recv.h"
@@ -9,6 +10,7 @@
 //#include "utils\anti_debug.h"
 #include "nSkinz\SkinChanger.h"
 #include "License.h"
+#include "cheats/visuals/player_esp.h"
 CLicense License;
 #include "minhook/MinHook.h"
 
@@ -175,6 +177,8 @@ DWORD WINAPI main(PVOID base)
 		//std::cout << crypt_str("Setuping hooks...\n");
 		setup_hooks();
 		Netvars::Netvars();
+		GP_Esp = new CEsp();
+		GP_Esp->InitVisuals();
 
 		//std::cout << crypt_str("Done!");
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));

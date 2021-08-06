@@ -6,6 +6,8 @@
 #include "..\ImGui\imgui_impl_win32.h"
 
 #include "..\includes.hpp"
+#include "../../Render.h"
+#include <vector>
 #include "..\sdk\interfaces\IBaseClientDll.hpp"
 #include "..\sdk\interfaces\IClientMode.hpp"
 #include "..\sdk\misc\CUserCmd.hpp"
