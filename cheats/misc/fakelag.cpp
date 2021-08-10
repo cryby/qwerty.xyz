@@ -210,7 +210,7 @@ void fakelag::Fakelag(CUserCmd* m_pcmd)
 				g_ctx.send_packet = true;
 			}
 		}
-		else if (g_ctx.globals.exploits || !antiaim::get().condition(m_pcmd, false) && (config_system.g_cfg.antiaim.desync)) //-V648
+		else if (g_ctx.globals.exploits || !antiaim::get().condition(m_pcmd, false) && (antiaim::get().type == ANTIAIM_LEGIT || config_system.g_cfg.antiaim.type[antiaim::get().type].desync)) //-V648
 		{
 			condition = true;
 			started_peeking = false;

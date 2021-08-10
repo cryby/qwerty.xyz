@@ -823,7 +823,7 @@ bool player_t::setup_bones_rebuilt(matrix3x4_t* matrix, int mask)
 		setup_bones.m_quatBones = q;
 		setup_bones.m_flCurtime = m_flSimulationTime();
 
-		setup_bones.setup_bones_server();
+		setup_bones.setup();
 
 		if (m_CachedBoneData().Base() != m_BoneAccessor().m_pBones)
 			memcpy(m_BoneAccessor().m_pBones, setup_bones.m_boneMatrix, m_CachedBoneData().Count() * sizeof(matrix3x4_t));

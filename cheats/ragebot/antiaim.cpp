@@ -1,12 +1,10 @@
-﻿// Improved AA - Leroi// 
-
-#include "antiaim.h"
+﻿#include "antiaim.h"
 #include "knifebot.h"
 #include "zeusbot.h"
 #include "..\misc\fakelag.h"
 #include "..\misc\prediction_system.h"
 #include "..\misc\misc.h"
-#include "../lagcompensation/local_animations.h"
+#include "..\lagcompensation\local_animations.h"
 
 void antiaim::create_move(CUserCmd* m_pcmd)
 {
@@ -105,13 +103,13 @@ float antiaim::get_yaw(CUserCmd* m_pcmd)
 
 	if (g_ctx.send_packet)
 		should_invert = true;
-	else if (!g_ctx.send_packet && should_invert)
+	else if (!g_ctx.send_packet && should_invert) //-V560
 	{
 		should_invert = false;
 		invert_jitter = !invert_jitter;
 	}
 
-	auto max_desync_delta = g_ctx.local()->get_max_desync_delta();
+	auto max_desync_delta = g_ctx.local()->get_max_desync_delta(); //-V807
 
 	auto yaw = 0.0f;
 	auto lby_type = 0;
@@ -258,7 +256,7 @@ float antiaim::get_yaw(CUserCmd* m_pcmd)
 
 		yaw = base_angle + yaw_angle;
 
-		if (!desync_angle)
+		if (!desync_angle) //-V550
 			return yaw;
 
 		lby_type = config_system.g_cfg.antiaim.lby_type;
@@ -326,7 +324,7 @@ bool antiaim::condition(CUserCmd* m_pcmd, bool dynamic_check)
 	if (!config_system.g_cfg.antiaim.enable)
 		return true;
 
-	if (!g_ctx.local()->is_alive())
+	if (!g_ctx.local()->is_alive()) //-V807
 		return true;
 
 	if (g_ctx.local()->m_bGunGameImmunity() || g_ctx.local()->m_fFlags() & FL_FROZEN)
@@ -380,7 +378,7 @@ bool antiaim::should_break_lby(CUserCmd* m_pcmd, int lby_type)
 		fakelag::get().started_peeking = false;
 	}
 
-	auto animstate = g_ctx.local()->get_animation_state();
+	auto animstate = g_ctx.local()->get_animation_state(); //-V807
 
 	if (!animstate)
 		return false;

@@ -98,30 +98,27 @@ void local_animations::update_prediction_animations()
 
 	if (!alloc && !change && !reset)
 	{
-		// copy pose parameters.
-		memcpy(pose_parameters, &g_ctx.local()->m_flPoseParameter(), 24 * sizeof(float));
+		float pose_parameter[24]; //-V688
+		memcpy(pose_parameter, &g_ctx.local()->m_flPoseParameter(), 24 * sizeof(float));
 
-		// copy animation layers.
-		memcpy(animation_layers, g_ctx.local()->get_animlayers(), 13 * sizeof(AnimationLayer));
+		AnimationLayer layers[15]; //-V688
+		memcpy(layers, g_ctx.local()->get_animlayers(), g_ctx.local()->animlayer_count() * sizeof(AnimationLayer));
 
 		local_data.prediction_animstate->m_pBaseEntity = g_ctx.local();
 		util::update_state(local_data.prediction_animstate, ZERO);
 
-		g_ctx.local()->setup_bones_rebuilt(g_ctx.globals.prediction_matrix, BONE_USED_BY_HITBOX);
+		g_ctx.local()->setup_bones_fixed(g_ctx.globals.prediction_matrix, BONE_USED_BY_HITBOX);
 
-		// copy pose parameters.
-		memcpy(&g_ctx.local()->m_flPoseParameter(), pose_parameters, 24 * sizeof(float));
-
-		// copy animation layers.
-		memcpy(g_ctx.local()->get_animlayers(), animation_layers, 13 * sizeof(AnimationLayer));
+		memcpy(&g_ctx.local()->m_flPoseParameter(), pose_parameter, 24 * sizeof(float));
+		memcpy(g_ctx.local()->get_animlayers(), layers, g_ctx.local()->animlayer_count() * sizeof(AnimationLayer));
 	}
 }
 
 void local_animations::update_fake_animations()
 {
 	auto alloc = !local_data.animstate;
-	auto change = !alloc && handle != &g_ctx.local()->GetRefEHandle();
-	auto reset = !alloc && !change && g_ctx.local()->m_flSpawnTime() != spawntime;
+	auto change = !alloc && handle != &g_ctx.local()->GetRefEHandle(); //-V807
+	auto reset = !alloc && !change && g_ctx.local()->m_flSpawnTime() != spawntime; //-V550
 
 	if (change)
 		m_memalloc()->Free(local_data.animstate);
@@ -145,13 +142,13 @@ void local_animations::update_fake_animations()
 
 	if (!alloc && !change && !reset && fake_server_update)
 	{
-		// copy pose parameters.
-		memcpy(pose_parameters, &g_ctx.local()->m_flPoseParameter(), 24 * sizeof(float));
+		float pose_parameter[24]; //-V688
+		memcpy(pose_parameter, &g_ctx.local()->m_flPoseParameter(), 24 * sizeof(float));
 
-		// copy animation layers.
-		memcpy(animation_layers, g_ctx.local()->get_animlayers(), 13 * sizeof(AnimationLayer));
+		AnimationLayer layers[15]; //-V688
+		memcpy(layers, g_ctx.local()->get_animlayers(), g_ctx.local()->animlayer_count() * sizeof(AnimationLayer));
 
-		auto backup_frametime = m_globals()->m_frametime;
+		auto backup_frametime = m_globals()->m_frametime; //-V807
 		auto backup_curtime = m_globals()->m_curtime;
 
 		m_globals()->m_frametime = m_globals()->m_intervalpertick;
@@ -164,19 +161,14 @@ void local_animations::update_fake_animations()
 		local_data.animstate->m_fLandingDuckAdditiveSomething = 0.0f;
 		local_data.animstate->m_flHeadHeightOrOffsetFromHittingGroundAnimation = 1.0f;
 
-		// resets the entity's bone cache values in order to prepare for a model change.
-		g_ctx.local()->invalidate_bone_cache();
-
-		// rebuild fake matrix.
-		g_ctx.local()->setup_bones_rebuilt(g_ctx.globals.fake_matrix, BONE_USED_BY_ANYTHING);
+		g_ctx.local()->setup_bones_fixed(g_ctx.globals.fake_matrix, BONE_USED_BY_ANYTHING);
 		local_data.visualize_lag = config_system.g_cfg.player.visualize_lag;
 
-		// update fake matrix.
 		if (!local_data.visualize_lag)
 		{
 			for (auto& i : g_ctx.globals.fake_matrix)
 			{
-				i[0][3] -= g_ctx.local()->GetRenderOrigin().x;
+				i[0][3] -= g_ctx.local()->GetRenderOrigin().x; //-V807
 				i[1][3] -= g_ctx.local()->GetRenderOrigin().y;
 				i[2][3] -= g_ctx.local()->GetRenderOrigin().z;
 			}
@@ -185,19 +177,17 @@ void local_animations::update_fake_animations()
 		m_globals()->m_frametime = backup_frametime;
 		m_globals()->m_curtime = backup_curtime;
 
-		memcpy(&g_ctx.local()->m_flPoseParameter(), pose_parameters, 24 * sizeof(float));
-		memcpy(g_ctx.local()->get_animlayers(), animation_layers, 13 * sizeof(AnimationLayer));
+		memcpy(&g_ctx.local()->m_flPoseParameter(), pose_parameter, 24 * sizeof(float));
+		memcpy(g_ctx.local()->get_animlayers(), layers, g_ctx.local()->animlayer_count() * sizeof(AnimationLayer));
 	}
 }
 
 void local_animations::update_local_animations(c_baseplayeranimationstate* animstate)
 {
-	if (tickcount != m_globals()->m_tickcount)
+	if (tickcount != m_globals()->m_tickcount) //-V550
 	{
 		tickcount = m_globals()->m_tickcount;
-
-		// copy animation layers.
-		memcpy(animation_layers, g_ctx.local()->get_animlayers(), 13 * sizeof(AnimationLayer));
+		memcpy(layers, g_ctx.local()->get_animlayers(), g_ctx.local()->animlayer_count() * sizeof(AnimationLayer)); //-V807
 
 		if (local_data.animstate)
 			animstate->m_fDuckAmount = local_data.animstate->m_fDuckAmount;
@@ -208,29 +198,15 @@ void local_animations::update_local_animations(c_baseplayeranimationstate* anims
 		if (real_server_update)
 		{
 			abs_angles = animstate->m_flGoalFeetYaw;
-
-			// copy pose parameters.
-			memcpy(pose_parameters, &g_ctx.local()->m_flPoseParameter(), 24 * sizeof(float));
+			memcpy(pose_parameter, &g_ctx.local()->m_flPoseParameter(), 24 * sizeof(float));
 		}
 	}
 	else
 		animstate->m_iLastClientSideAnimationUpdateFramecount = m_globals()->m_framecount;
 
-	// set template of goal feet yaw.
 	animstate->m_flGoalFeetYaw = antiaim::get().condition(g_ctx.get_command()) ? abs_angles : local_animations::get().local_data.real_angles.y;
-
-	// set abs angles to goal feet yaw.
 	g_ctx.local()->set_abs_angles(Vector(0.0f, abs_angles, 0.0f));
 
-	// set uninterpolated origin.
-	g_ctx.local()->set_abs_origin(g_ctx.local()->m_vecOrigin());
-
-	// set uninterpolated velocity.
-	g_ctx.local()->set_abs_velocity(g_ctx.local()->m_vecAbsVelocity());
-
-	// copy animation layers.
-	memcpy(g_ctx.local()->get_animlayers(), animation_layers, 13 * sizeof(AnimationLayer));
-
-	// copy pose parameters.
-	memcpy(&g_ctx.local()->m_flPoseParameter(), pose_parameters, 24 * sizeof(float));
+	memcpy(g_ctx.local()->get_animlayers(), layers, g_ctx.local()->animlayer_count() * sizeof(AnimationLayer));
+	memcpy(&g_ctx.local()->m_flPoseParameter(), pose_parameter, 24 * sizeof(float));
 }

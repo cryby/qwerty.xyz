@@ -130,6 +130,8 @@ public:
 	int musor_pads[2];
 	CClockDriftMgr m_ClockDriftMgr;
 	int m_nDeltaTick;
+	int                nLastOutgoingCommand;
+	int                nLastCommandAck;
 	bool m_bPaused;
 	char paused_align[3];
 	int m_nViewEntity;
@@ -150,6 +152,7 @@ public:
 	int m_nLastOutgoingCommand;
 	int iChokedCommands;
 	int m_nLastCommandAck;
+	int                iCommandAck;            //0x4D30
 	int m_nPacketEndTickUpdate;
 	int m_nCommandAck;
 	int m_nSoundSequence;

@@ -1,4 +1,4 @@
-#include "../../includes.hpp"
+#include "..\..\includes.hpp"
 
 struct Local_data
 {
@@ -26,12 +26,8 @@ class local_animations : public singleton <local_animations>
 	float tickcount = 0.0f;
 
 	float abs_angles = 0.0f;
-
-	// statement of pose param.
-	float pose_parameters[24]{ };
-
-	// statement of animation layers.
-	AnimationLayer animation_layers[13]{ };
+	float pose_parameter[24];
+	AnimationLayer layers[15];
 
 	void update_fake_animations();
 	void update_local_animations(c_baseplayeranimationstate* animstate);

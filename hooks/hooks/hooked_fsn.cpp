@@ -13,6 +13,7 @@
 #include "..\..\cheats\misc\logs.h"
 #include "..\..\cheats\misc\prediction_system.h"
 #include "..\..\cheats\lagcompensation\local_animations.h"
+#include "../../sdk/misc/Enums.hpp"
 
 using FrameStageNotify_t = void(__stdcall*)(ClientFrameStage_t);
 
@@ -380,6 +381,8 @@ void __stdcall hooks::hooked_fsn(ClientFrameStage_t stage)
 							eventlogs::get().addnew(crypt_str("Missed shot due to occlusion"), Color(255, 255, 255));
 						else if (current_shot->shot_info.hitchance == 100)
 							eventlogs::get().addnew(crypt_str("Missed shot due to prediction error"), Color(255, 255, 255));
+						else if (LIFE_DEAD || LIFE_DYING)
+							eventlogs::get().addnew(crypt_str("Missed shot due to death"), Color(255, 255, 255));
 						else
 							eventlogs::get().addnew(crypt_str("Missed shot due to spread"), Color(255, 255, 255));
 					}

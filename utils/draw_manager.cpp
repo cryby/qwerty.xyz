@@ -28,75 +28,6 @@ void render::rect(int x, int y, int w, int h, Color color)
 	m_surface()->DrawOutlinedRect(x, y, x + w, y + h);
 }
 
-void render::arc(float x, float y, float radius, float min_angle, float max_angle, Color col, float thickness)
-{
-	ImGuiWindow* window = ImGui::GetCurrentWindow();
-	window->DrawList->PathArcTo(ImVec2(x, y), radius, DEG2RAD(min_angle), DEG2RAD(max_angle), 32);
-	window->DrawList->PathStroke(col.u32(), false, thickness);
-}
-
-void render::DrawString(float x, float y, Color color, int flags, ImFont* font, const char* message, ...)
-{
-	char output[1024] = {};
-	va_list args;
-	va_start(args, message);
-	vsprintf_s(output, message, args);
-	va_end(args);
-
-	ImGuiWindow* window = ImGui::GetCurrentWindow();
-
-	window->DrawList->PushTextureID(font->ContainerAtlas->TexID);
-	ImGui::PushFont(font);
-	auto coord = ImVec2(x, y);
-	auto size = ImGui::CalcTextSize(output);
-	auto coord_out = ImVec2{ coord.x + 1.f, coord.y + 1.f };
-	Color outline_clr = Color(0, 0, 0, color.a());
-
-	int width = 0, height = 0;
-
-	if (!(flags & render2::centered_x))
-		size.x = 0;
-	if (!(flags & render2::centered_y))
-		size.y = 0;
-
-	ImVec2 pos = ImVec2(coord.x - (size.x * .5), coord.y - (size.y * .5));
-
-	if (flags & render2::outline)
-	{
-		pos.y++;
-		window->DrawList->AddText(pos, outline_clr.u32(), output);
-		pos.x++;
-		window->DrawList->AddText(pos, outline_clr.u32(), output);
-		pos.y--;
-		window->DrawList->AddText(pos, outline_clr.u32(), output);
-		pos.x--;
-		window->DrawList->AddText(pos, outline_clr.u32(), output);
-	}
-
-	window->DrawList->AddText(pos, color.u32(), output);
-	ImGui::PopFont();
-}
-
-void render::Rect(float x, float y, float w, float h, Color clr, float rounding)
-{
-	ImGuiWindow* window = ImGui::GetCurrentWindow();
-
-	window->DrawList->AddRect(ImVec2(x, y), ImVec2(x + w, y + h), clr.u32(), rounding);
-}
-
-void render::FilledRect(float x, float y, float w, float h, Color clr, float rounding)
-{
-	ImGuiWindow* window = ImGui::GetCurrentWindow();
-
-	window->DrawList->AddRectFilled(ImVec2(x, y), ImVec2(x + w, y + h), clr.u32(), rounding);
-}
-
-void render::DrawLine(float x1, float y1, float x2, float y2, Color clr, float thickness)
-{
-	ImGuiWindow* window = ImGui::GetCurrentWindow();
-	window->DrawList->AddLine(ImVec2(x1, y1), ImVec2(x2, y2), clr.u32(), thickness);
-}
-
 
 void render::CircularProgressBar(int x, int y, int r1, int r2, int s, int d, Color col, bool inverse)
 
@@ -163,6 +94,76 @@ void render::draw_arc(float x, float y, float radius, float min_angle, float max
 {
 	draw_list->PathArcTo(ImVec2(x, y), radius, DEG2RAD(min_angle), DEG2RAD(max_angle), 32);
 	draw_list->PathStroke(GetU32(col), false, thickness);
+}
+
+void render::arc(float x, float y, float radius, float min_angle, float max_angle, Color col, float thickness)
+{
+	draw_list->PathArcTo(ImVec2(x, y), radius, DEG2RAD(min_angle), DEG2RAD(max_angle), 32);
+	draw_list->PathStroke(GetU32(col), false, thickness);
+}
+
+void render::DrawString(float x, float y, Color color, int flags, ImFont* font, const char* message, ...)
+{
+	char output[1024] = {};
+	va_list args;
+	va_start(args, message);
+	vsprintf_s(output, message, args);
+	va_end(args);
+
+	auto ctx = ImGui::CreateContext();
+	ImGui::SetCurrentContext(ctx);
+	ImGuiWindow* window = ImGui::GetCurrentWindow();
+
+	window->DrawList->PushTextureID(font->ContainerAtlas->TexID);
+	ImGui::PushFont(c_menu::get().futura);
+	auto coord = ImVec2(x, y);
+	auto size = ImGui::CalcTextSize(output);
+	auto coord_out = ImVec2{ coord.x + 1.f, coord.y + 1.f };
+	Color outline_clr = Color(0, 0, 0, color.a());
+
+	int width = 0, height = 0;
+
+	if (!(flags & render2::centered_x))
+		size.x = 0;
+	if (!(flags & render2::centered_y))
+		size.y = 0;
+
+	ImVec2 pos = ImVec2(coord.x - (size.x * .5), coord.y - (size.y * .5));
+
+	if (flags & render2::outline)
+	{
+		pos.y++;
+		window->DrawList->AddText(pos, GetU32(outline_clr), output);
+		pos.x++;
+		window->DrawList->AddText(pos, GetU32(outline_clr), output);
+		pos.y--;
+		window->DrawList->AddText(pos, GetU32(outline_clr), output);
+		pos.x--;
+		window->DrawList->AddText(pos, GetU32(outline_clr), output);
+	}
+
+	window->DrawList->AddText(pos, GetU32(color), output);
+	ImGui::PopFont();
+}
+
+void render::Rect(float x, float y, float w, float h, Color clr, float rounding)
+{
+	ImGuiWindow* window = ImGui::GetCurrentWindow();
+
+	window->DrawList->AddRect(ImVec2(x, y), ImVec2(x + w, y + h), clr.u32(), rounding);
+}
+
+void render::FilledRect(float x, float y, float w, float h, Color clr, float rounding)
+{
+	ImGuiWindow* window = ImGui::GetCurrentWindow();
+
+	window->DrawList->AddRectFilled(ImVec2(x, y), ImVec2(x + w, y + h), clr.u32(), rounding);
+}
+
+void render::DrawLine(float x1, float y1, float x2, float y2, Color clr, float thickness)
+{
+	ImGuiWindow* window = ImGui::GetCurrentWindow();
+	window->DrawList->AddLine(ImVec2(x1, y1), ImVec2(x2, y2), clr.u32(), thickness);
 }
 
 void render::setup_states() const {

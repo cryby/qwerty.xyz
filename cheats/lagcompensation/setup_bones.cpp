@@ -233,7 +233,7 @@ void MergeMatchingPoseParams(uintptr_t bonemerge, float* poses, float* target_po
 	}
 }
 
-void CSetupBones::setup_bones_server()
+void CSetupBones::setup()
 {
 	static auto ik = util::FindSignature(crypt_str("client.dll"), crypt_str("8B 8F ?? ?? ?? ?? 89 4C 24 1C"));
 	static auto m_pIk = *(CIKContext**)((uintptr_t)m_animating + *(uintptr_t*)(ik + 0x2) + 0x4);
@@ -243,8 +243,8 @@ void CSetupBones::setup_bones_server()
 
 	m_pHdr = m_animating->m_pStudioHdr();
 
-	uint32_t bone_computed[32] = { 0 };
-	memset(bone_computed, 0, 32 * sizeof(uint32_t));
+	uint32_t bone_computed[8];
+	memset(bone_computed, 0, 8 * sizeof(uint32_t));
 
 	auto sequences_available = !*(int*)(*(uintptr_t*)m_pHdr + 0x150) || *(int*)((uintptr_t)m_pHdr + 0x4);
 
@@ -324,7 +324,6 @@ void CSetupBones::get_skeleton()
 	bone_setup->m_pPoseDebugger = nullptr;
 
 	bone_setup->InitPose(m_vecBones, m_quatBones, m_pHdr);
-
 	bone_setup->AccumulatePose(m_vecBones, m_quatBones, *(int*)((uintptr_t)m_animating + 0x28BC), *(float*)((uintptr_t)m_animating + 0xA14), 1.0f, m_flCurtime, m_pIk);
 
 	int layer[15] =

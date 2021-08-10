@@ -6168,7 +6168,15 @@ void ImGui::PushFont(ImFont* font)
 void  ImGui::PopFont()
 {
     ImGuiContext& g = *GImGui;
-    g.CurrentWindow->DrawList->PopTextureID();
+    if (g.CurrentWindow != nullptr)
+    {
+        g.CurrentWindow->DrawList->PopTextureID();
+    }
+    else
+    {
+        ImDrawList* drawlist = render::get().draw_list;
+        drawlist->PopTextureID();
+    }
     g.FontStack.pop_back();
     SetCurrentFont(g.FontStack.empty() ? GetDefaultFont() : g.FontStack.back());
 }

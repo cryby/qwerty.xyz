@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../includes.hpp"
+#include "..\..\includes.hpp"
 #include "..\..\sdk\structs.hpp"
 
 enum Prediction_stage
@@ -20,6 +20,9 @@ class engineprediction : public singleton <engineprediction>
 		Vector m_aimPunchAngleVel = ZERO;
 		Vector m_viewPunchAngle = ZERO;
 		Vector m_vecViewOffset = ZERO;
+
+		float m_duckAmount = 0.f;
+		float m_duckSpeed = 0.f;
 	};
 
 	struct Backup_data

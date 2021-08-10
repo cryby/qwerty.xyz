@@ -51,12 +51,12 @@ public:
 	void draw_flags(player_t* e, const Box& box);
 	void draw_lines(player_t* e);
 	void draw_multi_points(player_t* e);
+	void DrawString(float x, float y, Color color, int flags, ImFont* font, const char* message, ...);
 };
 
 class CEsp : public playeresp
 {
 public:
-
 	void CustomVisuals(ImVec2 Start, int player);
 	void VisualPreview();
 	void InitVisuals();

@@ -57,6 +57,8 @@ private:
 	D3DVIEWPORT9      m_viewport;
 public:
 
+	ImDrawList* draw_list;
+
 	void DrawString(float x, float y, Color color, int flags, ImFont* font, const char* message, ...);
 	void arc(float x, float y, float radius, float min_angle, float max_angle, Color col, float thickness);
 	void DrawLine(float x1, float y1, float x2, float y2, Color clr, float thickness = 1.f);

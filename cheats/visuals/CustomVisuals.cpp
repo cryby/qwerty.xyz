@@ -49,7 +49,7 @@ int CEsp::MoveStruct::LastActive = -1;
 bool CEsp::MoveStruct::InitMItems = false;
 
 
-void DrawString(float x, float y, Color color, int flags, ImFont* font, const char* message, ...)
+void playeresp::DrawString(float x, float y, Color color, int flags, ImFont* font, const char* message, ...)
 {
 	char output[1024] = {};
 	va_list args;
@@ -57,7 +57,7 @@ void DrawString(float x, float y, Color color, int flags, ImFont* font, const ch
 	vsprintf_s(output, message, args);
 	va_end(args);
 
-	ImGuiWindow* window = ImGui::GetCurrentWindow();
+	auto window = ImGui::GetCurrentWindow();
 
 	window->DrawList->PushTextureID(font->ContainerAtlas->TexID);
 	ImGui::PushFont(font);
